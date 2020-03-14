@@ -1,0 +1,15 @@
+build: ../../build
+
+framework: ../../framework
+init-data: ../../init-data
+
+baseapp: ../../enterprise/baseapp
+project: ../../enterprise/project
+finance: ../../enterprise/finance
+procdesign: ../../enterprise/procdesign
+basebi: ../../enterprise/basebi
+graphql: ../../enterprise/graphql
+
+
+identity: ../../global/identity
+reconcile: ../../global/reconcile

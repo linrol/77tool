@@ -1,0 +1,49 @@
+发布流程
+                        |-->baseapp
+                        |-->identity
+                        |-->reconcile
+framework-->init-data-->|-->project-->finance-->basebi
+                        |-->procdesign
+                        |-->graphql
+
+
+工作内容：
+
+》》》》一次hotfix的操作流程：
+	1.创建hotfix分支
+	2.清空hotfix分支开发脚本及接口脚本
+	3.修改hotfix分支config.yaml及各工程依赖版本为下一个SNAPSHOT版本
+	4.将修改后的各工程按照发布流程全部发布一遍
+	5.设置分支保护
+	6.通知大家分支已创建
+
+（收到测试通知发布RELEASE版本后）
+	6.修改config.yaml及各工程依赖版本为正式版本
+	7.将各工程按照发布流程发布RELEASE版本
+	8.同时确认是否有recovery脚本及接口数据修复需要执行，跟测试进行反馈
+
+（上线成功后）
+	9.将hotfix分支合并至master分支（注：合并时检查一下是否有未上线的代码提交到hotfix分支，master分支只能提交上线的代码）
+	10.将hotfix分支或合并后的master分支合并至dev分支和release分支
+	11.删除hotfix分支
+
+
+
+》》》》一次迭代的操作流程：
+	（测试通知拉取release分支）
+	1.创建release分支
+	2.清空dev分支开发脚本及接口脚本
+	3.修改dev分支config.yaml及各工程依赖版本为下一个SNAPSHOT版本
+	4.将dev分支修改后的各工程按照发布流程全部发布一遍
+	5.对release分支设置分支保护
+	6.通知大家release分支已创建
+
+（收到测试通知发布RELEASE版本后）
+	6.修改release分支config.yaml及各工程依赖版本为正式版本
+	7.将各工程按照发布流程发布RELEASE版本
+	8.同时确认是否有recovery脚本及接口数据修复需要执行，跟测试进行反馈
+
+（上线成功后）
+	9.将release分支合并至master分支（注：合并时检查一下是否有未上线的代码提交到release分支，master分支只能提交上线的代码）
+	10.将release分支或合并后的master分支合并至dev分支
+	11.删除release分支
