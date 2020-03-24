@@ -120,67 +120,124 @@ class VersionUtils():
         pomfiles.append(sub)
     return pomfiles
 
-  # 对pom文件中的parent版本进行替换, 如果有替换，返回true, 否则返回false
-  # config config.yaml文件内容
-  def updateversion(self, projectName, myroot, projectVersionMap):
-    update = False
+  #修改parent(framework)的版本
+  def updateParent(self, projectName, myroot, version):
     parentVerNode = myroot.find("{}parent/{}version".format(XML_NS_INC, XML_NS_INC))
     parentGroupIdNode = myroot.find("{}parent/{}groupId".format(XML_NS_INC, XML_NS_INC))
-    initDataVerNode = myroot.find("{}properties/{}initDataVersion".format(XML_NS_INC, XML_NS_INC))
-    projectVerNode = myroot.find("{}properties/{}project.api.version".format(XML_NS_INC, XML_NS_INC))
-    financeVerNode = myroot.find("{}properties/{}finance.api.version".format(XML_NS_INC, XML_NS_INC))
-    frameworkVerNode = myroot.find("{}properties/{}version.framework".format(XML_NS_INC, XML_NS_INC))
     if parentVerNode is not None:
       # 更新framework的version
       old = parentVerNode.text
       groupId = parentGroupIdNode.text
-      if old != projectVersionMap['framework'] and groupId == 'com.q7link.framework' and old != '2.1.1.RELEASE':
-        parentVerNode.text = projectVersionMap['framework']
-        update = True
-        print("工程【{}】【framework】版本修改为【{}】".format(projectName,projectVersionMap[projectName]))
-    if frameworkVerNode is not None:
-      # 更新framework的version
-      old = frameworkVerNode.text
-      if old != projectVersionMap['framework']:
-        frameworkVerNode.text = projectVersionMap['framework']
-        update = True
-        print("工程【{}】【framework】版本修改为【{}】".format(projectName,projectVersionMap[projectName]))
-    if initDataVerNode is not None:
+      if old != version and groupId == 'com.q7link.framework':
+        parentVerNode.text = version
+        print("工程【{}】【framework】版本修改为【{}】".format(projectName, version))
+        return True
+    return False
+
+  #projectName:当前文件所属工程
+  #myroot：xml文件
+  #projectVersionMap：工程版本映射关系
+  #propertieName：properties中的节点名称
+  #targetProjectName：propertieName指代的是哪个工程版本
+  #isReplace：版本和本工程相同时，是否替换为${project.version}
+  def updateProperties(self, projectName, myroot, projectVersionMap, propertieName, targetProjectName, isReplace):
+    propertieVerNode = myroot.find("{}properties/{}{}".format(XML_NS_INC, XML_NS_INC, propertieName))
+    update = False
+    if propertieVerNode is not None:
       # 更新init-data的version
-      old = initDataVerNode.text
-      if projectVersionMap[projectName] == projectVersionMap['init-data']:
-        if old != '${project.version}' and old !=projectVersionMap['init-data']:
-          initDataVerNode.text = '${project.version}'
-          update = True
-          print("工程【{}】【init-data】版本修改为【{}】".format(projectName,'${project.version}'))
-      elif old !=projectVersionMap['init-data']:
-        initDataVerNode.text = projectVersionMap['init-data']
+      old = propertieVerNode.text
+      newVersion = projectVersionMap[targetProjectName]
+      if (not isReplace) and old != newVersion:
+        #不需要替换，并且版本不一致，则需要修改
+        propertieVerNode.text = newVersion
         update = True
-        print("工程【{}】【init-data】版本修改为【{}】".format(projectName,projectVersionMap[projectName]))
-    if projectVerNode is not None:
-      # 更新project的version
-      old = projectVerNode.text
-      if projectVersionMap[projectName] == projectVersionMap['project']:
-        if old != '${project.version}' and old !=projectVersionMap['project']:
-          projectVerNode.text = '${project.version}'
+        print("工程【{}】【{}】版本修改为【{}】".format(projectName, targetProjectName, newVersion))
+      elif isReplace and projectVersionMap[projectName] == newVersion:
+        #需要替换，并且本工程版本号与目标工程版本号一致
+        if old != '${project.version}' and old != newVersion:
+          #旧版本设置的不是${project.version}，则需要设置为${project.version}
+          propertieVerNode.text = '${project.version}'
           update = True
-          print("工程【{}】【project】版本修改为【{}】".format(projectName,'${project.version}'))
-      elif old !=projectVersionMap['project']:
-        projectVerNode.text = projectVersionMap['project']
+          print("工程【{}】【{}】版本修改为【{}】".format(projectName, targetProjectName, '${project.version}'))
+      elif isReplace and old !=newVersion:
+        #需要替换，并且本工程版本号与目标工程版本号不一致，则替换为新版本号
+        propertieVerNode.text = newVersion
         update = True
-        print("工程【{}】【project】版本修改为【{}】".format(projectName,projectVersionMap[projectName]))
-    if financeVerNode is not None:
-      # 更新finance的version
-      old = financeVerNode.text
-      if projectVersionMap[projectName] == projectVersionMap['finance']:
-        if old != '${project.version}' and old !=projectVersionMap['finance']:
-          financeVerNode.text = '${project.version}'
+        print("工程【{}】【{}】版本修改为【{}】".format(projectName, targetProjectName, newVersion))
+    return update
+
+  #projectName:当前文件所属工程
+  #myroot：xml文件
+  #projectVersionMap：工程版本映射关系
+  #isReplace：版本和本工程相同时，是否替换为${project.version}
+  def updateDependencies(self, projectName, myroot, projectVersionMap, isReplace):
+    update = False
+    for dependencieNode in myroot.findall("{}dependencies/{}dependency".format(XML_NS_INC, XML_NS_INC)):
+      versionNode = dependencieNode.find("{}version".format(XML_NS_INC))
+      groupId = dependencieNode.find("{}groupId".format(XML_NS_INC)).text
+
+      if groupId == 'com.q7link.application' and versionNode is not None:
+        artifactId = dependencieNode.find("{}artifactId".format(XML_NS_INC)).text
+        targetProjectName = '';
+        if artifactId.endswith('-api'):
+          targetProjectName = artifactId[:-4]
+        else:
+          targetProjectName = artifactId
+
+        if targetProjectName in projectVersionMap:
+          newVersion = projectVersionMap[targetProjectName]
+          old = versionNode.text
+          if (not isReplace) and old != newVersion:
+            #不需要替换，并且版本不一致，则需要修改
+            versionNode.text = newVersion
+            update = True
+            print("工程【{}】【{}】版本修改为【{}】".format(projectName, targetProjectName, newVersion))
+          elif isReplace and projectVersionMap[projectName] == newVersion:
+            #需要替换，并且本工程版本号与目标工程版本号一致
+            if old != '${project.version}' and old != newVersion:
+              #旧版本设置的不是${project.version}，则需要设置为${project.version}
+              versionNode.text = '${project.version}'
+              update = True
+              print("工程【{}】【{}】版本修改为【{}】".format(projectName, targetProjectName, '${project.version}'))
+          elif isReplace and old !=newVersion:
+            #需要替换，并且本工程版本号与目标工程版本号不一致，则替换为新版本号
+            versionNode.text = newVersion
+            update = True
+            print("工程【{}】【{}】版本修改为【{}】".format(projectName, targetProjectName, newVersion))
+        else:
+          print("ERROR: 工程【{}】【{}】的版本未找到！！！".format(projectName, targetProjectName, newVersion))
+          sys.exit(1)
+    return update
+
+  def updatePlugin(self, projectName, myroot, projectVersionMap):
+    update = False
+    for pluginNode in myroot.findall("{}build/{}plugins/{}plugin".format(XML_NS_INC, XML_NS_INC,XML_NS_INC)):
+      versionNode = pluginNode.find("{}version".format(XML_NS_INC))
+      groupId = pluginNode.find("{}groupId".format(XML_NS_INC)).text
+
+      if groupId == 'com.q7link.framework' and versionNode is not None:
+        targetProjectName = 'framework';
+        newVersion = projectVersionMap[targetProjectName]
+        oldVersion = versionNode.text
+        if oldVersion != newVersion and oldVersion != '${frameworkVersion}':
+          #版本变动，需要修改
+          versionNode.text = newVersion
           update = True
-          print("工程【{}】【finance】版本修改为【{}】".format(projectName,'${project.version}'))
-      elif old !=projectVersionMap['finance']:
-        financeVerNode.text = projectVersionMap['finance']
-        update = True
-        print("工程【{}】【finance】版本修改为【{}】".format(projectName,projectVersionMap[projectName]))
+          print("工程【{}】【{}】版本修改为【{}】".format(projectName, targetProjectName, newVersion))
+    return update
+
+
+  # 对pom文件中的parent版本进行替换, 如果有替换，返回true, 否则返回false
+  # config config.yaml文件内容
+  def updateversion(self, projectName, myroot, projectVersionMap):
+    update = self.updateParent(projectName, myroot, projectVersionMap['framework'])
+    if projectName == 'framework':
+      update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework', 'framework', False) or update
+    if projectName == 'init-data':
+      update = self.updateProperties(projectName,myroot, projectVersionMap, 'frameworkVersion', 'framework', False) or update
+      update = self.updatePlugin(projectName, myroot, projectVersionMap) or update
+    if projectName == 'finance' or projectName == 'basebi':
+      update = self.updateDependencies(projectName, myroot, projectVersionMap, True) or update
 
     return update
 
@@ -210,8 +267,12 @@ class VersionUtils():
 
     pomfiles =[]
     # 查找一级目录，只要pom.xml
-    # if projectName == 'init-data':init-data中的这两个文件不用修改
-    #   pomfiles = self.getxmlfile(os.path.abspath(os.path.join(path,"src/main/resources")), 0, ['dump.xml','dump4unpack.xml'])
+    if projectName == 'init-data':
+      pomfiles = self.getxmlfile(os.path.abspath(os.path.join(path,"src/main/resources")), 0, ['dump.xml','dump4unpack.xml'])
+    elif projectName == 'framework':
+      pomfiles = self.getxmlfile(os.path.abspath(os.path.join(path,"common-base-api/src/main/resources")), 0, ['pom-gen.xml','pom-gen-impl.xml'])
+      pomfiles.extend(self.getxmlfile(os.path.abspath(os.path.join(path,"testapp/api")), 0, ['pom.xml']))
+      pomfiles.extend(self.getxmlfile(os.path.abspath(os.path.join(path,"testapp/testapp")), 0, ['pom.xml']))
 
     pomfiles.extend(self.getxmlfile(os.path.abspath(path), 1, ["pom.xml"]))
     ET.register_namespace("", XML_NS)
@@ -222,8 +283,10 @@ class VersionUtils():
         # mytree = ET.parse(file)
         mytree = ET.parse(file, parser=ET.XMLParser(target=CommentedTreeBuilder()))
         myroot = mytree.getroot()
+
         if self.updateversion(projectName, myroot, projectVersionMap):
           mytree.write(file, encoding="UTF-8", xml_declaration=True)
+
         if updateSelf and file.endswith('pom.xml'):
           if self.updateselfversion(projectName, myroot, projectVersionMap):
             mytree.write(file, encoding="UTF-8", xml_declaration=True)
