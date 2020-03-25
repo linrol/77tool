@@ -41,12 +41,10 @@ def get_project(projectName):
 
 #检查gitlab工程分支是否存在,并返回改分支对象
 def check_branch_exist(project, branchName):
-  branchs = project.branches.list()
-  branchMap={}
-  for branch in branchs:
-    if branch.name == branchName:
-      return branch
-  return None
+  try:
+    return project.branches.get(branchName)
+  except gitlab.exceptions.GitlabGetError:
+    return None
 
 #将本地分支删除，重新拉取远程分支
 def checkout_branch(path, branchName):
