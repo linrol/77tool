@@ -231,6 +231,7 @@ class VersionUtils():
   # config config.yaml文件内容
   def updateversion(self, projectName, myroot, projectVersionMap):
     update = self.updateParent(projectName, myroot, projectVersionMap['framework'])
+    update = self.updateProperties(projectName,myroot, projectVersionMap, 'initDataVersion', 'init-data', True) or update
     if projectName == 'framework':
       update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework', 'framework', False) or update
     if projectName == 'init-data':
