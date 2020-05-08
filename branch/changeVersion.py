@@ -268,9 +268,7 @@ class VersionUtils():
 
     pomfiles =[]
     # 查找一级目录，只要pom.xml
-    if projectName == 'init-data':
-      pomfiles = self.getxmlfile(os.path.abspath(os.path.join(path,"src/main/resources")), 0, ['dump.xml','dump4unpack.xml'])
-    elif projectName == 'framework':
+    if projectName == 'framework':
       pomfiles = self.getxmlfile(os.path.abspath(os.path.join(path,"common-base-api/src/main/resources")), 0, ['pom-gen.xml','pom-gen-impl.xml'])
       pomfiles.extend(self.getxmlfile(os.path.abspath(os.path.join(path,"testapp/api")), 0, ['pom.xml']))
       pomfiles.extend(self.getxmlfile(os.path.abspath(os.path.join(path,"testapp/testapp")), 0, ['pom.xml']))

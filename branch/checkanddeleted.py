@@ -81,12 +81,13 @@ if __name__ == "__main__":
     sys.exit(1)
   if(sourceBranchName == 'master' or sourceBranchName == 'dev'):
     print('ERROR: 【{}】分支不允许删除！！！！！！！！！！！'.format(sourceBranchName))
+    sys.exit(1)
 
   #获取所有工程的本地路径
   projectPaths = utils.project_path()
   if len(projectPaths) > 0:
     #获取需要进行分支删除的工程（key:gitlab的project对象，value:本地工程路径）
-    deletes = get_delete_project(projectPaths, sourceBranchName, targetBranchName)    
+    deletes = get_delete_project(projectPaths, sourceBranchName, targetBranchName)
     if len(deletes) > 0:
       #删除工程分支
       delete_branch(deletes, projectPaths, sourceBranchName, targetBranchName)
