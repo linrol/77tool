@@ -231,7 +231,8 @@ class VersionUtils():
   # config config.yaml文件内容
   def updateversion(self, projectName, myroot, projectVersionMap):
     update = self.updateParent(projectName, myroot, projectVersionMap['framework'])
-    update = self.updateProperties(projectName,myroot, projectVersionMap, 'initDataVersion', 'init-data', True) or update
+    if projectName != 'framework':
+      update = self.updateProperties(projectName,myroot, projectVersionMap, 'initDataVersion', 'init-data', True) or update
     if projectName == 'framework':
       update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework', 'framework', False) or update
     if projectName == 'init-data':
@@ -268,7 +269,9 @@ class VersionUtils():
 
     pomfiles =[]
     # 查找一级目录，只要pom.xml
-    if projectName == 'framework':
+    if projectName == 'init-data':
+      pomfiles = self.getxmlfile(os.path.abspath(os.path.join(path,"src/main/resources")), 0, ['dump.xml','dump4unpack.xml'])
+    elif projectName == 'framework':
       pomfiles = self.getxmlfile(os.path.abspath(os.path.join(path,"common-base-api/src/main/resources")), 0, ['pom-gen.xml','pom-gen-impl.xml'])
       pomfiles.extend(self.getxmlfile(os.path.abspath(os.path.join(path,"testapp/api")), 0, ['pom.xml']))
       pomfiles.extend(self.getxmlfile(os.path.abspath(os.path.join(path,"testapp/testapp")), 0, ['pom.xml']))
