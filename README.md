@@ -71,6 +71,10 @@ python3 createBranch.py master hotfix
 
 [dev权限]：所有工程所有人全权限（mr、push）
 
+[none权限]：所有工程所有人禁止mr和push
+
+[d]：删除分支保护
+
 ####命令
 python3 protectBranch.py 分支 权限
 ########例：
@@ -79,6 +83,9 @@ python3 protectBranch.py hotfix release
 
 python3 protectBranch.py hotfix hotfix
 将hotfix分支设置为hotfix权限，此权限为hotfix分支的常态
+
+python3 protectBranch.py hotfix d
+将hotfix分支的分支保护删除
 
 ##5.checkcommit.py
 ####功能
