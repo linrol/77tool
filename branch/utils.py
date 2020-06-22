@@ -62,11 +62,11 @@ def delete_branch_protect(project, branchName):
     print('ERROR: master分支不允许删除分支保护！！！！！！！！！！！')
     sys.exit(1)
   #获取受保护分支列表
-  p_branches = project.protectedbranches.list()
-  for branch in p_branches:
-  	if branch.name == branchName:
-  	  project.protectedbranches.delete(branchName)
-
+  try:
+    p_branch = project.protectedbranches.get(branchName)
+    p_branch.delete()
+  except gitlab.exceptions.GitlabGetError:
+    return
 
 #检查来源分支是否合并至目标分支
 def check_branch_merge(projectName, projectPath, sourceBranchName, targetBranchName):

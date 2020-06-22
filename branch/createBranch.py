@@ -43,10 +43,20 @@ def protect_branch(branchName, project):
   utils.delete_branch_protect(project, branchName)
   mergeAccessLevel = gitlab.DEVELOPER_ACCESS
   pushAccessLevel = gitlab.DEVELOPER_ACCESS
-  #release、hotfix、emergency分支预先设置管理员全权限，便于修改版本号
-  if branchName == 'release' or branchName == 'hotfix' or branchName == 'emergency':
+  #release、hotfix、emergency、hotfix-emergency、hotfix-inte分支预先设置管理员全权限，便于修改版本号
+  if branchName == 'release' or branchName == 'hotfix' or branchName == 'emergency' or branchName == 'hotfix-emergency' or branchName == 'hotfix-inte':
     mergeAccessLevel = gitlab.MAINTAINER_ACCESS
     pushAccessLevel = gitlab.MAINTAINER_ACCESS
+
+    p_branch = project.protectedbranches.create({
+      'name': branchName,
+      'merge_access_level': mergeAccessLevel,
+      'push_access_level': pushAccessLevel
+    })
+    print('【{}】【{}】分支保护成功'.format(project.name, p_branch.name))
+  else:
+    #其他分支不设置分支保护
+    return
   # elif branchName == 'hotfix' or branchName == 'emergency':
   #   if projectName == 'build' or projectName == 'init-data':
   #     mergeAccessLevel = gitlab.MAINTAINER_ACCESS
@@ -55,12 +65,6 @@ def protect_branch(branchName, project):
   #     mergeAccessLevel = gitlab.MAINTAINER_ACCESS
   #     pushAccessLevel = 0
 
-  p_branch = project.protectedbranches.create({
-      'name': branchName,
-      'merge_access_level': mergeAccessLevel,
-      'push_access_level': pushAccessLevel
-  })
-  print('【{}】【{}】分支保护成功'.format(project.name, p_branch.name))
 
 
 
