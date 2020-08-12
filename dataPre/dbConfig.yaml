@@ -1,0 +1,207 @@
+localhost:
+  host: localhost
+  port: 5432
+  user: postgres
+  pwd: 123
+  branch: ztb-test
+  tenantId:
+    multiList: 1a
+    form: 1a
+  initDataPath: /Users/ztb/compile/apps/init-data/
+  financeRoot: /Users/ztb/compile/apps/enterprise/finance
+  projectRoot: /Users/ztb/compile/apps/enterprise/project
+
+dev:
+  host: 172.31.61.12
+  port: 5432
+  user: postgres
+  pwd: 123
+  branch: dev
+  tenantId:
+    multiList: MQD34N501EX0001
+    form: MQD34N501EX0001
+
+test:
+  host: 172.31.61.14
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-asset
+  tenantId:
+    multiList: A24SJR50KMK001E
+    form: A24SJR50KMK001E
+
+#hotfix:
+#  host: 172.31.61.16
+#  port: 5432
+#  user: postgres
+#  pwd: stet44{czars
+#  branch: ztb-test
+#  tenantId:
+#    multiList: A24SJR50KMK001E
+#    form: T73UGP507KR0001
+
+hotfix-inte:
+  host: 172.31.61.54
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: hotfix-inte
+  tenantId:
+    multiList: SLTLFR512JD002H
+    form: SLTLFR512JD002H
+
+hotfix-db:
+  host: 172.31.61.20
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: hotfix-emergency
+  tenantId:
+    multiList: E6R7JR50MCB0015
+    form: E6R7JR50MCB0015
+
+release:
+  host: 172.31.61.18
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: release
+  tenantId:
+    multiList: PSE5KP504EN000F
+    form: PSE5KP504EN000F
+
+
+reports:
+  host: 172.31.61.24
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-contract
+  condition: name in ('ArContract_init-list','ArContract_list')
+  tenantId:
+    multiList: JT91RR50Q4A0006
+    form: LNCEPQ50QX80001
+
+release-db:
+  host: 172.31.61.22
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: release
+  tenantId:
+    multiList: L71RJR50PR80015
+    form: L71RJR50PR80015
+
+
+temp1:
+  host: 172.31.61.26
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-public-rp-gl
+  tenantId:
+    multiList: 0HCEKR50RQ8000V
+    form: 0HCEKR50RQ8000V
+
+temp2:
+  host: 172.31.61.28
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-accounting-fact-iteration-8
+  tenantId:
+    multiList: 87R1UQ50SDB0001
+    form: 87R1UQ50SDB0001
+
+temp3:
+  host: 172.31.61.30
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: qbos-stage-2
+  tenantId:
+    multiList: 71F69R50U88001G
+    form: 71F69R50U88001G
+
+temp4:
+  host: 172.31.61.32
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: hotfix-feature-iv
+  tenantId:
+    multiList: Q8X4HR50VQR0001
+    form: Q8X4HR50VQR0001
+
+temp5:
+  host: 172.31.61.34
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch:
+  tenantId:
+    multiList: NVHEKR50WKA002F
+    form: NVHEKR50WKA002F
+
+temp6:
+  host: 172.31.61.36
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch:
+  tenantId:
+    multiList: FQPMBR50X7V0023
+    form: ACFEKR50X7V000K
+
+temp7:
+  host: 172.31.61.38
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch:
+  tenantId:
+    multiList: FQPMBR50X7V0023
+    form: EEMEKR510KR0004
+
+temp8:
+  host: 172.31.61.52
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-timesheet
+  tenantId:
+    multiList: Q2GEKR511M2000L
+    form: Q2GEKR511M2000L
+
+temp9:
+  host: 172.31.61.56
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-budget
+  tenantId:
+    multiList: S1B4TR5137G001D
+    form: S1B4TR5137G001D
+
+temp10:
+  host: 172.31.61.58
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch:
+  tenantId:
+    multiList: RKGQTR514JJ001L
+    form: RKGQTR514JJ001L
+
+sqlite-com:
+  path: /Users/ztb/compile/apps/init-data/src/main/resources/init-data.sqlite
+  financeRoot: /Users/ztb/compile/apps/enterprise/finance
+  projectRoot: /Users/ztb/compile/apps/enterprise/project
+  root: /Users/ztb/compile/apps/init-data
+
+sqlite-work:
+  path: /Users/ztb/workspace/init-data/src/main/resources/init-data.sqlite
+  financePath: /Users/ztb/workspace/enterprise/finance/api/src/main/resources/BillType.sql
+  projectPath: /Users/ztb/workspace/enterprise/project/api/src/main/resources/BillType.sql
+  root: /Users/ztb/workspace/init-data

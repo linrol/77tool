@@ -1,0 +1,123 @@
+[
+  {
+    "tableName": "baseapp_query_list_definition",
+    "condition": "is_public = 't'",
+    "orderBy": "group_id, id",
+    "key": {
+      "queryField": "group_id",
+      "valueField": "id"
+    },
+    "tables": [
+      {
+        "tableName": "baseapp_list_columns_definition",
+        "orderBy": "query_list_definition_id, ordinal",
+        "key": {
+          "queryField": "query_list_definition_id",
+          "valueField": "id"
+        },
+        "tables": [
+          {
+            "tableName": "baseapp_list_column",
+            "orderBy": "list_columns_definition_id, ordinal",
+            "key": {
+              "queryField": "list_columns_definition_id",
+              "valueField": "id"
+            },
+            "tables": [
+            ]
+          },
+          {
+            "tableName": "baseapp_list_columns_schema",
+            "orderBy": "id",
+            "key": {
+              "queryField": "id",
+              "valueField": "list_columns_schema_id"
+            },
+            "tables": [
+              {
+                "tableName": "baseapp_list_column_schema",
+                "orderBy": "list_columns_schema_id, ordinal",
+                "key": {
+                  "queryField": "list_columns_schema_id",
+                  "valueField": "id"
+                },
+                "tables": [
+                ]
+              },
+              {
+                "tableName": "baseapp_list_columns_schema_sort_field",
+                "orderBy": "list_column_schema_id, id",
+                "key": {
+                  "queryField": "list_column_schema_id",
+                  "valueField": "id"
+                },
+                "tables": [
+                ]
+              },
+              {
+                "tableName": "baseapp_list_columns_schema_context_field",
+                "orderBy": "list_column_schema_id, ordinal",
+                "key": {
+                  "queryField": "list_column_schema_id",
+                  "valueField": "id"
+                },
+                "tables": [
+                ]
+              },
+              {
+                "tableName": "baseapp_list_column_group",
+                "orderBy": "list_column_schema_id, id",
+                "key": {
+                  "queryField": "list_column_schema_id",
+                  "valueField": "id"
+                },
+                "tables": [
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "baseapp_query_definition",
+        "orderBy": "query_list_definition_id, id",
+        "key": {
+          "queryField": "query_list_definition_id",
+          "valueField": "id"
+        },
+        "tables": [
+          {
+            "tableName": "baseapp_query_item",
+            "orderBy": "query_definition_id, ordinal",
+            "key": {
+              "queryField": "query_definition_id",
+              "valueField": "id"
+            },
+            "tables": [
+            ]
+          },
+          {
+            "tableName": "baseapp_query_schema",
+            "orderBy": "id",
+            "key": {
+              "queryField": "id",
+              "valueField": "query_schema_id"
+            },
+            "tables": [
+              {
+                "tableName": "baseapp_query_item_schema",
+                "orderBy": "query_schema_id, ordinal",
+                "key": {
+                  "queryField": "query_schema_id",
+                  "valueField": "id"
+                },
+                "tables": [
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
