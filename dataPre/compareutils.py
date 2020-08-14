@@ -173,10 +173,16 @@ def convert(value, isJson):
   elif type(value) is float:
     result = str(value)
   elif type(value) is bool:
-    if value:
-      result = '\'t\''
+    if isJson:
+      if value:
+        result = '\'true\''
+      else:
+        result = '\'false\''
     else:
-      result = '\'f\''
+      if value:
+        result = '\'t\''
+      else:
+        result = '\'f\''
   elif type(value) is str:
     if isJson:
       result = "\'\"{}\"\'".format(value.replace("\'", "\'\'"))

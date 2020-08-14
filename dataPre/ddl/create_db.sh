@@ -33,4 +33,4 @@ PGPASSWORD=$dbPass psql -U $dbUser -h $dbHost -p $dbPort -c "SELECT pg_terminate
 PGPASSWORD=$dbPass psql -U $dbUser -h $dbHost -p $dbPort -c "DROP DATABASE IF EXISTS \"$dbName\";"
 PGPASSWORD=$dbPass psql -U $dbUser -h $dbHost -p $dbPort -c "CREATE DATABASE \"$dbName\" WITH OWNER=\"$dbUser\";"
 
-PGOPTIONS='--client-min-messages=warning' PGPASSWORD=$dbPass psql $params -d $dbName -f $fileName.sql -v ON_ERROR_STOP=1
+PGOPTIONS='--client-min-messages=warning' PGPASSWORD=$dbPass psql -U $dbUser $params -d $dbName -f $fileName.sql -v ON_ERROR_STOP=1
