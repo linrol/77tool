@@ -23,13 +23,14 @@ def get_all_tables(tableName, tableJoins):
 
 #恢复预制文件的预制数据到指定的数据库---pg
 # connect: pg数据库连接
-# rootPath: init-dat工程根路径
+# dataPath: 数据存储根路径路径
 # tableNames: 需要恢复的表名集合
-def restore_data_pg(connect, rootPath, tableNames):
+def restore_data_pg(connect, path):
   cur = connect.cursor()
-  for tableName in tableNames:
-    tableFile = get_file_path(tableName, rootPath)
+  tableFiles = get_all_files('{}/uiConfig'.format(path), "UiConfig_")
+  tableFiles.extend(get_all_files('{}/billTypeTemplate'.format(path), "BillTypeTemplate_"))
 
+  for tableFile in tableFiles:
     file = Path(tableFile)
     if file.is_file():
       sqls = file.read_text('utf-8')
@@ -37,6 +38,30 @@ def restore_data_pg(connect, rootPath, tableNames):
         cur.execute(sqls)
   cur.close()
   connect.commit()
+  return tableFiles
+
+#获取指定路径下，指定前缀的文件路径集合
+# rootPath: 要检查的路径
+# pre: 要获取的文件名前缀
+def get_all_files(rootPath, pre=None):
+  index = rootPath.rfind('/')
+  if index+1 == len(rootPath):
+    rootPath = rootPath[:-1]
+
+  filePaths = []
+  if not os.path.exists(rootPath):
+    return filePaths
+
+  listdir = os.listdir(rootPath)
+  for fileName in listdir:
+    filePath = '{}/{}'.format(rootPath, fileName)
+    if os.path.isdir(filePath):
+      child = get_all_files(filePath, pre)
+      if child is not None and len(child) > 0:
+        filePaths.extend(child)
+    elif pre is None or fileName.startswith(pre):
+      filePaths.append(filePath)
+  return filePaths
 
 #加载数据
 # tableName: 加载数据的表名
@@ -77,38 +102,82 @@ def compare_and_gen_log(newDatas, originDatas, branch, tableType, source):
 #保存预制数据到相应的预制文件
 # newDatas: 新数据（本地升级之后的数据）
 # rootPath: init-data工程根路径
-def save_data(newDatas, rootPath):
+def save_data(newDatas, dataPath):
   for tableName,newData in newDatas.items():
-    file = get_file_path(tableName, rootPath)
+    if(tableName == 'baseapp_ui_config'):
+      save_ui_config(newData,dataPath)
+    elif tableName == 'baseapp_bill_type_template':
+      save_bill_type_template(newData,dataPath)
+    else:
+      print("ERROR: 表【{}】未处理!!!".format(tableName))
+
+#保存UiConfig数据
+def save_ui_config(newData, dataPath):
+  uiConfigs = {}
+  for data in newData:
+    uiType = data['type']['value']
+    if uiType is None or uiType.lstrip()=='':
+      uiType = 'null'
+
+    content = data['content']['value']
+    if type(content) is int:
+      entityName = 'Int'
+    elif type(content) is float:
+      entityName = 'Float'
+    elif type(content) is bool:
+      entityName = 'Boolean'
+    elif type(content) is str:
+      entityName = 'String'
+    elif type(content) is list or type(content) is tuple:
+      entityName = 'List'
+    elif type(content) is dict:
+      entityName = content.get('entityName', 'None')
+    else:
+      print("ERROR: content字段类型[{}]未知!!!".format(type(content)))
+      sys.exit(1)
+
+    strName = '{}_{}'.format(uiType, entityName)
+    uiDatas = uiConfigs.get(strName, [])
+    uiDatas.append(data)
+    uiConfigs[strName] =uiDatas
+  filePath = '{}/uiConfig/'.format(dataPath)
+  if not os.path.exists(filePath):
+    os.makedirs(filePath, 0o777)
+  for key,lists in uiConfigs.items():
+    file = os.path.join(filePath, 'UiConfig_{}.sql'.format(key))
     with open(file,mode='w+',encoding='utf-8') as file:
-      for data in newData:
-        sql = compareutils.get_insert(data, tableName)
+      for uiData in lists:
+        sql = compareutils.get_insert(uiData, 'baseapp_ui_config')
         file.write(sql)
 
-#获取指定表的预制文件路径
-# tableName: 表名
-# rootPath: init-data工程根路径
-def get_file_path(tableName, rootPath):
-  index = rootPath.rfind('/')
-  if index+1 == len(rootPath):
-    rootPath = rootPath[:-1]
-  file = Path('{}/src/main/resources/init-data'.format(rootPath))
-  if file.exists():
-    file = '{}/src/main/resources/init-data/{}.sql'.format(rootPath, tableName)
-    return file
-  else:
-    print("ERROR: 文件夹不存在[{}]!!!!".format(str(file)))
-    sys.exit(1)
+#保存BillTypeTemplate数据
+def save_bill_type_template(newData, dataPath):
+  billTypeTemps = {}
+  for data in newData:
+    objectType = data['object_type']['value']
+    if objectType is None or objectType.lstrip()=='':
+      objectType = 'null'
+    billTypeTempDatas = billTypeTemps.get(objectType, [])
+    billTypeTempDatas.append(data)
+    billTypeTemps[objectType] = billTypeTempDatas
+  filePath = '{}/billTypeTemplate/'.format(dataPath)
+  if not os.path.exists(filePath):
+    os.makedirs(filePath, 0o777)
+  for key,lists in billTypeTemps.items():
+    file = os.path.join(filePath, 'BillTypeTemplate_{}.sql'.format(key))
+    with open(file,mode='w+',encoding='utf-8') as file:
+      for billTypeTemp in lists:
+        sql = compareutils.get_insert(billTypeTemp, 'baseapp_bill_type_template')
+        file.write(sql)
 
 
 #提交文件
-# tableName: 表名
-# rootPath: init-data工程根路径
+# dataPath: init-data工程根路径
 # commitUser: 提交人
-def commit(tableNames, rootPath, commitUser):
+def commit(rootPath, commitUser):
   cmd = 'cd ' + rootPath
-  for tableName in tableNames:
-    cmd += ';git add src/main/resources/init-data/{}.sql'.format(tableName)
+  cmd += ';git add src/main/resources/init-data/uiConfig/UiConfig_*'
+  cmd += ';git add src/main/resources/init-data/billTypeTemplate/BillTypeTemplate_*'
   cmd += ';git commit -m "<数据预制>前端UiConfig数据预置--{}"'.format(commitUser)
   [result, msg] = subprocess.getstatusoutput(cmd)
   if result != 0:
@@ -204,6 +273,7 @@ def pre_form(env, dbName, branch, commitUser):
 
   projectName = 'init-data'
   rootPath = localConfig[projectName]
+  dataPath = localConfig[tableType][projectName]
 
   utils.chectout_branch(projectName, rootPath, branch)
 
@@ -223,7 +293,7 @@ def pre_form(env, dbName, branch, commitUser):
   targetConnect = utils.getPgSql(target, dbConfigs)
 
   #将本地代码的预制数据恢复至本地基准库
-  restore_data_pg(targetConnect,rootPath, tableNames.keys())
+  oldFiles = restore_data_pg(targetConnect,dataPath)
 
   #获取预制库中的新数据及本地的旧数据
   newDatas = load_data(tableNames, sourceConnect)
@@ -232,25 +302,19 @@ def pre_form(env, dbName, branch, commitUser):
   #对比产生差异脚本
   changeLog = compare_and_gen_log(newDatas, originDatas, branch, tableType, source)
   if changeLog is None:
+    sourceConnect.close()
+    targetConnect.close()
     print("预制租户[{}]与branch[{}]之间无差异".format(source,branch))
     sys.exit(1)
-  else:
-    #将变更在本地库执行
-    file = Path(changeLog)
-    if file.is_file():
-      sqls = file.read_text('utf-8')
-      if len(sqls.rstrip()) > 0:
-        cur = targetConnect.cursor()
-        cur.execute(sqls)
-        cur.close()
-        targetConnect.commit()
-    else:
-      print("ERROR: 未找到变更记录文件！！！")
-      sys.exit(1)
 
-
+  #有差异时，先将本地脚本移除，然后将本地升级之后的数据生成预制脚本
+  for oldFile in oldFiles:
+    os.remove(oldFile)
   #有差异时，将本地升级之后的数据生成预制脚本
-  save_data(load_data(tableNames, sourceConnect), rootPath)
+  save_data(load_data(tableNames, sourceConnect), dataPath)
+
+  sourceConnect.close()
+  targetConnect.close()
 
   #编译
   # cmd = 'cd ' + rootPath + ';mvn clean install'
@@ -262,7 +326,7 @@ def pre_form(env, dbName, branch, commitUser):
 
   #自动提交
   if commitUser != None and len(commitUser.lstrip())>0:
-    commit(tableNames, rootPath, commitUser)
+    commit(rootPath, commitUser)
     print("自动提交")
   # 记录操作日志
   operation_log(source, branch, None, commitUser, changeLog, tableType)
@@ -275,11 +339,14 @@ def pre_form(env, dbName, branch, commitUser):
 
 # if __name__ == "__main__":
 #   # 获取预制环境
-#   env = 'release'
+#   env = 'reports'
+#   dbName='tenantLNCEPQ50QX80001'
+#   branch ='ztb-test'
 #
-#   dbConfigs = utils.analysisYaml()
-#   pgConfig = dbConfigs.get(env,None)
-#   branch = 'dev'
-#   tenantId = pgConfig.get('tenantId', None)
+#   # dbConfigs = utils.analysisYaml()
+#   # pgConfig = dbConfigs.get(env,None)
+#   # branch = 'dev'
+#   # tenantId = pgConfig.get('tenantId', None)
 #
 #   commitUser = ''
+#   pre_form(env, dbName, branch, commitUser)

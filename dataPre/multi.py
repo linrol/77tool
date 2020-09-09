@@ -19,27 +19,13 @@ def load_json(tableName):
     tables = json.loads(file.read_text('utf-8'))
   return tables
 
-#根据指定表和此表与其他表的关联关系，获取所有表名（包含此表本身和关联的表）
-# tableName: 指定表
-# tableJoins: 指定表的关联关系
-def get_all_tables(tableName, tableJoins):
-  tableNames = [tableName]
-  if tableJoins is not None:
-    for item in tableJoins:
-      nextTableName = item["tableName"]
-      nextTableJoins = item["tables"]
-      tableNames.extend(get_all_tables(nextTableName, nextTableJoins))
-  return tableNames
-
 #恢复预制文件的预制数据到指定的数据库---pg
 # connect: pg数据库连接
-# rootPath: init-dat工程根路径
-# tableNames: 需要恢复的表名集合
-def restore_data_pg(connect, rootPath, tableNames):
+# path: init-dat工程脚本存放路径
+def restore_data_pg(connect, path):
   cur = connect.cursor()
-  for tableName in tableNames:
-    tableFile = get_file_path(tableName, rootPath)
-
+  tableFiles = get_all_files('{}/multiList'.format(path), "MultiList_")
+  for tableFile in tableFiles:
     file = Path(tableFile)
     if file.is_file():
       sqls = file.read_text('utf-8')
@@ -47,8 +33,9 @@ def restore_data_pg(connect, rootPath, tableNames):
         cur.execute(sqls)
   cur.close()
   connect.commit()
+  return tableFiles
 
-#加载数据
+#加载数据(返回数据按照表进行分割)
 # tableName: 加载数据的表名
 # connect: 数据库连接
 # tableJoins: 和此表关联的表信息
@@ -56,6 +43,7 @@ def restore_data_pg(connect, rootPath, tableNames):
 def load_data(tableName, connect, tableJoins, condition=None, orderBy=None):
   result = {}
   mains = utils.getDataOfPg(tableName, connect, condition, orderBy)
+  result[tableName] = mains
   if len(tableJoins) > 0:
     for item in tableJoins:
       nextTableName = item["tableName"]
@@ -82,7 +70,27 @@ def load_data(tableName, connect, tableJoins, condition=None, orderBy=None):
       data = load_data(nextTableName, connect, nextTableJoins, nextCondition, nextOrderBy)
       result.update(data)
 
-  result[tableName] = mains
+  return result
+
+
+#加载数据(返回数据按照分组进行分割)
+# tableName: 加载数据的表名
+# connect: 数据库连接
+# tableJoins: 和此表关联的表信息
+# groupField: 分组字段
+# condition: 附带的查询条件
+def load_data_of_group(tableName, connect, tableJoins, groupField, condition=None, orderBy=None):
+  result = {}
+  mains = utils.getDataOfPg(tableName, connect, condition, orderBy)
+
+  for main in mains:
+    if main != None:
+      groupValue = main[groupField]['value']
+      id = main['id']['value']
+      #获取关联查询结果
+      condition = 'id = \'{}\''.format(id)
+      data = load_data(tableName, connect, tableJoins, condition)
+      result[groupValue] = data
   return result
 
 #对比新旧数据，产生升级脚本存放到指定分支目录下
@@ -113,39 +121,57 @@ def compare_and_gen_log(newDatas, originDatas, branch, tableType, source):
 
 #保存预制数据到相应的预制文件
 # newDatas: 新数据（本地升级之后的数据）
-# rootPath: init-data工程根路径
-def save_data(newDatas, rootPath):
-  for fileName,newData in newDatas.items():
-    file = get_file_path(fileName, rootPath)
+# scriptPath: init-data工程脚本存放路径
+def save_data(newDatas, scriptPath):
+  files = []
+  filePath = '{}/multiList/'.format(scriptPath)
+  if not os.path.exists(filePath):
+    os.makedirs(filePath, 0o777)
+  for groupName,newData in newDatas.items():
+    file = os.path.join(filePath, 'MultiList_{}.sql'.format(groupName))
+    files.append(file)
     with open(file,mode='w+',encoding='utf-8') as file:
-      for data in newData:
-        sql = compareutils.get_insert(data, fileName)
-        file.write(sql)
+      for tableName,datas in newData.items():
+        file.write('--{}\n'.format(tableName))
+        for data in datas:
+          sql = compareutils.get_insert(data, tableName)
+          file.write(sql)
+        file.write('\n')
+  return files
 
-#获取指定表的预制文件路径
-# fileName: 文件名称
-# rootPath: init-data工程根路径
-def get_file_path(fileName, rootPath):
+
+#获取指定路径下，指定前缀的文件路径集合
+# rootPath: init-data工程脚本存放路径
+# pre: 要获取的文件名前缀
+def get_all_files(rootPath, pre=None):
   index = rootPath.rfind('/')
   if index+1 == len(rootPath):
     rootPath = rootPath[:-1]
-  file = Path('{}/src/main/resources/init-data'.format(rootPath))
-  if file.exists():
-    file = '{}/src/main/resources/init-data/{}.sql'.format(rootPath, fileName)
-    return file
-  else:
-    print("ERROR: 文件夹不存在[{}]!!!!".format(str(file)))
-    sys.exit(1)
+
+  filePaths = []
+
+  if not os.path.exists(rootPath):
+    return filePaths
+
+  listdir = os.listdir(rootPath)
+  for fileName in listdir:
+    filePath = '{}/{}'.format(rootPath, fileName)
+    if os.path.isdir(filePath):
+      child = get_all_files(filePath, pre)
+      if child is not None and len(child) > 0:
+        filePaths.extend(child)
+    elif pre is None or fileName.startswith(pre):
+      filePaths.append(filePath)
+  return filePaths
 
 
 #提交文件
 # tableName: 表名
 # rootPath: init-data工程根路径
 # commitUser: 提交人
-def commit(tableNames, rootPath, commitUser, condition):
+def commit(rootPath, commitUser, condition):
   cmd = 'cd ' + rootPath
-  for tableName in tableNames:
-    cmd += ';git add src/main/resources/init-data/{}.sql'.format(tableName)
+  cmd += ';git add src/main/resources/init-data/multiList/MultiList_*'
   cmd += ';git commit -m "<数据预制>前端多列表方案数据预置--{}(条件：{})"'.format(commitUser, condition)
   # TODO 如果要自动push则需要删除本地分支重新拉取
   # git push -u origin master
@@ -188,6 +214,7 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
 
   projectName = 'init-data'
   rootPath = localConfig[projectName]
+  scriptPath = localConfig[tableType][projectName]
 
   utils.chectout_branch(projectName, rootPath, branch)
 
@@ -196,16 +223,13 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
 
   #获取表关联信息
   tableJoins = load_json(tableName)
-  #获取需要操作的所有表
-  tableNames = get_all_tables(tableName, tableJoins)
-  # print(json.dumps(tableNames))
 
   # 获取数据库连接信息
   sourceConnect = utils.getPgSql(source, dbConfigs)
   targetConnect = utils.getPgSql(target, dbConfigs)
 
   #将本地代码的预制数据恢复至本地基准库
-  restore_data_pg(targetConnect,rootPath, tableNames)
+  oldFiles = restore_data_pg(targetConnect, scriptPath)
 
   #获取预制库中的新数据及本地的旧数据
   newDatas = load_data(tableName, sourceConnect, tableJoins, condition)
@@ -214,6 +238,8 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
   #对比产生差异脚本
   changeLog = compare_and_gen_log(newDatas, originDatas, branch, tableType, source)
   if changeLog is None:
+    sourceConnect.close()
+    targetConnect.close()
     print("预制租户[{}]与branch[{}]之间无差异".format(source,branch))
     sys.exit(1)
   else:
@@ -231,8 +257,13 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
       sys.exit(1)
 
 
-  #有差异时，将本地升级之后的数据生成预制脚本
-  save_data(load_data(tableName, targetConnect, tableJoins), rootPath)
+  #有差异时，先将本地脚本移除，然后将本地升级之后的数据生成预制脚本
+  for oldFile in oldFiles:
+    os.remove(oldFile)
+  filePaths = save_data(load_data_of_group(tableName, targetConnect, tableJoins, 'name'),scriptPath)
+
+  sourceConnect.close()
+  targetConnect.close()
 
   #编译
   # cmd = 'cd ' + rootPath + ';mvn clean install'
@@ -244,7 +275,7 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
 
   #自动提交
   if commitUser != None and len(commitUser.lstrip())>0:
-    commit(tableNames, rootPath, commitUser, condition)
+    commit(rootPath, commitUser, condition)
     print("自动提交")
   # 记录操作日志
   operation_log(source, branch, condition, commitUser, changeLog, tableType)
@@ -253,5 +284,9 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
   print("本次预制多列表方案操作为：")
   print("预制租户: " + source)
   print("分支: " + branch)
-  print("查询条件: " + condition)
-  print("提交人: " + commitUser)
+
+
+
+
+if __name__ == "__main__":
+  pre_multi_list('localhost', 'testapp', 'ztb-test', 'aa', None)

@@ -2,7 +2,7 @@
   {
     "tableName": "baseapp_query_list_definition",
     "condition": "is_public = 't'",
-    "orderBy": "group_id, id",
+    "orderBy": "lower(group_id), lower(id)",
     "key": {
       "queryField": "group_id",
       "valueField": "id"
@@ -10,7 +10,7 @@
     "tables": [
       {
         "tableName": "baseapp_list_columns_definition",
-        "orderBy": "query_list_definition_id, ordinal",
+        "orderBy": "lower(query_list_definition_id), ordinal",
         "key": {
           "queryField": "query_list_definition_id",
           "valueField": "id"
@@ -18,7 +18,7 @@
         "tables": [
           {
             "tableName": "baseapp_list_column",
-            "orderBy": "list_columns_definition_id, ordinal",
+            "orderBy": "lower(list_columns_definition_id), ordinal",
             "key": {
               "queryField": "list_columns_definition_id",
               "valueField": "id"
@@ -28,7 +28,7 @@
           },
           {
             "tableName": "baseapp_list_columns_schema",
-            "orderBy": "id",
+            "orderBy": "lower(id)",
             "key": {
               "queryField": "id",
               "valueField": "list_columns_schema_id"
@@ -36,7 +36,7 @@
             "tables": [
               {
                 "tableName": "baseapp_list_column_schema",
-                "orderBy": "list_columns_schema_id, ordinal",
+                "orderBy": "lower(list_columns_schema_id), ordinal",
                 "key": {
                   "queryField": "list_columns_schema_id",
                   "valueField": "id"
@@ -46,7 +46,7 @@
               },
               {
                 "tableName": "baseapp_list_columns_schema_sort_field",
-                "orderBy": "list_column_schema_id, id",
+                "orderBy": "lower(list_column_schema_id), lower(id)",
                 "key": {
                   "queryField": "list_column_schema_id",
                   "valueField": "id"
@@ -56,7 +56,7 @@
               },
               {
                 "tableName": "baseapp_list_columns_schema_context_field",
-                "orderBy": "list_column_schema_id, ordinal",
+                "orderBy": "lower(list_column_schema_id), ordinal",
                 "key": {
                   "queryField": "list_column_schema_id",
                   "valueField": "id"
@@ -66,7 +66,7 @@
               },
               {
                 "tableName": "baseapp_list_column_group",
-                "orderBy": "list_column_schema_id, id",
+                "orderBy": "lower(list_column_schema_id), lower(id)",
                 "key": {
                   "queryField": "list_column_schema_id",
                   "valueField": "id"
@@ -80,7 +80,7 @@
       },
       {
         "tableName": "baseapp_query_definition",
-        "orderBy": "query_list_definition_id, id",
+        "orderBy": "lower(query_list_definition_id), lower(id)",
         "key": {
           "queryField": "query_list_definition_id",
           "valueField": "id"
@@ -88,7 +88,7 @@
         "tables": [
           {
             "tableName": "baseapp_query_item",
-            "orderBy": "query_definition_id, ordinal",
+            "orderBy": "lower(query_definition_id), ordinal",
             "key": {
               "queryField": "query_definition_id",
               "valueField": "id"
@@ -98,7 +98,7 @@
           },
           {
             "tableName": "baseapp_query_schema",
-            "orderBy": "id",
+            "orderBy": "lower(id)",
             "key": {
               "queryField": "id",
               "valueField": "query_schema_id"
@@ -106,7 +106,7 @@
             "tables": [
               {
                 "tableName": "baseapp_query_item_schema",
-                "orderBy": "query_schema_id, ordinal",
+                "orderBy": "lower(query_schema_id), ordinal",
                 "key": {
                   "queryField": "query_schema_id",
                   "valueField": "id"

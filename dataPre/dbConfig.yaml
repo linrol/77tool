@@ -20,6 +20,7 @@ dev:
   tenantId:
     multiList: MQD34N501EX0001
     form: MQD34N501EX0001
+    reset: MQD34N501EX0001
 
 test:
   host: 172.31.61.14
@@ -30,16 +31,18 @@ test:
   tenantId:
     multiList: A24SJR50KMK001E
     form: A24SJR50KMK001E
+    reset: A24SJR50KMK001E
 
-#hotfix:
-#  host: 172.31.61.16
-#  port: 5432
-#  user: postgres
-#  pwd: stet44{czars
-#  branch: ztb-test
-#  tenantId:
-#    multiList: A24SJR50KMK001E
-#    form: T73UGP507KR0001
+hotfix:
+  host: 172.31.61.16
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: ztb-test
+  tenantId:
+    multiList: A24SJR50KMK001E
+    form: T73UGP507KR0001
+    reset: T73UGP507KR0001
 
 hotfix-inte:
   host: 172.31.61.54
@@ -50,6 +53,7 @@ hotfix-inte:
   tenantId:
     multiList: SLTLFR512JD002H
     form: SLTLFR512JD002H
+    reset: SLTLFR512JD002H
 
 hotfix-db:
   host: 172.31.61.20
@@ -60,6 +64,7 @@ hotfix-db:
   tenantId:
     multiList: E6R7JR50MCB0015
     form: E6R7JR50MCB0015
+    reset: E6R7JR50MCB0015
 
 release:
   host: 172.31.61.18
@@ -70,6 +75,7 @@ release:
   tenantId:
     multiList: PSE5KP504EN000F
     form: PSE5KP504EN000F
+    reset: PSE5KP504EN000F
 
 
 reports:
@@ -82,6 +88,7 @@ reports:
   tenantId:
     multiList: JT91RR50Q4A0006
     form: LNCEPQ50QX80001
+    reset: LNCEPQ50QX80001
 
 release-db:
   host: 172.31.61.22
@@ -92,6 +99,7 @@ release-db:
   tenantId:
     multiList: L71RJR50PR80015
     form: L71RJR50PR80015
+    reset: L71RJR50PR80015
 
 
 temp1:
@@ -103,6 +111,7 @@ temp1:
   tenantId:
     multiList: 0HCEKR50RQ8000V
     form: 0HCEKR50RQ8000V
+    reset: 0HCEKR50RQ8000V
 
 temp2:
   host: 172.31.61.28
@@ -113,6 +122,7 @@ temp2:
   tenantId:
     multiList: 87R1UQ50SDB0001
     form: 87R1UQ50SDB0001
+    reset: 87R1UQ50SDB0001
 
 temp3:
   host: 172.31.61.30
@@ -123,16 +133,18 @@ temp3:
   tenantId:
     multiList: 71F69R50U88001G
     form: 71F69R50U88001G
+    reset: 71F69R50U88001G
 
 temp4:
   host: 172.31.61.32
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch: hotfix-feature-iv
+  branch: feature-alert
   tenantId:
     multiList: Q8X4HR50VQR0001
     form: Q8X4HR50VQR0001
+    reset: Q8X4HR50VQR0001
 
 temp5:
   host: 172.31.61.34
@@ -143,6 +155,7 @@ temp5:
   tenantId:
     multiList: NVHEKR50WKA002F
     form: NVHEKR50WKA002F
+    reset: NVHEKR50WKA002F
 
 temp6:
   host: 172.31.61.36
@@ -153,6 +166,7 @@ temp6:
   tenantId:
     multiList: FQPMBR50X7V0023
     form: ACFEKR50X7V000K
+    reset: ACFEKR50X7V000K
 
 temp7:
   host: 172.31.61.38
@@ -163,6 +177,7 @@ temp7:
   tenantId:
     multiList: FQPMBR50X7V0023
     form: EEMEKR510KR0004
+    reset: EEMEKR510KR0004
 
 temp8:
   host: 172.31.61.52
@@ -173,6 +188,7 @@ temp8:
   tenantId:
     multiList: Q2GEKR511M2000L
     form: Q2GEKR511M2000L
+    reset: Q2GEKR511M2000L
 
 temp9:
   host: 172.31.61.56
@@ -181,8 +197,9 @@ temp9:
   pwd: stet44{czars
   branch: feature-budget
   tenantId:
-    multiList: S1B4TR5137G001D
+    multiList: R2VGTR513C0001J
     form: S1B4TR5137G001D
+    reset: S1B4TR5137G001D
 
 temp10:
   host: 172.31.61.58
@@ -193,15 +210,4 @@ temp10:
   tenantId:
     multiList: RKGQTR514JJ001L
     form: RKGQTR514JJ001L
-
-sqlite-com:
-  path: /Users/ztb/compile/apps/init-data/src/main/resources/init-data.sqlite
-  financeRoot: /Users/ztb/compile/apps/enterprise/finance
-  projectRoot: /Users/ztb/compile/apps/enterprise/project
-  root: /Users/ztb/compile/apps/init-data
-
-sqlite-work:
-  path: /Users/ztb/workspace/init-data/src/main/resources/init-data.sqlite
-  financePath: /Users/ztb/workspace/enterprise/finance/api/src/main/resources/BillType.sql
-  projectPath: /Users/ztb/workspace/enterprise/project/api/src/main/resources/BillType.sql
-  root: /Users/ztb/workspace/init-data
+    reset: RKGQTR514JJ001L

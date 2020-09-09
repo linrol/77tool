@@ -151,6 +151,9 @@ def pre_bill_type(env, dbName, branch, commitUser):
   # fileName = compare.compare_and_genSql(source, target)
   datas = compare(sourceConnect, targetConnect, idMap)
 
+  sourceConnect.close()
+  targetConnect.close()
+
   if datas == None:
     print("source[{}]与分支[{}]之间无差异".format(source,branch))
     sys.exit(1)

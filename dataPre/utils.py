@@ -13,7 +13,7 @@ TOKEN='kiQ2sQENQVdRgkxzntQy'
 excludeFields = ['last_criteria_value', 'entry_src_system_id', 'external_system_code', 'external_object_type', 'external_object_id', 'created_user_id', 'created_time', 'modified_user_id', 'modified_time', 'is_init_data', 'is_deleted', 'last_request_id', 'last_modified_user_id', 'last_modified_time', 'customized_fields','data_version']
 # jsonFields = ['content']
 # booleanFields = ['is_disabled','is_system','is_default','is_print','is_mobile','is_display','is_total','is_virtual','is_extend']
-isSystemTable = ['baseapp_bill_type_template', 'baseapp_list_column', 'baseapp_list_column_schema', 'baseapp_list_columns_definition', 'baseapp_list_columns_schema', 'baseapp_list_columns_schema_context_field', 'baseapp_list_columns_schema_sort_field', 'baseapp_query_list_definition', 'baseapp_query_item', 'baseapp_query_item_schema', 'baseapp_query_definition', 'baseapp_query_schema', 'baseapp_query_definition_group','baseapp_list_column_group']
+isSystemTable = ['baseapp_bill_type_template', 'baseapp_list_column', 'baseapp_list_column_schema', 'baseapp_list_columns_definition', 'baseapp_list_columns_schema', 'baseapp_list_columns_schema_context_field', 'baseapp_list_columns_schema_sort_field', 'baseapp_query_list_definition', 'baseapp_query_item', 'baseapp_query_item_schema', 'baseapp_query_definition', 'baseapp_query_schema', 'baseapp_query_definition_group','baseapp_list_column_group','baseapp_menu_func','baseapp_menu','baseapp_report_definition']
 
 # 获取pg数据库的数据
 def getDataOfPg(tableName, connect, condition=None, orderBy=None):
@@ -21,11 +21,11 @@ def getDataOfPg(tableName, connect, condition=None, orderBy=None):
   sql = "SELECT * from {} WHERE (is_deleted=\'f\' or is_deleted=false )".format(tableName)
   if condition != None and len(condition)>0:
     sql = '{} and ({})'.format(sql, condition)
-  if orderBy != None and len(condition)>0:
+  if orderBy != None and len(orderBy)>0:
     sql = '{} order by {}'.format(sql, orderBy)
   else:
     #默认按id排序
-    sql = sql + " order by id"
+    sql = sql + " order by lower(id)"
   cur.execute(sql)
   datas = cur.fetchall()
   results = []

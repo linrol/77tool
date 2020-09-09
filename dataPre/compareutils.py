@@ -151,13 +151,13 @@ def compare_dict(old, new):
 
 #根据数据生成插入SQL
 def get_insert(data, tableName):
-  head = 'INSERT INTO {} ( '.format(tableName)
+  head = 'INSERT INTO {}('.format(tableName)
   body = ') values ('
 
   for column, value in data.items():
-    head = head + " \"" + column + "\","
+    head = head + "\"" + column + "\", "
     body = body + convert(value['value'], value['type'] == 3802) + ", "
-  head = head +" \"created_time\", \"created_user_id\", \"is_init_data\", \"is_deleted\", \"last_modified_user_id\", \"last_modified_time\""
+  head = head +"\"created_time\", \"created_user_id\", \"is_init_data\", \"is_deleted\", \"last_modified_user_id\", \"last_modified_time\""
   body = body + "CURRENT_TIMESTAMP, \'1\', \'t\', \'f\', \'1\', CURRENT_TIMESTAMP);\n"
   sql = head + body
   return sql
