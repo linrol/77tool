@@ -7,7 +7,7 @@ import yaml
 import gitlab
 
 URL='http://52.81.114.94'
-TOKEN='kiQ2sQENQVdRgkxzntQy'
+TOKEN='xy1MZeykVxGQh7mvB4a3'
 
 
 excludeFields = ['last_criteria_value', 'entry_src_system_id', 'external_system_code', 'external_object_type', 'external_object_id', 'created_user_id', 'created_time', 'modified_user_id', 'modified_time', 'is_init_data', 'is_deleted', 'last_request_id', 'last_modified_user_id', 'last_modified_time', 'customized_fields','data_version']
@@ -150,7 +150,7 @@ def check_branch_exist(project, branchName):
   except gitlab.exceptions.GitlabGetError:
     return None
 
-if __name__ == "__main__":
-  # 获取预制环境
-  branch = check_branch_exist(get_project('init-data'), 'hotfix-inte')
-  print(json.dumps(branch))
+# if __name__ == "__main__":
+#   # 获取预制环境
+#   branch = check_branch_exist(get_project('init-data'), 'hotfix-inte')
+#   print(json.dumps(branch))
