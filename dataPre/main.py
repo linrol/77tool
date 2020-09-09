@@ -96,11 +96,11 @@ if __name__ == "__main__":
       print("   1." + condition)
       print("     自定义(例:name = 'Timesheet_list')")
       str = input("请输入查询条件(主表:baseapp_query_definition_group):")
+      if str != '1':
+        condition = str
     if condition is None or len(condition.rstrip())==0:
       print("ERROR:请数据查询条件")
       sys.exit(1)
-    elif str != '1':
-      condition = str
 
   #提交人
   if preType != 'reset':
