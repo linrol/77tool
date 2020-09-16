@@ -295,7 +295,7 @@ CREATE TABLE "baseapp_query_list_definition"
     "external_system_code" VARCHAR(128) DEFAULT '',
     "external_object_type" VARCHAR(128) DEFAULT '',
     "external_object_id" VARCHAR(128) DEFAULT '',
-    "title" VARCHAR(32) DEFAULT '',
+    "title" VARCHAR(64) DEFAULT '',
     "query_schema_id" VARCHAR(64) DEFAULT '',
     "is_public" BOOLEAN DEFAULT false NOT NULL,
     "seq_no" INTEGER DEFAULT 0 NOT NULL,
@@ -398,6 +398,7 @@ COMMENT ON TABLE "baseapp_query_schema" IS '查询方案模型';
 ;
 
 
+
 DROP TABLE IF EXISTS "baseapp_list_column" CASCADE;
 CREATE TABLE "baseapp_list_column"
 (
@@ -495,7 +496,7 @@ CREATE TABLE "baseapp_list_column_group"
     "external_system_code" VARCHAR(128) DEFAULT '',
     "external_object_type" VARCHAR(128) DEFAULT '',
     "external_object_id" VARCHAR(128) DEFAULT '',
-    "title" VARCHAR(32) DEFAULT '',
+    "title" VARCHAR(256) DEFAULT '',
     "list_column_schema_id" VARCHAR(64),
     "list_columns_definition_id" VARCHAR(64),
     "created_user_id" VARCHAR(64),
@@ -634,7 +635,7 @@ CREATE TABLE "baseapp_list_columns_definition"
     "external_system_code" VARCHAR(128) DEFAULT '',
     "external_object_type" VARCHAR(128) DEFAULT '',
     "external_object_id" VARCHAR(128) DEFAULT '',
-    "title" VARCHAR(32) DEFAULT '',
+    "title" VARCHAR(256) DEFAULT '',
     "list_columns_schema_id" VARCHAR(64),
     "is_public" BOOLEAN DEFAULT false NOT NULL,
     "seq_no" INTEGER DEFAULT 0 NOT NULL,
@@ -696,7 +697,7 @@ CREATE TABLE "baseapp_list_columns_schema"
     "external_system_code" VARCHAR(128) DEFAULT '',
     "external_object_type" VARCHAR(128) DEFAULT '',
     "external_object_id" VARCHAR(128) DEFAULT '',
-    "title" VARCHAR(32) DEFAULT '',
+    "title" VARCHAR(256) DEFAULT '',
     "object_type" VARCHAR(64),
     "numeric_scale" INTEGER DEFAULT 0 NOT NULL,
     "created_user_id" VARCHAR(64),
@@ -744,7 +745,7 @@ CREATE TABLE "baseapp_list_columns_schema_context_field"
     "external_system_code" VARCHAR(128) DEFAULT '',
     "external_object_type" VARCHAR(128) DEFAULT '',
     "external_object_id" VARCHAR(128) DEFAULT '',
-    "field_name" VARCHAR(32) DEFAULT '',
+    "field_name" VARCHAR(256) DEFAULT '',
     "list_column_schema_id" VARCHAR(64),
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
@@ -791,7 +792,7 @@ CREATE TABLE "baseapp_list_columns_schema_sort_field"
     "external_system_code" VARCHAR(128) DEFAULT '',
     "external_object_type" VARCHAR(128) DEFAULT '',
     "external_object_id" VARCHAR(128) DEFAULT '',
-    "field_name" VARCHAR(32) DEFAULT '',
+    "field_name" VARCHAR(256) DEFAULT '',
     "sort" VARCHAR(64),
     "list_column_schema_id" VARCHAR(64),
     "created_user_id" VARCHAR(64),

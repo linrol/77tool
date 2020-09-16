@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
   # 获取预制环境
   envMap = {"1":"hotfix-inte","2":"hotfix-db","3":"hotfix-emergency","4":"reports", "5":"release", "6":"release-db", "7":"hotfix"}
-  if preType == 'reset':
+  if preType != 'reset':
     print("预制数据来源环境：")
   else:
     print("重置环境：")
