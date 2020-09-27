@@ -638,6 +638,7 @@ CREATE TABLE "baseapp_list_columns_definition"
     "title" VARCHAR(256) DEFAULT '',
     "list_columns_schema_id" VARCHAR(64),
     "is_public" BOOLEAN DEFAULT false NOT NULL,
+    "is_default" BOOLEAN DEFAULT false NOT NULL,
     "seq_no" INTEGER DEFAULT 0 NOT NULL,
     "page_size" INTEGER DEFAULT 0 NOT NULL,
     "user_id" VARCHAR(64),
@@ -667,6 +668,7 @@ COMMENT ON COLUMN "baseapp_list_columns_definition"."external_object_id" IS '外
 COMMENT ON COLUMN "baseapp_list_columns_definition"."title" IS '标题';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."list_columns_schema_id" IS '列表模型id';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."is_public" IS '是否是公共方案';
+COMMENT ON COLUMN "baseapp_list_columns_definition"."is_default" IS '是否是默认方案';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."seq_no" IS '排序';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."page_size" IS '每页条数';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."user_id" IS '用户';
@@ -687,7 +689,6 @@ COMMENT ON COLUMN "baseapp_list_columns_definition"."last_modified_user_id" IS '
 COMMENT ON COLUMN "baseapp_list_columns_definition"."last_modified_time" IS '最后修改时间';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."customized_fields" IS '自定义属性';
 COMMENT ON TABLE "baseapp_list_columns_definition" IS '列表方案';
-;
 
 DROP TABLE IF EXISTS "baseapp_list_columns_schema" CASCADE;
 CREATE TABLE "baseapp_list_columns_schema"
@@ -700,6 +701,7 @@ CREATE TABLE "baseapp_list_columns_schema"
     "title" VARCHAR(256) DEFAULT '',
     "object_type" VARCHAR(64),
     "numeric_scale" INTEGER DEFAULT 0 NOT NULL,
+    "is_default" BOOLEAN DEFAULT false NOT NULL,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
@@ -721,6 +723,7 @@ COMMENT ON COLUMN "baseapp_list_columns_schema"."external_object_id" IS '外部�
 COMMENT ON COLUMN "baseapp_list_columns_schema"."title" IS '标题';
 COMMENT ON COLUMN "baseapp_list_columns_schema"."object_type" IS '业务对象';
 COMMENT ON COLUMN "baseapp_list_columns_schema"."numeric_scale" IS '小数精度';
+COMMENT ON COLUMN "baseapp_list_columns_schema"."is_default" IS '是否是默认方案';
 COMMENT ON COLUMN "baseapp_list_columns_schema"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_list_columns_schema"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_list_columns_schema"."modified_user_id" IS '修改人';
@@ -734,7 +737,6 @@ COMMENT ON COLUMN "baseapp_list_columns_schema"."last_modified_user_id" IS '最�
 COMMENT ON COLUMN "baseapp_list_columns_schema"."last_modified_time" IS '最后修改时间';
 COMMENT ON COLUMN "baseapp_list_columns_schema"."customized_fields" IS '自定义属性';
 COMMENT ON TABLE "baseapp_list_columns_schema" IS '列表模型';
-;
 
 DROP TABLE IF EXISTS "baseapp_list_columns_schema_context_field" CASCADE;
 CREATE TABLE "baseapp_list_columns_schema_context_field"

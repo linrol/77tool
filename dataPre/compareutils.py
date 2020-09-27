@@ -88,7 +88,10 @@ def compare_update(old, new, tableName):
   hasChange = False
   sql = 'update {} set '.format(tableName)
   for column, newValue in new.items():
-    oldValue = old[column]
+    oldValue = old.get(column, None)
+    if oldValue is None:
+      print("ERROR: {}缺少字段{},请联系管理员进行添加！！！".format(tableName, column))
+      sys.exit(1)
     if oldValue['value'] != newValue['value']:
       hasChange = True
       changeLog = differences_log(column, oldValue['value'], newValue['value'])
