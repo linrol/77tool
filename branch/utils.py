@@ -35,7 +35,9 @@ def get_project(projectName):
   gl.auth()
   projects = gl.projects.list(search=projectName)
   if len(projects) > 0:
-    return projects[0]
+    for project in projects:
+      if project.name_with_namespace.startswith("apps"):
+        return project
   else:
     return None
 

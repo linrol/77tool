@@ -6,6 +6,7 @@ init-data: ../../init-data
 baseapp: ../../enterprise/baseapp
 project: ../../enterprise/project
 finance: ../../enterprise/finance
+contract: ../../enterprise/contract
 procdesign: ../../enterprise/procdesign
 basebi: ../../enterprise/basebi
 graphql: ../../enterprise/graphql
