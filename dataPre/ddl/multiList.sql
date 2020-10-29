@@ -73,6 +73,7 @@ CREATE TABLE "baseapp_query_definition_group"
     "external_object_id" VARCHAR(128) DEFAULT '',
     "title" VARCHAR(32) DEFAULT '',
     "object_type" VARCHAR(64),
+    "suppress_show_dialog" BOOLEAN DEFAULT false NOT NULL,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
@@ -94,6 +95,7 @@ COMMENT ON COLUMN "baseapp_query_definition_group"."external_object_type" IS '�
 COMMENT ON COLUMN "baseapp_query_definition_group"."external_object_id" IS '外部系统唯一标识';
 COMMENT ON COLUMN "baseapp_query_definition_group"."title" IS '标题';
 COMMENT ON COLUMN "baseapp_query_definition_group"."object_type" IS '业务对象';
+COMMENT ON COLUMN "baseapp_query_definition_group"."suppress_show_dialog" IS '抑制页面初始化时查询弹窗显示';
 COMMENT ON COLUMN "baseapp_query_definition_group"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_query_definition_group"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_query_definition_group"."modified_user_id" IS '修改人';
