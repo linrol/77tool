@@ -18,16 +18,20 @@ def get_delete_project(projectPaths, sourceBranchName, targetBranchName):
       if (sourceBranch is None):
         continue
       else:
-        targetBranch = utils.check_branch_exist(project, targetBranchName)
-        if (targetBranch is None):
-          error.append('工程【{}】目标分支【{}】不存在'.format(k, targetBranchName))
+        if targetBranchName is None:
+          #未指定检查分支，则不检查是否已合并
+          deletes[project] = v
         else:
-          isMerge = utils.check_branch_merge(k, v, sourceBranchName, targetBranchName)
-          if isMerge:
-            deletes[project] = v
+          targetBranch = utils.check_branch_exist(project, targetBranchName)
+          if (targetBranch is None):
+            error.append('工程【{}】目标分支【{}】不存在'.format(k, targetBranchName))
           else:
-            error.append('工程【{}】分支【{}】未合并至目标分支【{}】,不能删除分支【{}】'.format(k, sourceBranchName, targetBranchName, sourceBranchName))
-            continue
+            isMerge = utils.check_branch_merge(k, v, sourceBranchName, targetBranchName)
+            if isMerge:
+              deletes[project] = v
+            else:
+              error.append('工程【{}】分支【{}】未合并至目标分支【{}】,不能删除分支【{}】'.format(k, sourceBranchName, targetBranchName, sourceBranchName))
+              continue
   if len(error) > 0:
     #如果有错误信息则不执行删除
     utils.print_list("ERROR: ", error)
@@ -42,21 +46,24 @@ def delete_branch(deletes, projectPaths, sourceBranchName, targetBranchName):
   for k,v in deletes.items():
     projectName = k.name
     path = projectPaths[projectName]
-    subprocess.getstatusoutput('cd ' + path +';git checkout ' + targetBranchName)
+    if targetBranchName is None:
+      subprocess.getstatusoutput('cd ' + path +';git checkout ' + 'master')
+    else:
+      subprocess.getstatusoutput('cd ' + path +';git checkout ' + targetBranchName)
     subprocess.getstatusoutput('cd ' + path +';git pull')
     #删除本地分支(使用-d，如果没有合并到当前分支，删除会报错)
-    [result, msg] = subprocess.getstatusoutput('cd ' + path +';git branch -d ' + sourceBranchName)
-    if result==0:
-      #删除远程分支
-      delete_origin_branch(k, sourceBranchName)
-      subprocess.getstatusoutput('cd ' + path +';git fetch -p')
-      print('工程【{}】删除分支【{}】成功，该分支已合并至分支【{}】'.format(k.name, sourceBranchName, targetBranchName))
+    subprocess.getstatusoutput('cd ' + path +';git branch -D ' + sourceBranchName)
+    #删除远程分支
+    delete_origin_branch(k, sourceBranchName)
+    subprocess.getstatusoutput('cd ' + path +';git fetch -p')
+    if targetBranchName is None:
+      print('工程【{}】删除分支【{}】成功'.format(k.name, sourceBranchName))
     else:
-      print('ERROR: 工程【{}】删除本地分支【{}】,报错！！！'.format(projectName, sourceBranchName))
+      print('工程【{}】删除分支【{}】成功，该分支已合并至分支【{}】'.format(k.name, sourceBranchName, targetBranchName))
 
 #删除远程分支
 def delete_origin_branch(project, branchName):
-  if(branchName == 'master' or branchName == 'dev'):
+  if(branchName == 'master' or branchName == 'dev' or branchName == 'stage'):
     print('ERROR: 【{}】分支不允许删除！！！！！！！！！！！'.format(branchName))
   #删除分支保护
   utils.delete_branch_protect(project, branchName)
@@ -75,7 +82,10 @@ if __name__ == "__main__":
     sourceBranchName = sys.argv[1]
   elif len(sys.argv) == 3 :
     sourceBranchName = sys.argv[1]
-    targetBranchName = sys.argv[2]
+    if sys.argv[2].lower() == 'none':
+      targetBranchName = None
+    else:
+      targetBranchName = sys.argv[2]
   else:
     print ("ERROR: 输入参数错误, 正确的参数为：<source branch> [<target branch>(默认master)]")
     sys.exit(1)
