@@ -45,13 +45,16 @@ python3 changeVersion.py hotfix.self true
 获取拥有指定分支的工程，检查要删除的分支是否已合并至指定分支，若已合并则删除，如有工程未合并则所有工程均不进行删除。
 
 ####命令
-python3 checkanddeleted.py 要删除的分支名称 [合并的目标分支名称，默认master]
+python3 checkanddeleted.py 要删除的分支名称 合并的目标分支名称 [工程名称,不传则删除所有工程]
 ########例：
-python3 checkanddeleted.py hotfix
-检查所有工程hotfix分支是否已合并至master分支，若已合并则删除hotfix分支
+python3 checkanddeleted.py hotfix master
+####检查所有工程hotfix分支是否已合并至master分支，若已合并则删除hotfix分支
 
-python3 checkanddeleted.py hotfix dev
-检查所有工程hotfix分支是否已合并至dev分支，若已合并则删除hotfix分支
+python3 checkanddeleted.py hotfix none
+不检查分支是否合并，直接删除所有工程的hotfix分支
+
+python3 checkanddeleted.py hotfix master finance basebi
+检查finance、basebi工程hotfix分支是否已合并至master分支，若已合并则删除finance、basebi的hotfix分支
 
 ##3.createBranch.py
 ####功能
