@@ -300,6 +300,7 @@ CREATE TABLE "baseapp_query_list_definition"
     "title" VARCHAR(64) DEFAULT '',
     "query_schema_id" VARCHAR(64) DEFAULT '',
     "is_public" BOOLEAN DEFAULT false NOT NULL,
+    "is_for_scheduled_task" BOOLEAN DEFAULT false NOT NULL,
     "seq_no" INTEGER DEFAULT 0 NOT NULL,
     "user_id" VARCHAR(64),
     "src_definition_id" VARCHAR(64),
@@ -329,6 +330,7 @@ COMMENT ON COLUMN "baseapp_query_list_definition"."external_object_id" IS '外�
 COMMENT ON COLUMN "baseapp_query_list_definition"."title" IS '标题';
 COMMENT ON COLUMN "baseapp_query_list_definition"."query_schema_id" IS '查询模型id';
 COMMENT ON COLUMN "baseapp_query_list_definition"."is_public" IS '是否是公共方案';
+COMMENT ON COLUMN "baseapp_query_list_definition"."is_for_scheduled_task" IS '调度任务专属方案';
 COMMENT ON COLUMN "baseapp_query_list_definition"."seq_no" IS '排序';
 COMMENT ON COLUMN "baseapp_query_list_definition"."user_id" IS '用户';
 COMMENT ON COLUMN "baseapp_query_list_definition"."src_definition_id" IS '来源方案';
@@ -350,7 +352,6 @@ COMMENT ON COLUMN "baseapp_query_list_definition"."last_modified_user_id" IS '�
 COMMENT ON COLUMN "baseapp_query_list_definition"."last_modified_time" IS '最后修改时间';
 COMMENT ON COLUMN "baseapp_query_list_definition"."customized_fields" IS '自定义属性';
 COMMENT ON TABLE "baseapp_query_list_definition" IS '查询列表方案';
-;
 
 DROP TABLE IF EXISTS "baseapp_query_schema" CASCADE;
 CREATE TABLE "baseapp_query_schema"
