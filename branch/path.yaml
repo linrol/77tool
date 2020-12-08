@@ -7,6 +7,8 @@ baseapp: ../../enterprise/baseapp
 project: ../../enterprise/project
 finance: ../../enterprise/finance
 contract: ../../enterprise/contract
+asset: ../../enterprise/asset
+budget: ../../enterprise/budget
 procdesign: ../../enterprise/procdesign
 basebi: ../../enterprise/basebi
 graphql: ../../enterprise/graphql

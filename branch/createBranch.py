@@ -16,6 +16,11 @@ def check_project(sourceBranchName, newBranchName, projectNames, projectPaths):
   error=[]
   projectMap={}
   for projectName in projectNames:
+    projectPath = projectPaths.get(projectName, None)
+    if projectPath is None:
+      error.append('ERROR: 请在path.yaml文件配置工程【{}】路径！！！'.format(projectName))
+      continue
+
     project = utils.get_project(projectName)
     if project is None :
       error.append('工程【{}】不存在'.format(k))
@@ -93,6 +98,6 @@ if __name__ == "__main__":
         create_branch(sourceBranchName, newBranchName, k, v)
         print('工程【{}】基于分支【{}】创建分支【{}】成功'.format(k.name, sourceBranchName, newBranchName))
     else:
-      print('ERROR: 请在path.yaml文件配置各项目路径！！！')
+      print('ERROR: 请在path.yaml文件配置各工程路径！！！')
       sys.exit(1)
     

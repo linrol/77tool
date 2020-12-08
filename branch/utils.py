@@ -60,9 +60,9 @@ def checkout_branch(path, branchName):
 
 #删除分支保护
 def delete_branch_protect(project, branchName):
-  if(branchName == 'master'):
-    print('ERROR: master分支不允许删除分支保护！！！！！！！！！！！')
-    sys.exit(1)
+  # if(branchName == 'master'):
+  #   print('ERROR: master分支不允许删除分支保护！！！！！！！！！！！')
+  #   sys.exit(1)
   #获取受保护分支列表
   try:
     p_branch = project.protectedbranches.get(branchName)

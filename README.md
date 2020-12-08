@@ -48,7 +48,7 @@ python3 changeVersion.py hotfix.self true
 python3 checkanddeleted.py 要删除的分支名称 合并的目标分支名称 [工程名称,不传则删除所有工程]
 ########例：
 python3 checkanddeleted.py hotfix master
-####检查所有工程hotfix分支是否已合并至master分支，若已合并则删除hotfix分支
+检查所有工程hotfix分支是否已合并至master分支，若已合并则删除hotfix分支
 
 python3 checkanddeleted.py hotfix none
 不检查分支是否合并，直接删除所有工程的hotfix分支

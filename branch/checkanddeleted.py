@@ -11,8 +11,8 @@ def get_delete_project(projectNames, projectPaths, sourceBranchName, targetBranc
   for projectName in projectNames:
     projectPath = projectPaths.get(projectName, None)
     if projectPath is None:
-      print('ERROR: 请在path.yaml文件配置项目【{}】路径！！！'.format(projectName))
-      sys.exit(1)
+      error.append('ERROR: 请在path.yaml文件配置工程【{}】路径！！！'.format(projectName))
+      continue
 
     project = utils.get_project(projectName)
     if project is None :
@@ -68,7 +68,7 @@ def delete_branch(deletes, projectPaths, sourceBranchName, targetBranchName):
 
 #删除远程分支
 def delete_origin_branch(project, branchName):
-  if(branchName == 'master' or branchName == 'dev' or branchName == 'stage'):
+  if(branchName == 'master' or branchName == 'stage'):
     print('ERROR: 【{}】分支不允许删除！！！！！！！！！！！'.format(branchName))
   #删除分支保护
   utils.delete_branch_protect(project, branchName)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     else:
       projectNames = list(projectPaths.keys())
 
-  if(sourceBranchName == 'master' or sourceBranchName == 'dev'):
+  if(sourceBranchName == 'master' or sourceBranchName == 'stage'):
     print('ERROR: 【{}】分支不允许删除！！！！！！！！！！！'.format(sourceBranchName))
     sys.exit(1)
 
@@ -115,5 +115,5 @@ if __name__ == "__main__":
     else:
       print("所有工程均不存在分支【{}】".format(sourceBranchName))
   else:
-    print('ERROR: 请在path.yaml文件配置各项目路径！！！')
+    print('ERROR: 请在path.yaml文件配置各工程路径！！！')
     sys.exit(1)
