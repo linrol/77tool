@@ -7,7 +7,7 @@ import subprocess
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
-URL='http://52.81.114.94'
+URL='http://gitlab.q7link.com'
 TOKEN=''
 
 def project_path():

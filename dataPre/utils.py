@@ -6,7 +6,7 @@ import os
 import yaml
 import gitlab
 
-URL='http://52.81.114.94'
+URL='http://gitlab.q7link.com'
 TOKEN='xy1MZeykVxGQh7mvB4a3'
 
 
