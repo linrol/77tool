@@ -1,18 +1,26 @@
-build: ../../build
+build: ../../apps/build
 
-framework: ../../framework
-init-data: ../../init-data
+init-data: ../../apps/init-data
+baseapp: ../../apps/baseapp
+graphql: ../../apps/graphql
 
-baseapp: ../../enterprise/baseapp
-project: ../../enterprise/project
-finance: ../../enterprise/finance
-contract: ../../enterprise/contract
-asset: ../../enterprise/asset
-budget: ../../enterprise/budget
-procdesign: ../../enterprise/procdesign
-basebi: ../../enterprise/basebi
-graphql: ../../enterprise/graphql
+asset: ../../apps/asset
+asset-api: ../../apps/asset-api
 
+basebi: ../../apps/basebi
+basebi-api: ../../apps/basebi-api
 
-identity: ../../global/identity
-reconcile: ../../global/reconcile
+budget: ../../apps/budget
+budget-api: ../../apps/budget-api
+
+contract: ../../apps/contract
+contract-api: ../../apps/contract-api
+
+finance: ../../apps/finance
+finance-api: ../../apps/finance-api
+
+procdesign: ../../apps/procdesign
+procdesign-api: ../../apps/procdesign-api
+
+project: ../../apps/project
+project-api: ../../apps/project-api

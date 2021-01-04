@@ -23,7 +23,7 @@ def check_project(sourceBranchName, newBranchName, projectNames, projectPaths):
 
     project = utils.get_project(projectName)
     if project is None :
-      error.append('工程【{}】不存在'.format(k))
+      error.append('工程【{}】不存在'.format(projectName))
     else:
       sourceBranch = utils.check_branch_exist(project, sourceBranchName)
       #来源分支存在才能拉取新分支

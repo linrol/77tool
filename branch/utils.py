@@ -36,7 +36,8 @@ def get_project(projectName):
   projects = gl.projects.list(search=projectName)
   if len(projects) > 0:
     for project in projects:
-      if project.name_with_namespace.startswith("apps"):
+      print(project.name_with_namespace)
+      if project.name_with_namespace.startswith("backend"):
         return project
   else:
     return None
