@@ -4,20 +4,22 @@ import gitlab
 import utils
 
 #创建分支
-def create_branch(sourceBranchName, newBranchName, project, path):
+def create_branch(sourceBranchName, newBranchName, project, projectInfo):
   project.branches.create({'branch': newBranchName,'ref': sourceBranchName})
   #设置分支保护
   protect_branch(newBranchName, project)
   #在本地将新分支拉取出来
-  utils.checkout_branch(path, newBranchName)
+  utils.checkout_branch(projectInfo.getPath(), newBranchName)
 
 #检查参数是否正确（返回：key:gitlab的project对象，value:本地工程路径）
-def check_project(sourceBranchName, newBranchName, projectNames, projectPaths):
+def check_project(sourceBranchName, newBranchName, projectNames, projectInfoMap, existCheck):
   error=[]
   projectMap={}
-  for projectName in projectNames:
-    projectPath = projectPaths.get(projectName, None)
-    if projectPath is None:
+  for projectName,projectInfo in projectInfoMap.items():
+    if projectInfo is None or (projectName not in projectNames and projectInfo.getModule() not in projectNames):
+      continue
+
+    if projectInfo.getPath() is None:
       error.append('ERROR: 请在path.yaml文件配置工程【{}】路径！！！'.format(projectName))
       continue
 
@@ -32,9 +34,13 @@ def check_project(sourceBranchName, newBranchName, projectNames, projectPaths):
       else:
         newBranch = utils.check_branch_exist(project, newBranchName)
         if (newBranch is None):
-          projectMap[project] = projectPaths[projectName]
+          projectMap[project] = projectInfo
         else:
-          error.append('工程【{}】分支【{}】已存在'.format(projectName, newBranchName))
+          if(existCheck):
+            error.append('工程【{}】分支【{}】已存在'.format(projectName, newBranchName))
+          else:
+            error.append('WARNING：工程【{}】分支【{}】已存在！！！'.format(projectName, sourceBranchName))
+
   if len(error) > 0:
     #如果有错误信息则不执行创建分支
     utils.print_list("ERROR: ", error)
@@ -44,12 +50,9 @@ def check_project(sourceBranchName, newBranchName, projectNames, projectPaths):
 
 #设置分支保护
 def protect_branch(branchName, project):
-  projectName = project.name
   utils.delete_branch_protect(project, branchName)
-  mergeAccessLevel = gitlab.DEVELOPER_ACCESS
-  pushAccessLevel = gitlab.DEVELOPER_ACCESS
-  #release、hotfix、emergency、hotfix-emergency、hotfix-inte分支预先设置管理员全权限，便于修改版本号
-  if branchName == 'release' or branchName == 'hotfix' or branchName == 'emergency' or branchName == 'hotfix-emergency' or branchName == 'hotfix-inte':
+  #release、hotfix、emergency、stage-emergency、hotfix-inte、dev分支预先设置管理员全权限，便于修改版本号
+  if branchName == 'release' or branchName == 'hotfix' or branchName == 'emergency' or branchName == 'stage-emergency' or branchName == 'hotfix-inte' or branchName == 'dev':
     mergeAccessLevel = gitlab.MAINTAINER_ACCESS
     pushAccessLevel = gitlab.MAINTAINER_ACCESS
 
@@ -62,13 +65,6 @@ def protect_branch(branchName, project):
   else:
     #其他分支不设置分支保护
     return
-  # elif branchName == 'hotfix' or branchName == 'emergency':
-  #   if projectName == 'build' or projectName == 'init-data':
-  #     mergeAccessLevel = gitlab.MAINTAINER_ACCESS
-  #     pushAccessLevel = gitlab.MAINTAINER_ACCESS
-  #   else:
-  #     mergeAccessLevel = gitlab.MAINTAINER_ACCESS
-  #     pushAccessLevel = 0
 
 
 
@@ -81,21 +77,32 @@ if __name__ == "__main__":
     sys.exit(1)
   else:
     #获取所有工程的本地路径
-    projectPaths = utils.project_path()
+    projectInfoMap = utils.project_path()
     projectNames =[]
     if len(sys.argv) > 3:
       projectNames = sys.argv[3:]
     else:
-      projectNames = list(projectPaths.keys())
+      projectNames = list(projectInfoMap.keys())
 
     sourceBranchName = sys.argv[1]
     newBranchName = sys.argv[2]
-    if len(projectPaths) > 0:
+
+    existCheck = True#是否检查分支存在（false:分支存在则不创建，不存在则创建；true:分支存在则报错，所有工程不创建分支）
+    infos=newBranchName.split('.')
+    if len(infos) > 1:
+      newBranchName = infos[0]
+      existCheck = (infos[1].lower() != 'false')
+
+    if len(projectInfoMap) > 0:
       #检查参数是否正确
-      projectMap = check_project(sourceBranchName, newBranchName, projectNames, projectPaths)
+      projectMap = check_project(sourceBranchName, newBranchName, projectNames, projectInfoMap, existCheck)
       #创建分支
       for k,v in projectMap.items():
-        create_branch(sourceBranchName, newBranchName, k, v)
+        try:
+          create_branch(sourceBranchName, newBranchName, k, v)
+        except Exception:
+          print("项目：{}".format(k.name))
+          raise
         print('工程【{}】基于分支【{}】创建分支【{}】成功'.format(k.name, sourceBranchName, newBranchName))
     else:
       print('ERROR: 请在path.yaml文件配置各工程路径！！！')

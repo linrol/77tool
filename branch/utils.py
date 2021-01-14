@@ -4,26 +4,45 @@ import yaml
 import gitlab
 import sys
 import subprocess
+import re
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 URL='http://gitlab.q7link.com'
 TOKEN=''
 
+class ProjectInfo():
+  def __init__(self, name, path, module):
+    self.__name = name
+    self.__path = path
+    self.__module = module
+
+  def getName(self):
+    return self.__name
+  def getPath(self):
+    return self.__path
+  def getModule(self):
+    return self.__module
+
+
 def project_path():
   # 获取path.yaml
   filename = os.path.join(os.curdir, 'path.yaml').replace("\\", "/")
   f = open(filename)
-  projectPaths = yaml.load(f, Loader=yaml.FullLoader)
+  projectInfos = yaml.load(f, Loader=yaml.FullLoader)
   hasError = False
-  for k,v in projectPaths.items():
-    [result, msg] = subprocess.getstatusoutput('cd ' + v)
-    if result != 0:
-      print("ERROR: 工程【{}】路径【{}】不存在".format(k, v))
-      hasError = True
-    else:
-      #刷新每个工程的信息，防止因为本地信息和远程信息不同步导致报错
-      subprocess.getstatusoutput('cd ' + v +';git fetch -p')
+  projectPaths = {}
+  for module,v in projectInfos.items():
+    for projectName,path in v.items():
+      [result, msg] = subprocess.getstatusoutput('cd ' + path)
+      if result != 0:
+        print("ERROR: 工程【{}】路径【{}】不存在".format(projectName, path))
+        hasError = True
+      else:
+        #刷新每个工程的信息，防止因为本地信息和远程信息不同步导致报错
+        subprocess.getstatusoutput('cd ' + path +';git fetch -p')
+      projectInfo = ProjectInfo(projectName, path, module)
+      projectPaths[projectName] = projectInfo
   if hasError:
     return []
   else:
@@ -32,7 +51,12 @@ def project_path():
 #根据工程名称获取Gitlab工程对象
 def get_project(projectName):
   gl = gitlab.Gitlab(URL, TOKEN)
-  gl.auth()
+  try:
+    gl.auth()
+  except Exception:
+    print("项目：{}".format(projectName))
+    raise
+
   projects = gl.projects.list(search=projectName)
   if len(projects) > 0:
     for project in projects:
@@ -103,3 +127,13 @@ def print_list(title, list):
   print(title)
   for index in range(len(list)):
    print ('  ' + str(index+1) +'.' + list[index])
+
+#驼峰转换（将空格、_、-转换为驼峰）
+def camel(s):
+  s = re.sub(r"(\s|_|-)+", " ", s).title().replace(" ", "")
+  return s[0].lower() + s[1:]
+
+if __name__ == "__main__":
+  print(camel("project-api"))
+  print(camel("project"))
+  print(camel("project api"))

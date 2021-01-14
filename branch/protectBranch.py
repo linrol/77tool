@@ -4,8 +4,8 @@ import gitlab
 import utils
 
 
-#检查参数是否正确（返回：key:gitlab的project对象，value:本地工程路径）
-def check_project(branchName, projectNames, projectPaths):
+#检查参数是否正确（返回：key:gitlab的project对象，value:本地工程信息）
+def check_project(branchName, projectNames, projectInfoMap):
   projectMap={}
   for projectName in projectNames:
     project = utils.get_project(projectName)
@@ -17,7 +17,7 @@ def check_project(branchName, projectNames, projectPaths):
       if (sourceBranch is None):
         continue
       else:
-        projectMap[project] = projectPaths[projectName]
+        projectMap[project] = projectInfoMap[projectName]
   if len(projectMap) == 0:
     print("[ERROR]工程分支[{}]不存在： ".format(branchName))
     print(projectNames)
@@ -67,18 +67,18 @@ if __name__ == "__main__":
     sys.exit(1)
   else:
     #获取所有工程的本地路径
-    projectPaths = utils.project_path()
+    projectInfoMap = utils.project_path()
     projectNames =[]
     if len(sys.argv) > 3:
       projectNames = sys.argv[3:]
     else:
-      projectNames = list(projectPaths.keys())
+      projectNames = list(projectInfoMap.keys())
     branchName = sys.argv[1]
     access = sys.argv[2]
 
-    if len(projectPaths) > 0:
+    if len(projectInfoMap) > 0:
       #检查参数是否正确
-      projectMap = check_project(branchName, projectNames, projectPaths)
+      projectMap = check_project(branchName, projectNames, projectInfoMap)
       #保护分支
       for k,v in projectMap.items():
         protect_branch(branchName, k, access)

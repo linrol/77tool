@@ -5,12 +5,14 @@ import utils
 
 
 #获取有来源分支，并且已经合并至目标分支的工程（返回：key:gitlab的project对象，value:本地工程路径）
-def get_delete_project(projectNames, projectPaths, sourceBranchName, targetBranchName):
+def get_delete_project(projectNames, projectInfoMap, sourceBranchName, targetBranchName, mergeError):
   error=[]
   deletes={}
-  for projectName in projectNames:
-    projectPath = projectPaths.get(projectName, None)
-    if projectPath is None:
+  for projectName,projectInfo in projectInfoMap.items():
+    if projectInfo is None or (projectName not in projectNames and projectInfo.getModule() not in projectNames):
+      continue
+
+    if projectInfo.getPath() is None:
       error.append('ERROR: 请在path.yaml文件配置工程【{}】路径！！！'.format(projectName))
       continue
 
@@ -23,6 +25,7 @@ def get_delete_project(projectNames, projectPaths, sourceBranchName, targetBranc
       if (sourceBranch is None):
         continue
       else:
+        projectPath = projectInfo.getPath()
         if targetBranchName is None:
           #未指定检查分支，则不检查是否已合并
           deletes[project] = projectPath
@@ -35,7 +38,10 @@ def get_delete_project(projectNames, projectPaths, sourceBranchName, targetBranc
             if isMerge:
               deletes[project] = projectPath
             else:
-              error.append('工程【{}】分支【{}】未合并至目标分支【{}】,不能删除分支【{}】'.format(projectName, sourceBranchName, targetBranchName, sourceBranchName))
+              if mergeError:
+                error.append('工程【{}】分支【{}】未合并至目标分支【{}】,不能删除分支【{}】'.format(projectName, sourceBranchName, targetBranchName, sourceBranchName))
+              else:
+                error.append('WARNING：工程【{}】分支【{}】未合并至目标分支【{}】！！！'.format(projectName, sourceBranchName, targetBranchName))
               continue
   if len(error) > 0:
     #如果有错误信息则不执行删除
@@ -47,10 +53,10 @@ def get_delete_project(projectNames, projectPaths, sourceBranchName, targetBranc
 
 #检查指定分支是否合并至master，已合并则删除
 #path:build工程路径
-def delete_branch(deletes, projectPaths, sourceBranchName, targetBranchName):
+def delete_branch(deletes, projectInfoMap, sourceBranchName, targetBranchName):
   for k,v in deletes.items():
     projectName = k.name
-    path = projectPaths[projectName]
+    path = projectInfoMap[projectName].getPath()
     if targetBranchName is None:
       subprocess.getstatusoutput('cd ' + path +';git checkout ' + 'master')
     else:
@@ -89,29 +95,35 @@ if __name__ == "__main__":
     sys.exit(1)
   else:
     #获取所有工程的本地路径
-    projectPaths = utils.project_path()
+    projectInfoMap = utils.project_path()
 
     sourceBranchName = sys.argv[1]
+    mergeError = True#merge错误检查（false:删除已经merge的工程分支，没有merge则不删除；true:只要有一个工程的分支没有merge则所有工程不进行删除）
     if sys.argv[2].lower() == 'none':
       targetBranchName = None
     else:
       targetBranchName = sys.argv[2]
 
+      infos=targetBranchName.split('.')
+      if len(infos) > 1:
+        targetBranchName = infos[0]
+        mergeError = (infos[1].lower() != 'false')
+
     if len(sys.argv) > 3:
       projectNames = sys.argv[3:]
     else:
-      projectNames = list(projectPaths.keys())
+      projectNames = list(projectInfoMap.keys())
 
   if(sourceBranchName == 'master' or sourceBranchName == 'stage'):
     print('ERROR: 【{}】分支不允许删除！！！！！！！！！！！'.format(sourceBranchName))
     sys.exit(1)
 
-  if len(projectPaths) > 0:
+  if len(projectInfoMap) > 0:
     #获取需要进行分支删除的工程（key:gitlab的project对象，value:本地工程路径）
-    deletes = get_delete_project(projectNames, projectPaths, sourceBranchName, targetBranchName)
+    deletes = get_delete_project(projectNames, projectInfoMap, sourceBranchName, targetBranchName, mergeError)
     if len(deletes) > 0:
       #删除工程分支
-      delete_branch(deletes, projectPaths, sourceBranchName, targetBranchName)
+      delete_branch(deletes, projectInfoMap, sourceBranchName, targetBranchName)
     else:
       print("所有工程均不存在分支【{}】".format(sourceBranchName))
   else:

@@ -1,26 +1,43 @@
-build: ../../apps/build
+apps:
+  build: ../../apps/build
+  init-data: ../../apps/init-data
+  baseapp: ../../apps/baseapp
+  graphql: ../../apps/graphql
+  asset: ../../apps/asset
+  asset-api: ../../apps/asset-api
+  basebi: ../../apps/basebi
+  basebi-api: ../../apps/basebi-api
+  budget: ../../apps/budget
+  budget-api: ../../apps/budget-api
+  contract: ../../apps/contract
+  contract-api: ../../apps/contract-api
+  finance: ../../apps/finance
+  finance-api: ../../apps/finance-api
+  procdesign: ../../apps/procdesign
+  procdesign-api: ../../apps/procdesign-api
+  project: ../../apps/project
+  project-api: ../../apps/project-api
 
-init-data: ../../apps/init-data
-baseapp: ../../apps/baseapp
-graphql: ../../apps/graphql
+#global:
+#  reconcile: ../../global/reconcile
+#  reconcile-api: ../../global/reconcile-api
+#  identity: ../../global/identity
+#  identity-api: ../../global/identity-api
 
-asset: ../../apps/asset
-asset-api: ../../apps/asset-api
-
-basebi: ../../apps/basebi
-basebi-api: ../../apps/basebi-api
-
-budget: ../../apps/budget
-budget-api: ../../apps/budget-api
-
-contract: ../../apps/contract
-contract-api: ../../apps/contract-api
-
-finance: ../../apps/finance
-finance-api: ../../apps/finance-api
-
-procdesign: ../../apps/procdesign
-procdesign-api: ../../apps/procdesign-api
-
-project: ../../apps/project
-project-api: ../../apps/project-api
+#platform:
+#  app-archetype: ../../platform/app-archetype
+#  app-build-plugins: ../../platform/app-build-plugins
+#  app-common: ../../platform/app-common
+#  baseapp-api: ../../platform/baseapp-api
+#  common-base: ../../platform/common-base
+#  common-base-api: ../../platform/common-base-api
+#  graphql-api: ../../platform/graphql-api
+#  graphql-impl: ../../platform/graphql-impl
+#  grpc-clients: ../../platform/grpc-clients
+#  json-schema-plugin: ../../platform/json-schema-plugin
+#  mbg-plugins: ../../platform/mbg-plugins
+#  metadata-api: ../../platform/metadata-api
+#  metadata-impl: ../../platform/metadata-impl
+#  parent: ../../platform/parent
+#  sql-parser: ../../platform/sql-parser
+#  testapp: ../../platform/testapp
