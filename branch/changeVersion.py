@@ -240,14 +240,14 @@ class VersionUtils():
       propertieName = utils.camel(k) + 'Version'
       if projectName != 'testapp' or propertieName != 'initDataVersion':
         # testapp的initData版本不修改
-        update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, k, True) or update
+        update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, k, False) or update
 
     if projectName == 'parent':
       for k,v in projectMap.items():
         propertieName = 'version.framework.' + k
         update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, 'framework', False) or update
       update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework', 'framework', False) or update
-    update = self.updateDependencies(projectInfo, myroot, projectVersionMap, True) or update
+    update = self.updateDependencies(projectInfo, myroot, projectVersionMap, False) or update
 
     return update
 
