@@ -30,7 +30,7 @@ def check_project(sourceBranchName, newBranchName, projectNames, projectInfoMap,
       sourceBranch = utils.check_branch_exist(project, sourceBranchName)
       #来源分支存在才能拉取新分支
       if (sourceBranch is None):
-        error.append('工程【{}】分支【{}】不存在'.format(projectName, sourceBranchName))
+        print('WARNING：工程【{}】来源分支【{}】不存在！！！！！！'.format(projectName, sourceBranchName))
       else:
         newBranch = utils.check_branch_exist(project, newBranchName)
         if (newBranch is None):
@@ -39,7 +39,7 @@ def check_project(sourceBranchName, newBranchName, projectNames, projectInfoMap,
           if(existCheck):
             error.append('工程【{}】分支【{}】已存在'.format(projectName, newBranchName))
           else:
-            error.append('WARNING：工程【{}】分支【{}】已存在！！！'.format(projectName, sourceBranchName))
+            print('WARNING：工程【{}】目标分支【{}】已存在！！！'.format(projectName, sourceBranchName))
 
   if len(error) > 0:
     #如果有错误信息则不执行创建分支
