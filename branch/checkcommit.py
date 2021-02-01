@@ -73,7 +73,7 @@ def get_project(branchName, projectNames):
 # 检查所有项目指定分支的合并情况（默认检查十天内的提交）
 # 例：检查hotfix分支的提交是否合并至dev分支
 #python3 checkcommit.py hotfix dev
-if __name__ == "__main__":
+# if __name__ == "__main__":
   projectNames = ['framework', 'baseapp', 'init-data', 'project', 'finance', 'procdesign', 'basebi', 'graphql', 'identity', 'reconcile']
   sourceBranchName = ''
   targetBranchName = ''
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     if targetMap == None:
       #找不到目标分支时，才会返回None，找不到目标分支则不进行处理
       continue
-    noCommitKeys = sourceMap.keys() - targetMap.keys()
+    noCommitKeys = list(sourceMap.keys()) - list(targetMap.keys())
     if len(noCommitKeys) == 0:
       # 没有差异则不记录
       continue
