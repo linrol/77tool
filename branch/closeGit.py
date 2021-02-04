@@ -15,7 +15,12 @@ def close_git(projectMap):
 
   tree = ET.parse('{}/{}'.format(path,xmlName))
   root=tree.getroot()
-  component=root.find('component')
+  components=root.findall('component')
+  for component in components:
+    name = component.get("name")
+    if name == 'VcsDirectoryMappings':
+      break
+
   mappings = component.getiterator('mapping')
   for mapping in list(mappings):
     directory = mapping.get('directory')
