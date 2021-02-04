@@ -77,7 +77,13 @@ class ProjectInfo():
   # 删除本地分支
   def deleteLocalBranch(self, deleteBranch, checkoutBranch=None):
     if checkoutBranch is None or len(checkoutBranch) == 0:
-      subprocess.getstatusoutput('cd ' + self.__path +';git checkout ' + 'master')
+      [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +';git status')
+      if(result == 0):
+        if (msg.splitlines(False)[0]).endswith(deleteBranch):
+          if deleteBranch == 'master':
+            subprocess.getstatusoutput('cd ' + self.__path +';git checkout stage')
+          else:
+            subprocess.getstatusoutput('cd ' + self.__path +';git checkout master')
     else:
       subprocess.getstatusoutput('cd ' + self.__path +';git checkout ' + checkoutBranch)
     subprocess.getstatusoutput('cd ' + self.__path +';git pull')
@@ -168,6 +174,72 @@ class ProjectInfo():
         print(msg)
         return False
       return True
+
+  # 将分支分类
+  def branchClass(self):
+    self.fetch()
+    branchs=[]
+    [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +';git branch -vv')
+    if result == 0 :
+      #dev       a88c2c1 [origin/dev: behind 161] dev_dev-310-201912121945
+      #master-1  1a0bc76 [origin/master: ahead 1, behind 1] 任务执行报告默认值设置
+      branchInfos = msg.splitlines(False)
+      for branchInfo in branchInfos:
+        infos = branchInfo.lstrip().split(' ')
+        isCurrent = False
+        originBranchName = None
+        originDeleted = False
+        hasCommit = False
+        hasPull = False
+        branchName=''
+        for index in range(len(infos)):
+          info = infos[index]
+          if info == '*':
+            isCurrent = True
+          elif info.startswith('[origin/'):
+            originBranchName = info[info.find('/') + 1:-1]
+            status = infos[index+1]
+            if (status.startswith('gone') or status.startswith('丢失')):
+              originDeleted= True
+            elif (status.startswith('behind')):
+              hasPull = True
+            elif (status.startswith('ahead')):
+              hasCommit = True
+              if(infos[index+3].startswith('behind')):
+                hasPull = True
+          elif len(info) > 0 and len(branchName) == 0:
+            branchName = info
+        branch = LocalBranch(branchName, isCurrent, originBranchName, originDeleted, hasCommit, hasPull)
+        branchs.append(branch)
+      return branchs
+    else:
+      print('ERROR: 工程【{}】无法获取远程信息!!!'.format(self.__name))
+      return branchs
+
+
+class LocalBranch():
+  def __init__(self, name, current, originBranchName, originDeleted, hasCommit, hasPull):
+    self.__name = name
+    self.__current = current
+    self.__originBranchName = originBranchName
+    self.__originDeleted = originDeleted
+    self.__hasCommit = hasCommit
+    self.__hasPull = hasPull
+
+  def getName(self):
+    return self.__name
+  def isCurrent(self):
+    return self.__current
+  def hasOriginBranch(self):
+    return self.__originBranchName is not None and len(self.__originBranchName) > 0
+  def originBranchExists(self):
+    return self.hasOriginBranch() and not self.__originDeleted
+  def hasCommit(self):
+    return self.__hasCommit
+  def hasPull(self):
+    return self.__hasPull
+
+
 
 def project_path(names=None):
   # 获取path.yaml
