@@ -17,27 +17,40 @@ apps:
   procdesign-api: ../../apps/procdesign-api
   project: ../../apps/project
   project-api: ../../apps/project-api
+  allocation: ../../apps/allocation
+  allocation-api: ../../apps/allocation-api
+  arap: ../../apps/arap
+  arap-api: ../../apps/arap-api
+  cashier: ../../apps/cashier
+  cashier-api: ../../apps/cashier-api
+  invoice: ../../apps/invoice
+  invoice-api: ../../apps/invoice-api
+  reimbursement: ../../apps/reimbursement
+  reimbursement-api: ../../apps/reimbursement-api
+  factgl: ../../apps/factgl
+  factgl-api: ../../apps/factgl-api
+  biz-common: ../../apps/biz-common
 
-#global:
-#  reconcile: ../../global/reconcile
-#  reconcile-api: ../../global/reconcile-api
-#  identity: ../../global/identity
-#  identity-api: ../../global/identity-api
+global:
+  reconcile: ../../global/reconcile
+  reconcile-api: ../../global/reconcile-api
+  identity: ../../global/identity
+  identity-api: ../../global/identity-api
 
-#platform:
-#  app-archetype: ../../platform/app-archetype
-#  app-build-plugins: ../../platform/app-build-plugins
-#  app-common: ../../platform/app-common
-#  baseapp-api: ../../platform/baseapp-api
-#  common-base: ../../platform/common-base
-#  common-base-api: ../../platform/common-base-api
-#  graphql-api: ../../platform/graphql-api
-#  graphql-impl: ../../platform/graphql-impl
-#  grpc-clients: ../../platform/grpc-clients
-#  json-schema-plugin: ../../platform/json-schema-plugin
-#  mbg-plugins: ../../platform/mbg-plugins
-#  metadata-api: ../../platform/metadata-api
-#  metadata-impl: ../../platform/metadata-impl
-#  parent: ../../platform/parent
-#  sql-parser: ../../platform/sql-parser
-#  testapp: ../../platform/testapp
+platform:
+  app-archetype: ../../platform/app-archetype
+  app-build-plugins: ../../platform/app-build-plugins
+  app-common: ../../platform/app-common
+  baseapp-api: ../../platform/baseapp-api
+  common-base: ../../platform/common-base
+  common-base-api: ../../platform/common-base-api
+  graphql-api: ../../platform/graphql-api
+  graphql-impl: ../../platform/graphql-impl
+  grpc-clients: ../../platform/grpc-clients
+  json-schema-plugin: ../../platform/json-schema-plugin
+  mbg-plugins: ../../platform/mbg-plugins
+  metadata-api: ../../platform/metadata-api
+  metadata-impl: ../../platform/metadata-impl
+  parent: ../../platform/parent
+  sql-parser: ../../platform/sql-parser
+  testapp: ../../platform/testapp
