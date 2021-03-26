@@ -86,12 +86,14 @@ if __name__ == "__main__":
       if projectName == 'build':
         tagName = '{}-{}'.format(releaseDate, branchName)
       elif projectInfo.getModule() == 'platform':
-        if check_tag_exist(branchName, projectInfo):
-          continue
         version = projectInfoMap.get('framework', None)
+        if check_tag_exist(branchName, projectInfo) or version is None or len(version) == 0:
+          continue
         tagName = '{}-{}'.format(version, branchName)
       else:
         version = projectInfoMap.get(projectName, None)
+        if version is None or len(version) == 0:
+          continue
         tagName = '{}-{}'.format(version, branchName)
       if projectInfo.getTag(tagName) is None:
         projectInfo.createTag(tagName, branchName)
