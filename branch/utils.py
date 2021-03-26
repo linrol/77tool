@@ -139,9 +139,8 @@ class ProjectInfo():
         return None
 
   #给指定分支打tag
-  def createTag(self, name, branchName):
+  def createTag(self, tagName, branchName):
     try:
-      tagName = '{}-{}'.format(name, branchName)
       self.getProject().tags.create({'tag_name':tagName,'ref':branchName})
     except Exception:
       print('工程【{}】分支【{}】打Tag【{}】失败！！！'.format(self.__name, branchName, tagName))
