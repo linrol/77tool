@@ -56,6 +56,7 @@ DROP TABLE IF EXISTS "baseapp_bill_type_template" CASCADE;
 CREATE TABLE "baseapp_bill_type_template"
 (
     "id" VARCHAR(64),
+    "created_org_id" VARCHAR(64),
     "code" VARCHAR(32) DEFAULT '',
     "name" VARCHAR(256) DEFAULT '',
     "bill_type_id" VARCHAR(64),
@@ -68,6 +69,7 @@ CREATE TABLE "baseapp_bill_type_template"
     "is_default" BOOLEAN DEFAULT false NOT NULL,
     "is_print" BOOLEAN DEFAULT false NOT NULL,
     "is_mobile" BOOLEAN DEFAULT false NOT NULL,
+    "setting_level_id" VARCHAR(64),
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
