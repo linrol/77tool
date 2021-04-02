@@ -14,7 +14,7 @@ XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 #获取各工程版本
 def get_project_version(branchName, projectInfoMap):
   buildName = 'build'
-  if buildName in commits(projectInfoMap.keys()):
+  if buildName in list(projectInfoMap.keys()):
     buildInfo = projectInfoMap[buildName]
     buildPath = buildInfo.getPath()
     buildBranch = buildInfo.getBranch(branchName)
@@ -70,7 +70,7 @@ def check_tag_exist(branchName, projectInfo):
 if __name__ == "__main__":
   if len(sys.argv) == 3 :
     branchName=sys.argv[1]
-    releaseDate=sys.argv[1]
+    releaseDate=sys.argv[2]
   else:
     print ("ERROR: 输入参数错误, 正确的参数为：<branch> <release date>")
     sys.exit(1)
@@ -86,12 +86,12 @@ if __name__ == "__main__":
       if projectName == 'build':
         tagName = '{}-{}'.format(releaseDate, branchName)
       elif projectInfo.getModule() == 'platform':
-        version = projectInfoMap.get('framework', None)
+        version = projectVersionMap.get('framework', None)
         if check_tag_exist(branchName, projectInfo) or version is None or len(version) == 0:
           continue
         tagName = '{}-{}'.format(version, branchName)
       else:
-        version = projectInfoMap.get(projectName, None)
+        version = projectVersionMap.get(projectName, None)
         if version is None or len(version) == 0:
           continue
         tagName = '{}-{}'.format(version, branchName)
