@@ -288,7 +288,7 @@ class VersionUtils():
 
 #修改版本号
 #例：修改hotfix分支的版本号，并且修改工程自身版本号，清空开发脚本
-#python3 changeVersion.py hotfix.self true
+#python3 changeVersion.py hotfix true
 if __name__ == "__main__":
   branchName=''
   needClear = False#是否清空开发脚本，默认false(不清空)

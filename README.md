@@ -22,22 +22,14 @@
 注：目前还不完善，只能修改framework版本、工程自身版本（除framework）、init-data版本。其他工程依赖版本尚无法修改。
 
 ####命令
-python3 changeVersion.py 分支名称[.self] [true]
-.self 代表是否修改工程自身版本
+python3 changeVersion.py 分支名称 [true]
 true 代表是否清空开发脚本及接口数据修复文件
 
 ########例：
 python3 changeVersion.py hotfix
-根据hotfix分支的build工程config.yaml文件修改hotfix分支各工程依赖的其他工程版本
-
-python3 changeVersion.py hotfix.self
 根据hotfix分支的build工程config.yaml文件修改hotfix分支各工程依赖的其他工程版本以及自身版本
 
 python3 changeVersion.py hotfix true
-根据hotfix分支的build工程config.yaml文件修改hotfix分支各工程依赖的其他工程版本，最后清空开发脚本及接口数据修复文件
-
-
-python3 changeVersion.py hotfix.self true
 根据hotfix分支的build工程config.yaml文件修改hotfix分支各工程依赖的其他工程版本以及自身版本，最后清空开发脚本及接口数据修复文件
 
 ##2.checkanddeleted.py
@@ -45,7 +37,7 @@ python3 changeVersion.py hotfix.self true
 获取拥有指定分支的工程，检查要删除的分支是否已合并至指定分支，若已合并则删除，如有工程未合并则所有工程均不进行删除。
 
 ####命令
-python3 checkanddeleted.py 要删除的分支名称 合并的目标分支名称 [工程名称,不传则删除所有工程]
+python3 checkanddeleted.py 要删除的分支名称 合并的目标分支名称 [工程名称...]
 ########例：
 python3 checkanddeleted.py hotfix master
 检查所有工程hotfix分支是否已合并至master分支，若已合并则删除hotfix分支
@@ -58,16 +50,24 @@ python3 checkanddeleted.py hotfix master finance basebi
 
 ##3.createBranch.py
 ####功能
-根据来源分支拉取目标分支，创建出来的分支，如果分支是hotfix/release/emergency，则会自动创建分支保护，所有工程只有管理员有全权限（mr、push）
+根据来源分支创建目标分支，创建出来的分支，如果分支是hotfix/release/emergency/stage-emergency/hotfix-inte/dev，则会自动创建分支保护，所有工程只有管理员有全权限（mr、push）
 ####命令
-python3 createBranch.py 来源分支 目标分支
-以来源分支为模板拉取目标分支
+python3 createBranch.py 来源分支 目标分支[.检查目标分支是否存在] [工程名称...]
+以来源分支为模板创建目标分支，只创建来源分支存在的工程，如果工程不存在来源分支，则不创建目标分支
+检查目标分支是否存在：默认true。true:目标分支存在则报错，所有工程不创建分支;false:目标分支存在则不创建，不存在则创建
 ########例：
 python3 createBranch.py master hotfix
-由master分支拉取hotfix分支，并将hotfix进行分支保护
+由master分支创建hotfix分支，并将hotfix进行分支保护，如果有工程存在hotfix分支则报错，并且所有工程均不创建目标分支
+
+python3 createBranch.py master feature-xxx build finance
+将build和finance工程，由master分支创建feature-xxx分支，如果build或finance存在hotfix分支则报错，并且不做创建操作
+
+python3 createBranch.py master hotfix.false
+由master分支创建hotfix分支，并将hotfix进行分支保护，如果工程存在hotfix分支则忽略，工程不存在hotfix分支则创建hotfix分支
+
 ##4.protectBranch.py
 ####功能
-对指定分支进行分支保护，目前仅预制了三套权限
+对指定分支进行分支保护，权限命名依赖于最早的各分支权限控制规则
 [hotfix权限]：build、init-data为管理员全权限（mr、push）；其余工程为管理员mr权限，所有人禁止push
 
 [release权限]：所有工程管理员全权限（mr、push）
@@ -79,13 +79,13 @@ python3 createBranch.py master hotfix
 [d]：删除分支保护
 
 ####命令
-python3 protectBranch.py 分支 权限
+python3 protectBranch.py 分支 权限 [工程名称...]
 ########例：
 python3 protectBranch.py hotfix release
 将hotfix分支设置为release权限，一般在改版本号时修改为此权限
 
-python3 protectBranch.py hotfix hotfix
-将hotfix分支设置为hotfix权限，此权限为hotfix分支的常态
+python3 protectBranch.py hotfix hotfix project budget
+将project和budget工程的hotfix分支设置为hotfix权限，
 
 python3 protectBranch.py hotfix d
 将hotfix分支的分支保护删除
@@ -101,6 +101,45 @@ python3 checkcommit.py hotfix dev
 
 python3 checkcommit.py hotfix dev 3
 检查3天内hotfix的提交记录是否均合并到dev分支
+
+##6.checkout.py
+####功能
+检出指定分支代码
+####命令
+python3 checkout.py 分支 [是否关闭IDEA的git管理]
+是否关闭IDEA的git管理：默认false。false：不处理IDEA的git管理；true：将没有该分支的工程关闭IDEA git管理
+注：由于idea的特性，在关闭前请将输入符焦点聚焦到有此分支的工程文件上。否则关闭git管理之后会有问题
+########例：
+python3 checkout.py hotfix
+检出hotfix分支到本地
+
+python3 checkout.py hotfix true
+检出hotfix分支到本地，并关闭没有hotfix分支工程的idea git管理
+
+##7.closeGit.py
+####功能
+关闭没有指定分支的工程的IDEA git管理
+####命令
+python3 closeGit.py 分支 
+注：由于idea的特性，在关闭前请将输入符焦点聚焦到有此分支的工程文件上。否则关闭git管理之后会有问题
+########例：
+python3 closeGit.py hotfix
+关闭没有hotfix分支工程的IDEA git管理
+
+##8.tag.py
+####功能
+为指定分支最新提交打tag
+####命令
+python3 tag.py 分支 上线日期
+####规则
+1.build工程tag: 上线日期-分支
+2.platform下的工程: framework的版本号-分支
+3.其他工程: 工程自身版本号-分支
+4.工程版本取自此分支的build工程中的config.yaml文件。如果build工程没有此分支则报错
+5.如果tag存在则不打，platform下的工程如果最新提交上面有tag并且tag上记录的分支有此分支，则不打
+########例：
+python3 tag.py master 20210402
+为master分支工程打tag
 
 #### 参与贡献
 
