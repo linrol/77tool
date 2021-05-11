@@ -17,14 +17,29 @@ def restore_data_pg(connect, path):
   tableFiles.extend(utils.get_all_files('{}/billTypeTemplate'.format(path), "BillTypeTemplate_"))
   return utils.execute_sql_pg(connect, tableFiles)
 
-#加载数据
-# tableName: 加载数据的表名
+
+#加载表单数据
+# uiConfigConditions: UiConfig的查询条件
 # connect: 数据库连接
-def load_data(tableNames, connect):
+# checkVersion: 是否检查版本号
+def load_form_data(uiConfigConditions, connect, checkVersion=False):
   result = {}
-  for tableName,condition in tableNames.items():
-    tableInfo = utils.getDataOfPg(tableName, connect, condition)
-    result[tableName] = tableInfo
+  uiConfigInfo = utils.getDataOfPg("baseapp_ui_config", connect, uiConfigConditions)
+  result['baseapp_ui_config'] = uiConfigInfo
+  if len(uiConfigInfo.getDatas()) > 0:
+    #检查UiConfig和Template的版本是否匹配
+    templateIds = getTemplateIdByUiConfigId(uiConfigInfo)
+    if len(templateIds) > 0:
+      templateConditions = 'id in (\'{}\')'.format('\',\''.join(templateIds))
+      templateInfo = utils.getDataOfPg("baseapp_bill_type_template", connect, templateConditions)
+      result['baseapp_bill_type_template'] = templateInfo
+      if checkVersion:
+        if not check_version(uiConfigInfo, templateInfo):
+          print("ERROR: 检查UiConfig和Template的版本不通过！！！")
+          sys.exit(1)
+        else:
+          print('版本检查通过')
+
   return result;
 
 #对比新旧数据，产生升级脚本存放到指定分支目录下
@@ -56,17 +71,14 @@ def compare_and_gen_log(newDatas, originDatas, branch, tableType, source):
 #保存预制数据到相应的预制文件
 # newDatas: 新数据（本地升级之后的数据）
 # rootPath: init-data工程根路径
-def save_data(newDatas, dataPath):
-  for tableName,tableInfo in newDatas.items():
-    if(tableName == 'baseapp_ui_config'):
-      save_ui_config(tableInfo,dataPath)
-    elif tableName == 'baseapp_bill_type_template':
-      save_bill_type_template(tableInfo,dataPath)
-    else:
-      print("ERROR: 表【{}】未处理!!!".format(tableName))
+def save_data(targetConnect, dataPath, columnMap):
+  uiConfigs = utils.getDataOfPg("baseapp_ui_config", targetConnect)
+  save_ui_config(uiConfigs,dataPath, columnMap["baseapp_ui_config"])
+  templates = utils.getDataOfPg("baseapp_bill_type_template", targetConnect)
+  save_bill_type_template(templates,dataPath, columnMap["baseapp_bill_type_template"])
 
 #保存UiConfig数据
-def save_ui_config(tableDataInfo, dataPath):
+def save_ui_config(tableDataInfo, dataPath, columns):
   uiConfigs = {}
   for data in tableDataInfo.getDatas():
     uiType = data['type']
@@ -101,11 +113,11 @@ def save_ui_config(tableDataInfo, dataPath):
     file = os.path.join(filePath, 'UiConfig_{}.sql'.format(key))
     with open(file,mode='w+',encoding='utf-8') as file:
       for uiData in lists:
-        sql = compareutils.get_insert(uiData, 'baseapp_ui_config', tableDataInfo.getColumnMap())
+        sql = compareutils.get_insert(uiData, 'baseapp_ui_config', columns)
         file.write(sql)
 
 #保存BillTypeTemplate数据
-def save_bill_type_template(tableDataInfo, dataPath):
+def save_bill_type_template(tableDataInfo, dataPath, columns):
   billTypeTemps = {}
   for data in tableDataInfo.getDatas():
     objectType = data['object_type']
@@ -121,7 +133,7 @@ def save_bill_type_template(tableDataInfo, dataPath):
     file = os.path.join(filePath, 'BillTypeTemplate_{}.sql'.format(key))
     with open(file,mode='w+',encoding='utf-8') as file:
       for billTypeTemp in lists:
-        sql = compareutils.get_insert(billTypeTemp, 'baseapp_bill_type_template',tableDataInfo.getColumnMap())
+        sql = compareutils.get_insert(billTypeTemp, 'baseapp_bill_type_template', columns)
         file.write(sql)
 
 
@@ -140,11 +152,9 @@ def commit(rootPath, commitUser):
     sys.exit(1)
 
 # 检查前端表单预制数据版本是否匹配
-def check_version(sourceConnect):
-  uiConfigTableInfo = utils.getDataOfPg("baseapp_ui_config", sourceConnect, 'content->>\'templates\' <>\'null\' and content->>\'templates\' <>\'[]\'')
-  templateTableInfo = utils.getDataOfPg("baseapp_bill_type_template", sourceConnect)
-  templateVersions = parse_template_version(templateTableInfo.getDatas())
-  uiConfigVersions = parse_uiConfig_version(uiConfigTableInfo.getDatas())
+def check_version(uiConfigInfo, templateInfo):
+  templateVersions = parse_template_version(templateInfo)
+  uiConfigVersions = parse_uiConfig_version(uiConfigInfo)
 
   noUi = []
   noUiVersion = []
@@ -170,7 +180,7 @@ def check_version(sourceConnect):
 def parse_template_version(templates):
   templateVersions = {}
   noVersion = []
-  for template in templates:
+  for template in templates.getDatas():
     content = template['content']
     version = content.get('version', None)
     if version is None:
@@ -183,7 +193,7 @@ def parse_template_version(templates):
 # 解析uiConfig对应的模板id
 def parse_uiConfig_version(uiConfigs):
   uiConfigVersions = {}
-  for uiConfig in uiConfigs:
+  for uiConfig in uiConfigs.getDatas():
     content = uiConfig['content']
     version = content['version']
     templates = content['templates']
@@ -191,21 +201,25 @@ def parse_uiConfig_version(uiConfigs):
       uiConfigVersions[template['id']] = content
   return uiConfigVersions
 
+# 获取UiConfig关联的BillTypeTemplateId
+def getTemplateIdByUiConfigId(uiConfigs):
+  templateIds = []
+  if len(uiConfigs.getDatas())>0:
+    for uiConfig in uiConfigs.getDatas():
+      content = uiConfig['content']
+    templates = content['templates']
+    if templates is not None and len(templates) > 0:
+      for template in templates:
+        templateIds.append(template['id'])
+  return templateIds
 
-
-
-def pre_form(env, dbName, branch, commitUser):
+def pre_uiconfig(env, dbName, branch, uiConfigIds, commitUser=None):
   # 获取预制环境
   source = env + "." + dbName
 
   # 预制数据来源环境及租户
   target = "localhost.preset"
   tableType = 'form'
-  #获取需要操作的所有表及其查询条件
-  tableNames = {}
-  uiConfigConditions = 'type not in (\'notifyShow\',\'shortCuts\',\'portletLayout\')'
-  tableNames['baseapp_ui_config'] = uiConfigConditions
-  tableNames['baseapp_bill_type_template'] = ''
 
   dbConfigs = utils.analysisYaml()
   localConfig = utils.getLocalConfig()
@@ -222,21 +236,19 @@ def pre_form(env, dbName, branch, commitUser):
   # 获取数据库连接信息
   sourceConnect = utils.getPgSql(source, dbConfigs)
 
-  #检查UiConfig和Template的版本是否匹配
-  if not check_version(sourceConnect):
-    print("ERROR: 检查UiConfig和Template的版本不通过！！！")
-    sys.exit(1)
-  else:
-    print('版本检查通过')
+  uiConfigConditions = 'type not in (\'notifyShow\',\'shortCuts\',\'portletLayout\') and id in (\'{}\')'.format('\',\''.join(uiConfigIds))
 
   targetConnect = utils.getPgSql(target, dbConfigs)
-
   #将本地代码的预制数据恢复至本地基准库
   oldFiles = restore_data_pg(targetConnect,dataPath)
 
   #获取预制库中的新数据及本地的旧数据
-  newDatas = load_data(tableNames, sourceConnect)
-  originDatas = load_data(tableNames, targetConnect)
+  newDatas = load_form_data(uiConfigConditions, sourceConnect, True)
+  originDatas = load_form_data(uiConfigConditions, targetConnect)
+
+  if len(newDatas) == 0 and len(originDatas) == 0:
+    print("ERROR: UiConfig不存在（{}）！！！".format(uiConfigConditions))
+    sys.exit(1)
 
   #对比产生差异脚本
   changeLog = compare_and_gen_log(newDatas, originDatas, branch, tableType, source)
@@ -245,12 +257,15 @@ def pre_form(env, dbName, branch, commitUser):
     targetConnect.close()
     print("预制租户[{}]与branch[{}]之间无差异".format(source,branch))
     sys.exit(1)
+  else:
+    #将变更在本地库执行
+    utils.execute_sql_pg(targetConnect, [changeLog])
 
   #有差异时，先将本地脚本移除，然后将本地升级之后的数据生成预制脚本
   for oldFile in oldFiles:
     os.remove(oldFile)
   #有差异时，将本地升级之后的数据生成预制脚本
-  save_data(load_data(tableNames, sourceConnect), dataPath)
+  save_data(targetConnect, dataPath, compareutils.getTableColumn(newDatas))
 
   sourceConnect.close()
   targetConnect.close()
@@ -268,16 +283,18 @@ def pre_form(env, dbName, branch, commitUser):
   print("分支: " + branch)
   print("提交人: " + commitUser)
 
+
+#表单或老列表方案预置
+#python3 uiconfig.py release PSE5KP504EN000F release 张三 251a7b86-6503-4914-806a-3f98216bed58 168285b7-be08-43aa-894c-19ba2e637a32
 if __name__ == "__main__":
-  # 获取预制环境
-  env = 'release'
-  dbName='tenantPSE5KP504EN000F'
-  branch ='release'
+  if len(sys.argv) < 6 :
+    print ("ERROR: 输入参数错误, 正确的参数为：<source ENV> <tenantId> <branch> <commitUser> [<uiConfigId>...]")
+    sys.exit(1)
 
-  # dbConfigs = utils.analysisYaml()
-  # pgConfig = dbConfigs.get(env,None)
-  # branch = 'dev'
-  # tenantId = pgConfig.get('tenantId', None)
+  env = sys.argv[1]
+  dbName = 'tenant' + sys.argv[2]
+  branch = sys.argv[3]
+  commitUser = sys.argv[4]
+  uiConfigIds = sys.argv[5:]
 
-  commitUser = ''
-  pre_form(env, dbName, branch, commitUser)
+  pre_uiconfig(env, dbName, branch, uiConfigIds, commitUser)

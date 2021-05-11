@@ -7,13 +7,20 @@ def list_to_map(list):
     return map
   else:
     for item in list:
-      map[item['id']['value']]= item
+      map[item['id']]= item
     return map
 
+# 获取表的字段信息
+def getTableColumn(tableInfoMap):
+  tableColumn = {}
+  for tableName,info in tableInfoMap.items():
+    tableColumn[tableName] = info.getColumnMap()
+  return tableColumn
+
 # 对比产生升级脚本
-def compare_and_genSql(tableName, newData=None, oldData=None):
+def compare_and_genSql(tableName, columnMap, newData=None, oldData=None):
   if newData != None or oldData != None:
-    dataSqls = generate_sql(tableName, list_to_map(newData), list_to_map(oldData))
+    dataSqls = generate_sql(tableName, list_to_map(newData), list_to_map(oldData), columnMap)
 
   dataNum = len(dataSqls)
   if dataNum > 0 :
@@ -28,7 +35,7 @@ def compare_and_genSql(tableName, newData=None, oldData=None):
 
 
 # 生成SQL
-def generate_sql(tableName, newDatas, oldDatas):
+def generate_sql(tableName, newDatas, oldDatas, columnMap):
   olds = oldDatas.copy()
   news = newDatas.copy()
   update=[]
@@ -39,9 +46,9 @@ def generate_sql(tableName, newDatas, oldDatas):
     comment = ''
 
     if(tableName == 'baseapp_bill_type_template'):
-      comment = '-- name[{}]  objectType[{}]\n'.format(old['name']['value'], old['object_type']['value'])
+      comment = '-- name[{}]  objectType[{}]\n'.format(old['name'], old['object_type'])
     elif tableName == 'baseapp_ui_config':
-      comment = '-- name[{}]  type[{}]\n'.format(old['name']['value'], old['type']['value'])
+      comment = '-- name[{}]  type[{}]\n'.format(old['name'], old['type'])
 
     if(new == None):
       # 删除
@@ -49,7 +56,7 @@ def generate_sql(tableName, newDatas, oldDatas):
       del olds[id]
     else:
       # 比较更新
-      sql = compare_update(old, new, tableName)
+      sql = compare_update(old, new, tableName, columnMap)
       del olds[id]
       del news[id]
       if sql == None:
@@ -62,11 +69,11 @@ def generate_sql(tableName, newDatas, oldDatas):
     # 新增
     for id,data in news.items():
       comment = ''
-      sql = get_insert(data, tableName)
+      sql = get_insert(data, tableName, columnMap)
       if(tableName == 'baseapp_bill_type_template'):
-        comment = '-- name[{}]  objectType[{}]\n'.format(data['name']['value'], data['object_type']['value'])
+        comment = '-- name[{}]  objectType[{}]\n'.format(data['name'], data['object_type'])
       elif tableName == 'baseapp_ui_config':
-        comment = '-- name[{}]  type[{}]\n'.format(data['name']['value'], data['type']['value'])
+        comment = '-- name[{}]  type[{}]\n'.format(data['name'], data['type'])
       insert.append("--[{}][{}]\n".format(tableName, id) + comment + sql)
 
   result = []
@@ -79,23 +86,23 @@ def generate_sql(tableName, newDatas, oldDatas):
 
 
 #对比并产生更新SQL
-def compare_update(old, new, tableName):
-  id = old['id']['value']
-  if id != new['id']['value']:
+def compare_update(old, new, tableName, columnMap):
+  id = old['id']
+  if id != new['id']:
     print("ERROR: id不一致不进行比对更新！！！")
     return None
 
   hasChange = False
   sql = 'update {} set '.format(tableName)
   for column, newValue in new.items():
-    oldValue = old.get(column, None)
-    if oldValue is None:
+    if column not in old.keys():
       print("ERROR: {}缺少字段{},请联系管理员进行添加！！！".format(tableName, column))
       sys.exit(1)
-    if oldValue['value'] != newValue['value']:
+    oldValue = old.get(column)
+    if oldValue != newValue:
       hasChange = True
-      changeLog = differences_log(column, oldValue['value'], newValue['value'])
-      sql = changeLog + sql + column + "=" + convert(newValue['value'], newValue['type'] == 3802) + " , "
+      changeLog = differences_log(column, oldValue, newValue)
+      sql = changeLog + sql + column + "=" + convert(newValue, columnMap[column].getType() == 3802) + " , "
     else:
       continue
 
@@ -153,13 +160,16 @@ def compare_dict(old, new):
   return result
 
 #根据数据生成插入SQL
-def get_insert(data, tableName):
+def get_insert(data, tableName, columnMap):
   head = 'INSERT INTO {}('.format(tableName)
   body = ') values ('
 
   for column, value in data.items():
+    if column not in columnMap.keys() or columnMap[column].getIsExclude():
+      # 没有的字段及字段是被排除的则不生成在SQL中
+      continue
     head = head + "\"" + column + "\", "
-    body = body + convert(value['value'], value['type'] == 3802) + ", "
+    body = body + convert(value, columnMap[column].getType() == 3802) + ", "
   head = head +"\"created_time\", \"created_user_id\", \"is_init_data\", \"is_deleted\", \"last_modified_user_id\", \"last_modified_time\""
   body = body + "CURRENT_TIMESTAMP, \'1\', \'t\', \'f\', \'1\', CURRENT_TIMESTAMP);\n"
   sql = head + body

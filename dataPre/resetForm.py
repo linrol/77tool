@@ -15,43 +15,12 @@ from dataPre import compareutils
 # dataPath: 数据存储根路径路径
 def restore_data_pg(connect, path):
   cur = connect.cursor()
-  tableFiles = get_all_files('{}/uiConfig'.format(path), "UiConfig_")
-  tableFiles.extend(get_all_files('{}/billTypeTemplate'.format(path), "BillTypeTemplate_"))
   cur.execute('DELETE FROM baseapp_ui_config;')
   cur.execute('DELETE FROM baseapp_bill_type_template;')
-
-  for tableFile in tableFiles:
-    file = Path(tableFile)
-    if file.is_file():
-      sqls = file.read_text('utf-8')
-      if len(sqls.rstrip()) > 0:
-        cur.execute(sqls)
   cur.close()
-  connect.commit()
-  return tableFiles
-
-#获取指定路径下，指定前缀的文件路径集合
-# rootPath: 要检查的路径
-# pre: 要获取的文件名前缀
-def get_all_files(rootPath, pre=None):
-  index = rootPath.rfind('/')
-  if index+1 == len(rootPath):
-    rootPath = rootPath[:-1]
-
-  filePaths = []
-  if not os.path.exists(rootPath):
-    return filePaths
-
-  listdir = os.listdir(rootPath)
-  for fileName in listdir:
-    filePath = '{}/{}'.format(rootPath, fileName)
-    if os.path.isdir(filePath):
-      child = get_all_files(filePath, pre)
-      if child is not None and len(child) > 0:
-        filePaths.extend(child)
-    elif pre is None or fileName.startswith(pre):
-      filePaths.append(filePath)
-  return filePaths
+  tableFiles = utils.get_all_files('{}/uiConfig'.format(path), "UiConfig_")
+  tableFiles.extend(utils.get_all_files('{}/billTypeTemplate'.format(path), "BillTypeTemplate_"))
+  return utils.execute_sql_pg(connect, tableFiles)
 
 #加载数据
 # tableName: 加载数据的表名
@@ -59,8 +28,8 @@ def get_all_files(rootPath, pre=None):
 def load_data(tableNames, connect):
   result = {}
   for tableName,condition in tableNames.items():
-    datas = utils.getDataOfPg(tableName, connect, condition)
-    result[tableName] = datas
+    tableInfo = utils.getDataOfPg(tableName, connect, condition)
+    result[tableName] = tableInfo
   return result;
 
 #备份预制数据到文件
@@ -71,9 +40,10 @@ def reset_data(newDatas, env, dbName, branch):
     os.makedirs(filePath, 0o777)
   filePath = os.path.join(filePath, fileName)
   with open(filePath,mode='a+',encoding='utf-8') as file:
-    for tableName,newData in newDatas.items():
-      for data in newData:
-        sql = compareutils.get_insert(data, tableName)
+    for tableName,tableInfo in newDatas.items():
+      columnMap = tableInfo.getColumnMap()
+      for data in tableInfo.getDatas():
+        sql = compareutils.get_insert(data, tableName, columnMap)
         file.write(sql)
   return filePath
 
@@ -105,7 +75,7 @@ def reset_form(env, dbName, branch):
 
   projectName = 'init-data'
   rootPath = localConfig[projectName]
-  dataPath = localConfig[tableType][projectName]
+  dataPath = rootPath + '/src/main/resources/init-data'
 
   #检出指定分支
   utils.chectout_branch(projectName, rootPath, branch)
@@ -137,7 +107,7 @@ if __name__ == "__main__":
   # 获取预制环境
   env = 'localhost'
   dbName='testapp'
-  branch ='ztb-test'
+  branch ='release'
 
   # dbConfigs = utils.analysisYaml()
   # pgConfig = dbConfigs.get(env,None)

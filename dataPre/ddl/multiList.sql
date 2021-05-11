@@ -242,6 +242,7 @@ CREATE TABLE "baseapp_query_item_schema"
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
     "customized_fields" JSONB,
+    "context_type" TEXT DEFAULT '',
     PRIMARY KEY ("id")
 );
 COMMENT ON COLUMN "baseapp_query_item_schema"."ordinal" IS '序号';

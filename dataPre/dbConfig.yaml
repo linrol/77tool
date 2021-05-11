@@ -7,9 +7,6 @@ localhost:
   tenantId:
     multiList: 1a
     form: 1a
-  initDataPath: /Users/ztb/compile/apps/init-data/
-  financeRoot: /Users/ztb/compile/apps/enterprise/finance
-  projectRoot: /Users/ztb/compile/apps/enterprise/project
 
 dev:
   host: 172.31.61.12
@@ -27,7 +24,7 @@ test:
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch: feature-asset
+  branch: feature-budget-iteration-3rd
   tenantId:
     multiList: A24SJR50KMK001E
     form: A24SJR50KMK001E
@@ -38,9 +35,9 @@ hotfix:
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch: ztb-test
+  branch: hotfix
   tenantId:
-    multiList: A24SJR50KMK001E
+    multiList: T73UGP507KR0001
     form: T73UGP507KR0001
     reset: T73UGP507KR0001
 
@@ -84,9 +81,9 @@ reports:
   user: postgres
   pwd: stet44{czars
   branch: feature-contract
-  condition: name in ('ArContract_init-list','ArContract_list')
+  condition:
   tenantId:
-    multiList: JT91RR50Q4A0006
+    multiList: LNCEPQ50QX80001
     form: LNCEPQ50QX80001
     reset: LNCEPQ50QX80001
 
@@ -129,7 +126,7 @@ temp3:
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch: qbos-stage-2
+  branch: feature-projectSchedule-iteration3
   tenantId:
     multiList: 71F69R50U88001G
     form: 71F69R50U88001G
@@ -140,7 +137,7 @@ temp4:
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch: feature-alert
+  branch: feature-contractGenProject
   tenantId:
     multiList: Q8X4HR50VQR0001
     form: Q8X4HR50VQR0001
@@ -164,7 +161,7 @@ temp6:
   pwd: stet44{czars
   branch:
   tenantId:
-    multiList: FQPMBR50X7V0023
+    multiList: ACFEKR50X7V000K
     form: ACFEKR50X7V000K
     reset: ACFEKR50X7V000K
 
@@ -175,7 +172,7 @@ temp7:
   pwd: stet44{czars
   branch:
   tenantId:
-    multiList: FQPMBR50X7V0023
+    multiList: EEMEKR510KR0004
     form: EEMEKR510KR0004
     reset: EEMEKR510KR0004
 
@@ -184,7 +181,7 @@ temp8:
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch: feature-timesheet
+  branch: feature-project-change
   tenantId:
     multiList: Q2GEKR511M2000L
     form: Q2GEKR511M2000L
@@ -195,9 +192,9 @@ temp9:
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch: feature-budget
+  branch: feature-multi-org2
   tenantId:
-    multiList: R2VGTR513C0001J
+    multiList: S1B4TR5137G001D
     form: S1B4TR5137G001D
     reset: S1B4TR5137G001D
 
@@ -206,8 +203,63 @@ temp10:
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch:
+  branch: feature-customizedDetailForm
   tenantId:
     multiList: RKGQTR514JJ001L
     form: RKGQTR514JJ001L
     reset: RKGQTR514JJ001L
+
+temp11:
+  host: 172.31.51.15
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-epay2
+  tenantId:
+    multiList: QXSXHS50KQL0013
+    form: QXSXHS50KQL0013
+    reset: QXSXHS50KQL0013
+
+temp12:
+  host: 172.31.56.145
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-receivedInvoiceManagement
+  tenantId:
+    multiList: QXSXHS50KQL0013
+    form: QXSXHS50KQL0013
+    reset: QXSXHS50KQL0013
+
+temp13:
+  host: 172.31.51.223
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-receivedInvoiceManagement
+  tenantId:
+    multiList: QXSXHS50KQL0015
+    form: QXSXHS50KQL0015
+    reset: QXSXHS50KQL0015
+
+temp14:
+  host: 172.31.60.220
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-projectSchedule-phase2
+  tenantId:
+    multiList: QXSXHS50KQL0017
+    form: QXSXHS50KQL0017
+    reset: QXSXHS50KQL0017
+
+temp15:
+  host: 172.31.60.6
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-virtual-subject
+  tenantId:
+    multiList: QXSXHS50KQL0019
+    form: QXSXHS50KQL0019
+    reset: QXSXHS50KQL0019

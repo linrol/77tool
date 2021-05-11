@@ -78,10 +78,11 @@ if __name__ == "__main__":
   else :
     print("预制租户ID：")
     print("   1.1")
-    print("   2." + tenantId)
+    print("   2.2")
+    print("   3." + tenantId)
     print("     自定义(例:MQD34N501EX0001)")
     str = input("请选择租户：")
-    if str != "2":
+    if str != "3":
       tenantId = str
 
   # 多列表方案预置必须输入查询条件

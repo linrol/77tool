@@ -20,17 +20,17 @@ def save_data(datas, idMap, preTypeConfig):
     for data in datas:
       id = data['id']['value']
       if id in ids:
-        if data['layout_template_id']['value'] == None:
+        if data['layout_template_id'] == None:
           layoutId = 'NULL'
         else:
           layoutId ='\'{}\''.format(data['layout_template_id']['value'])
 
-        if data['mobile_template_id']['value'] == None:
+        if data['mobile_template_id'] == None:
           mobileId = 'NULL'
         else:
           mobileId='\'{}\''.format(data['mobile_template_id']['value'])
 
-        if data['print_template_id']['value'] == None:
+        if data['print_template_id'] == None:
           printId = 'NULL'
         else:
           printId='\'{}\''.format(data['print_template_id']['value'])
@@ -53,20 +53,20 @@ def compare(sourceConnect, targetConnect, idMap):
   condition = 'id in (\'{}\')'.format('\',\''.join(allIds))
 
   newBillTypes = utils.getDataOfPg('baseapp_bill_type', sourceConnect, condition)
-  newBillTypeMap = compareutils.list_to_map(newBillTypes)
-  oldBillTypeMap = compareutils.list_to_map(utils.getDataOfPg('baseapp_bill_type', targetConnect, condition))
+  newBillTypeMap = compareutils.list_to_map(newBillTypes.getDatas())
+  oldBillTypeMap = compareutils.list_to_map(utils.getDataOfPg('baseapp_bill_type', targetConnect, condition).getDatas())
 
   changeCount = 0
   for id,new in newBillTypeMap.items():
     old = oldBillTypeMap.get(id, {})
     hasChange = False
-    if new['layout_template_id'].get('value', '') != old['layout_template_id'].get('value', '') :
+    if new['layout_template_id'] != old['layout_template_id'] :
       print("单据类型【{}】单据模板旧值【{}】,新值【{}】".format(new['name']['value'], old['layout_template_id'].get('value', '空'), new['layout_template_id'].get('value', '空')))
       hasChange = True
-    if new['mobile_template_id'].get('value', '') != old['mobile_template_id'].get('value', '') :
+    if new['mobile_template_id'] != old['mobile_template_id'] :
       print("单据类型【{}】手机模板旧值【{}】,新值【{}】".format(new['name']['value'], old['mobile_template_id'].get('value', '空'), new['mobile_template_id'].get('value', '空')))
       hasChange = True
-    if new['print_template_id'].get('value', '') != old['print_template_id'].get('value', '') :
+    if new['print_template_id'] != old['print_template_id'] :
       print("单据类型【{}】打印模板旧值【{}】,新值【{}】".format(new['name']['value'], old['print_template_id'].get('value', '空'), new['print_template_id'].get('value', '空')))
       hasChange = True
     if hasChange:
@@ -77,25 +77,6 @@ def compare(sourceConnect, targetConnect, idMap):
   else:
     print("BillType没有变动！")
     return None
-
-
-#恢复预制文件的预制数据到指定的数据库并返回预制数据id---pg
-# connect: pg数据库连接
-# filePath: billType文件路径
-def restore_data_pg(connect, filePath):
-  cur = connect.cursor()
-
-  file = Path(filePath)
-  if file.is_file():
-    sqls = file.read_text('utf-8')
-    if len(sqls.rstrip()) > 0:
-      cur.execute(sqls)
-  else:
-    print("ERROR: BillType文件错误({})".format(filePath))
-    sys.exit(1)
-  cur.close()
-  connect.commit()
-
 
 # 获取本工程相关的单据类型id
 # connect: pg数据库连接
@@ -141,7 +122,7 @@ def pre_bill_type(env, dbName, branch, commitUser):
   for projectName,dataPath in preTypeConfig.items():
     utils.chectout_branch(projectName, localConfig[projectName], branch)
     #将本地代码的预制数据恢复至本地基准库
-    restore_data_pg(targetConnect,dataPath)
+    utils.execute_sql_pg(targetConnect, [dataPath])
     ids = get_ids(targetConnect, excludeIds)
     idMap[projectName] = ids
     excludeIds.extend(ids)

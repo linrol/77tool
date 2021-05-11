@@ -5,15 +5,79 @@ import psycopg2
 import os
 import yaml
 import gitlab
+from pathlib import Path
 
 URL='http://gitlab.q7link.com'
 TOKEN='xy1MZeykVxGQh7mvB4a3'
 
 
-excludeFields = ['last_criteria_value', 'entry_src_system_id', 'external_system_code', 'external_object_type', 'external_object_id', 'created_user_id', 'created_time', 'modified_user_id', 'modified_time', 'is_init_data', 'is_deleted', 'last_request_id', 'last_modified_user_id', 'last_modified_time', 'customized_fields','data_version']
 # jsonFields = ['content']
 # booleanFields = ['is_disabled','is_system','is_default','is_print','is_mobile','is_display','is_total','is_virtual','is_extend']
 isSystemTable = ['baseapp_bill_type_template', 'baseapp_list_column', 'baseapp_list_column_schema', 'baseapp_list_columns_definition', 'baseapp_list_columns_schema', 'baseapp_list_columns_schema_context_field', 'baseapp_list_columns_schema_sort_field', 'baseapp_query_list_definition', 'baseapp_query_item', 'baseapp_query_item_schema', 'baseapp_query_definition', 'baseapp_query_schema', 'baseapp_query_definition_group','baseapp_list_column_group','baseapp_menu_func','baseapp_menu','baseapp_report_definition']
+
+class ColumnInfo():
+  excludeFields = ['last_criteria_value', 'entry_src_system_id', 'external_system_code', 'external_object_type', 'external_object_id', 'created_user_id', 'created_time', 'modified_user_id', 'modified_time', 'is_init_data', 'is_deleted', 'last_request_id', 'last_modified_user_id', 'last_modified_time', 'customized_fields','data_version']
+  def __init__(self, name, type, index):
+    self.__name = name
+    self.__type = type
+    self.__index = index
+
+  def getName(self):
+    return self.__name
+  def getType(self):
+    return self.__type
+  def getIndex(self):
+    return self.__index
+  def getIsExclude(self):
+    return (self.__name in ColumnInfo.excludeFields)
+
+class TableDataInfo():
+  def __init__(self, tableName, columnDescription, datas, sql):
+    self.__tableName = tableName
+    self.__sql = sql
+    # 表字段解析
+    columnMap={}
+    for index,field in enumerate(columnDescription):
+      field_name = field.name
+      field_type = field.type_code
+      columnInfo = ColumnInfo(field_name, field_type, index)
+      columnMap[field_name] = columnInfo
+    self.__columnMap = columnMap
+
+    # 表数据解析
+    results=[]
+    for data in datas:
+      result = {}
+      for name,columnInfo in columnMap.items():
+        if not columnInfo.getIsExclude():
+          field_name = columnInfo.getName()
+          field_type = columnInfo.getType()
+          field_index = columnInfo.getIndex()
+          if field_type == 3802:
+            #防止JSON中的中文转义，此处先转为字符串在转为JSON
+            if data[field_index] != None:
+              result[field_name] = json.loads(json.dumps(data[field_index]))
+            else:
+              result[field_name] = None
+          elif field_name == 'is_system':
+            #部分表的is_system字段需要默认设置为True
+            if tableName in isSystemTable:
+              result[field_name] = True
+            else:
+              result[field_name] = data[field_index]
+          else:
+            result[field_name] = data[field_index]
+      results.append(result)
+    self.__datas = results
+
+  def getTableName(self):
+    return self.__tableName
+  def getSql(self):
+    return self.__sql
+  def getColumnMap(self):
+    return self.__columnMap
+  def getDatas(self):
+    return self.__datas
 
 # 获取pg数据库的数据
 def getDataOfPg(tableName, connect, condition=None, orderBy=None):
@@ -28,33 +92,9 @@ def getDataOfPg(tableName, connect, condition=None, orderBy=None):
     sql = sql + " order by lower(id)"
   cur.execute(sql)
   datas = cur.fetchall()
-  results = []
-  for data in datas:
-    result = {}
-    for index,field in enumerate(cur.description):
-      field_name = field.name
-      field_type = field.type_code
-      if field_name not in excludeFields:
-        result[field_name] = {}
-        result[field_name]["type"] = field_type
-        if field_type == 3802:
-          #防止JSON中的中文转义，此处先转为字符串在转为JSON
-          if data[index] != None:
-            result[field_name]["value"] = json.loads(json.dumps(data[index]))
-          else:
-            result[field_name]["value"] = None
-        elif field_name == 'is_system':
-          #部分表的is_system字段需要默认设置为True
-          if tableName in isSystemTable:
-            result[field_name]["value"] = True
-          else:
-            result[field_name]["value"] = data[index]
-        else:
-          result[field_name]["value"] = data[index]
-
-    results.append(result)
+  tableInfo = TableDataInfo(tableName, cur.description, datas, sql)
   cur.close()
-  return results
+  return tableInfo
 
 # 解析yaml文件信息
 def analysisYaml(yamlFile=None):
@@ -151,6 +191,63 @@ def check_branch_exist(project, branchName):
     return project.branches.get(branchName)
   except gitlab.exceptions.GitlabGetError:
     return None
+
+
+#获取指定路径下，指定前缀的文件路径集合
+# rootPath: 要检查的路径
+# pre: 要获取的文件名前缀
+def get_all_files(rootPath, pre=None):
+  index = rootPath.rfind('/')
+  if index+1 == len(rootPath):
+    rootPath = rootPath[:-1]
+
+  filePaths = []
+  if not os.path.exists(rootPath):
+    return filePaths
+
+  listdir = os.listdir(rootPath)
+  for fileName in listdir:
+    filePath = '{}/{}'.format(rootPath, fileName)
+    if os.path.isdir(filePath):
+      child = get_all_files(filePath, pre)
+      if child is not None and len(child) > 0:
+        filePaths.extend(child)
+    elif pre is None or fileName.startswith(pre):
+      filePaths.append(filePath)
+  return filePaths
+
+#恢复预制文件的预制数据到指定的数据库---pg
+# connect: pg数据库连接
+# tableFiles: 文件数据
+def execute_sql_pg(connect, tableFiles):
+  cur = connect.cursor()
+  for tableFile in tableFiles:
+    file = Path(tableFile)
+    if file.is_file():
+      sqls = file.read_text('utf-8')
+      if len(sqls.rstrip()) > 0:
+        cur.execute(sqls)
+    else:
+      print("ERROR: SQL文件错误({})".format(tableFile))
+  cur.close()
+  connect.commit()
+  return tableFiles
+
+# 记录操作日志
+# source: 预制租户信息
+# branch: 分支
+# condition: 查询条件
+# commitUser: 提交人
+# fileName: 升级脚本文件名
+def operation_log(source, branch, condition, commitUser, fileName, tableType):
+  logFile = "./log/operation-{}.log".format(tableType)
+  file = Path(logFile)
+  log = ''
+  if file.is_file():
+    log = file.read_text("utf-8")
+
+  with open(logFile, mode='w+', encoding='utf-8') as file:
+    file.writelines('预制租户【{}】预制分支【{}】提交人【{}】查询条件【{}】 升级文件【{}】\n{}'.format(source, branch, commitUser, condition, fileName, log))
 
 # if __name__ == "__main__":
 #   # 获取预制环境

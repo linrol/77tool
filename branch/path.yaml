@@ -11,8 +11,6 @@ apps:
   budget-api: ../../apps/budget-api
   contract: ../../apps/contract
   contract-api: ../../apps/contract-api
-  finance: ../../apps/finance
-  finance-api: ../../apps/finance-api
   procdesign: ../../apps/procdesign
   procdesign-api: ../../apps/procdesign-api
   project: ../../apps/project

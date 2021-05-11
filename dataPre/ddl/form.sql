@@ -60,6 +60,7 @@ CREATE TABLE "baseapp_bill_type_template"
     "code" VARCHAR(32) DEFAULT '',
     "name" VARCHAR(256) DEFAULT '',
     "bill_type_id" VARCHAR(64),
+    "form_template_id" VARCHAR(64),
     "entry_src_system_id" VARCHAR(64) DEFAULT 'EntrySrcSystem.systemInput',
     "external_system_code" VARCHAR(128) DEFAULT '',
     "external_object_type" VARCHAR(128) DEFAULT '',
