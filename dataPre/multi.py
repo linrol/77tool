@@ -126,7 +126,7 @@ def save_data(newDatas, scriptPath, columnMap):
       for tableName,tableDataInfo in newTableInfo.items():
         file.write('--{}\n'.format(tableName))
         for data in tableDataInfo.getDatas():
-          sql = compareutils.get_insert(data, tableName, columnMap)
+          sql = compareutils.get_insert(data, tableName, columnMap[tableName])
           file.write(sql)
         file.write('\n')
   return files
@@ -188,10 +188,10 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
   #对比产生差异脚本
   changeLog = compare_and_gen_log(newDatas, originDatas, branch, tableType, source)
   if changeLog is None:
-    # sourceConnect.close()
-    # targetConnect.close()
+    sourceConnect.close()
+    targetConnect.close()
     print("预制租户[{}]与branch[{}]之间无差异".format(source,branch))
-    # sys.exit(1)
+    sys.exit(1)
     pass
   else:
     #将变更在本地库执行
@@ -222,4 +222,4 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
 
 
 if __name__ == "__main__":
-  pre_multi_list('release', 'tenant-public', 'release', None, None)
+  pre_multi_list('temp18', 'tenantEP97MU51E8B0024', 'feature-multi-org2', '刘睿', 'name in (\'Project_list_multiOrg\',\'StageGroup_list\')')
