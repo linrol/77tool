@@ -17,6 +17,8 @@ CREATE TABLE "baseapp_query_definition"
     "public_definition_id" VARCHAR(64),
     "criteria_object" JSONB,
     "is_default" BOOLEAN DEFAULT false NOT NULL,
+    "is_data_scope" BOOLEAN DEFAULT false NOT NULL,
+    "is_shortcut" BOOLEAN DEFAULT false NOT NULL,
     "query_list_definition_id" VARCHAR(64),
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
@@ -46,6 +48,8 @@ COMMENT ON COLUMN "baseapp_query_definition"."src_definition_id" IS '来源方�
 COMMENT ON COLUMN "baseapp_query_definition"."public_definition_id" IS '公共方案';
 COMMENT ON COLUMN "baseapp_query_definition"."criteria_object" IS '记忆上次查询的 criteriaObject';
 COMMENT ON COLUMN "baseapp_query_definition"."is_default" IS '默认查询方案';
+COMMENT ON COLUMN "baseapp_query_definition"."is_data_scope" IS '是否数据范围';
+COMMENT ON COLUMN "baseapp_query_definition"."is_shortcut" IS '快捷方案';
 COMMENT ON COLUMN "baseapp_query_definition"."query_list_definition_id" IS '查询列表方案id';
 COMMENT ON COLUMN "baseapp_query_definition"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_query_definition"."created_time" IS '创建时间';
@@ -74,6 +78,7 @@ CREATE TABLE "baseapp_query_definition_group"
     "title" VARCHAR(32) DEFAULT '',
     "object_type" VARCHAR(64),
     "suppress_show_dialog" BOOLEAN DEFAULT false NOT NULL,
+    "is_mobile" BOOLEAN DEFAULT false NOT NULL,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
@@ -96,6 +101,7 @@ COMMENT ON COLUMN "baseapp_query_definition_group"."external_object_id" IS '外�
 COMMENT ON COLUMN "baseapp_query_definition_group"."title" IS '标题';
 COMMENT ON COLUMN "baseapp_query_definition_group"."object_type" IS '业务对象';
 COMMENT ON COLUMN "baseapp_query_definition_group"."suppress_show_dialog" IS '抑制页面初始化时查询弹窗显示';
+COMMENT ON COLUMN "baseapp_query_definition_group"."is_mobile" IS '是否是移动端列表组';
 COMMENT ON COLUMN "baseapp_query_definition_group"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_query_definition_group"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_query_definition_group"."modified_user_id" IS '修改人';
@@ -229,6 +235,7 @@ CREATE TABLE "baseapp_query_item_schema"
     "disable_delete" BOOLEAN DEFAULT false NOT NULL,
     "disable_change_operator" BOOLEAN DEFAULT false NOT NULL,
     "is_virtual" BOOLEAN DEFAULT false NOT NULL,
+    "context_type" TEXT DEFAULT '',
     "query_schema_id" VARCHAR(64),
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
@@ -242,7 +249,6 @@ CREATE TABLE "baseapp_query_item_schema"
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
     "customized_fields" JSONB,
-    "context_type" TEXT DEFAULT '',
     PRIMARY KEY ("id")
 );
 COMMENT ON COLUMN "baseapp_query_item_schema"."ordinal" IS '序号';
@@ -274,6 +280,7 @@ COMMENT ON COLUMN "baseapp_query_item_schema"."disable_change_display" IS '禁�
 COMMENT ON COLUMN "baseapp_query_item_schema"."disable_delete" IS '禁止删除';
 COMMENT ON COLUMN "baseapp_query_item_schema"."disable_change_operator" IS '禁止修改类型';
 COMMENT ON COLUMN "baseapp_query_item_schema"."is_virtual" IS '是否是虚拟字段';
+COMMENT ON COLUMN "baseapp_query_item_schema"."context_type" IS '上下文类型';
 COMMENT ON COLUMN "baseapp_query_item_schema"."query_schema_id" IS '查询方案模型id';
 COMMENT ON COLUMN "baseapp_query_item_schema"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_query_item_schema"."created_time" IS '创建时间';
@@ -310,6 +317,9 @@ CREATE TABLE "baseapp_query_list_definition"
     "support_master_and_details" BOOLEAN DEFAULT false NOT NULL,
     "group_id" VARCHAR(64),
     "object_type" VARCHAR(64),
+    "device_type_id" VARCHAR(64) DEFAULT 'DeviceType.pc',
+    "is_approval" BOOLEAN DEFAULT false NOT NULL,
+    "is_exhibition" BOOLEAN DEFAULT false NOT NULL,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
@@ -340,6 +350,9 @@ COMMENT ON COLUMN "baseapp_query_list_definition"."default_list_columns_def_id" 
 COMMENT ON COLUMN "baseapp_query_list_definition"."support_master_and_details" IS '是否支持整单明细切换';
 COMMENT ON COLUMN "baseapp_query_list_definition"."group_id" IS '查询列表组id';
 COMMENT ON COLUMN "baseapp_query_list_definition"."object_type" IS '对象类型';
+COMMENT ON COLUMN "baseapp_query_list_definition"."device_type_id" IS '设备类型';
+COMMENT ON COLUMN "baseapp_query_list_definition"."is_approval" IS '是否是审批列表方案';
+COMMENT ON COLUMN "baseapp_query_list_definition"."is_exhibition" IS '是否是展示列表方案';
 COMMENT ON COLUMN "baseapp_query_list_definition"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_query_list_definition"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_query_list_definition"."modified_user_id" IS '修改人';
@@ -384,7 +397,7 @@ COMMENT ON COLUMN "baseapp_query_schema"."external_system_code" IS '外部系统
 COMMENT ON COLUMN "baseapp_query_schema"."external_object_type" IS '外部系统对象类型';
 COMMENT ON COLUMN "baseapp_query_schema"."external_object_id" IS '外部系统唯一标识';
 COMMENT ON COLUMN "baseapp_query_schema"."object_type" IS '业务对象';
-COMMENT ON COLUMN "baseapp_query_schema"."criteria" IS '固定查询条件';
+COMMENT ON COLUMN "baseapp_query_schema"."criteria" IS '固定查询条件对象';
 COMMENT ON COLUMN "baseapp_query_schema"."criteria_str" IS '固定查询条件';
 COMMENT ON COLUMN "baseapp_query_schema"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_query_schema"."created_time" IS '创建时间';
@@ -434,6 +447,9 @@ CREATE TABLE "baseapp_list_column"
     "list_column_schema_id" VARCHAR(64),
     "numeric_scale" INTEGER DEFAULT 0 NOT NULL,
     "length" INTEGER DEFAULT 0 NOT NULL,
+    "colspan" INTEGER DEFAULT 0 NOT NULL,
+    "prefix" VARCHAR(128) DEFAULT '',
+    "suffix" VARCHAR(128) DEFAULT '',
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
@@ -475,6 +491,9 @@ COMMENT ON COLUMN "baseapp_list_column"."is_extend" IS '是否是扩展字段';
 COMMENT ON COLUMN "baseapp_list_column"."list_column_schema_id" IS '栏目的模型id';
 COMMENT ON COLUMN "baseapp_list_column"."numeric_scale" IS '小数精度';
 COMMENT ON COLUMN "baseapp_list_column"."length" IS '长度';
+COMMENT ON COLUMN "baseapp_list_column"."colspan" IS '字段占据列数';
+COMMENT ON COLUMN "baseapp_list_column"."prefix" IS '前缀';
+COMMENT ON COLUMN "baseapp_list_column"."suffix" IS '后缀';
 COMMENT ON COLUMN "baseapp_list_column"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_list_column"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_list_column"."modified_user_id" IS '修改人';
@@ -573,6 +592,9 @@ CREATE TABLE "baseapp_list_column_schema"
     "is_virtual" BOOLEAN DEFAULT false NOT NULL,
     "length" INTEGER DEFAULT 0 NOT NULL,
     "numeric_scale" INTEGER DEFAULT 0 NOT NULL,
+    "allow_change_prefix" BOOLEAN DEFAULT true NOT NULL,
+    "allow_change_suffix" BOOLEAN DEFAULT true NOT NULL,
+    "allow_change_colspan" BOOLEAN DEFAULT true NOT NULL,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
@@ -615,6 +637,9 @@ COMMENT ON COLUMN "baseapp_list_column_schema"."expression" IS '表达式';
 COMMENT ON COLUMN "baseapp_list_column_schema"."is_virtual" IS '是否虚拟字段';
 COMMENT ON COLUMN "baseapp_list_column_schema"."length" IS '长度';
 COMMENT ON COLUMN "baseapp_list_column_schema"."numeric_scale" IS '小数精度';
+COMMENT ON COLUMN "baseapp_list_column_schema"."allow_change_prefix" IS '禁止修改前缀';
+COMMENT ON COLUMN "baseapp_list_column_schema"."allow_change_suffix" IS '禁止修改后缀';
+COMMENT ON COLUMN "baseapp_list_column_schema"."allow_change_colspan" IS '禁止修改列数';
 COMMENT ON COLUMN "baseapp_list_column_schema"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_list_column_schema"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_list_column_schema"."modified_user_id" IS '修改人';
@@ -650,6 +675,7 @@ CREATE TABLE "baseapp_list_columns_definition"
     "public_definition_id" VARCHAR(64),
     "is_master" BOOLEAN DEFAULT false NOT NULL,
     "query_list_definition_id" VARCHAR(64),
+    "cols" INTEGER DEFAULT 0 NOT NULL,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
@@ -680,6 +706,7 @@ COMMENT ON COLUMN "baseapp_list_columns_definition"."src_definition_id" IS '来�
 COMMENT ON COLUMN "baseapp_list_columns_definition"."public_definition_id" IS '公共方案';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."is_master" IS '是否主表';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."query_list_definition_id" IS '查询列表方案id';
+COMMENT ON COLUMN "baseapp_list_columns_definition"."cols" IS '列数';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."modified_user_id" IS '修改人';
@@ -801,6 +828,7 @@ CREATE TABLE "baseapp_list_columns_schema_sort_field"
     "field_name" VARCHAR(256) DEFAULT '',
     "sort" VARCHAR(64),
     "list_column_schema_id" VARCHAR(64),
+    "allow_change_sort" BOOLEAN DEFAULT true NOT NULL,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
@@ -823,6 +851,7 @@ COMMENT ON COLUMN "baseapp_list_columns_schema_sort_field"."external_object_id" 
 COMMENT ON COLUMN "baseapp_list_columns_schema_sort_field"."field_name" IS '字段名';
 COMMENT ON COLUMN "baseapp_list_columns_schema_sort_field"."sort" IS '排序';
 COMMENT ON COLUMN "baseapp_list_columns_schema_sort_field"."list_column_schema_id" IS '模型';
+COMMENT ON COLUMN "baseapp_list_columns_schema_sort_field"."allow_change_sort" IS '允许改变排序';
 COMMENT ON COLUMN "baseapp_list_columns_schema_sort_field"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_list_columns_schema_sort_field"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_list_columns_schema_sort_field"."modified_user_id" IS '修改人';
