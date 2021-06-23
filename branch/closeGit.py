@@ -21,7 +21,7 @@ def close_git(projectMap):
     if name == 'VcsDirectoryMappings':
       break
 
-  mappings = component.getiterator('mapping')
+  mappings = component.iter('mapping')
   for mapping in list(mappings):
     directory = mapping.get('directory')
     projectName = directory[directory.rfind('/') + 1:]
