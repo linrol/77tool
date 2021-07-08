@@ -34,6 +34,10 @@ def restore_data_pg(connect, path):
 def load_data(tableName, connect, tableJoins, condition=None, orderBy=None):
   result = {}
   tableInfo = utils.getDataOfPg(tableName, connect, condition, orderBy)
+  if(not tableInfo.isExists()):
+    # 表不存在则不返回数据
+    return result;
+
   result[tableName] = tableInfo
   if len(tableJoins) > 0:
     for item in tableJoins:
@@ -59,9 +63,20 @@ def load_data(tableName, connect, tableJoins, condition=None, orderBy=None):
         else:
           nextCondition = '({}) and {} in (\'{}\')'.format(nextCondition, query_field,'\',\''.join(values))
       data = load_data(nextTableName, connect, nextTableJoins, nextCondition, nextOrderBy)
-      result.update(data)
+      dataMerge(result, data)
+      # result.update(data)
 
   return result
+
+def dataMerge(result, data):
+  if(data is None):
+    return result
+  for tableName,tableDataInfo in data.items():
+    if tableName in result:
+      tableData = result.get(tableName).merge(tableDataInfo)
+      result[tableName] = tableData
+    else:
+      result[tableName] = tableDataInfo
 
 
 #加载数据(返回数据按照分组进行分割)
@@ -73,6 +88,9 @@ def load_data(tableName, connect, tableJoins, condition=None, orderBy=None):
 def load_data_of_group(tableName, connect, tableJoins, groupField, condition=None, orderBy=None):
   result = {}
   tableInfo = utils.getDataOfPg(tableName, connect, condition, orderBy)
+  if(not tableInfo.isExists):
+    # 表不存在则不返回数据
+    return result;
 
   for tableData in tableInfo.getDatas():
     if tableData != None:
@@ -92,6 +110,10 @@ def compare_and_gen_log(newDatas, originDatas, branch, tableType, source):
   changeDatas = []
   for name,newData in newDatas.items():
     originTableInfo = originDatas.get(name)
+    if originTableInfo is None:
+      # 表不存在
+      print ('ERROR:表[{}]不存在，请在脚本中添加！！！'.format(name))
+      sys.exit(1)
     result = compareutils.compare_and_genSql(name, newData.getColumnMap(), newData.getDatas(), originTableInfo.getDatas())
     if result is None or len(result) == 0:
       continue
@@ -124,6 +146,9 @@ def save_data(newDatas, scriptPath, columnMap):
     files.append(file)
     with open(file,mode='w+',encoding='utf-8') as file:
       for tableName,tableDataInfo in newTableInfo.items():
+        if tableName not in columnMap:
+          #表不存在
+          continue
         file.write('--{}\n'.format(tableName))
         for data in tableDataInfo.getDatas():
           sql = compareutils.get_insert(data, tableName, columnMap[tableName])
@@ -222,4 +247,4 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
 
 
 if __name__ == "__main__":
-  pre_multi_list('temp18', 'tenantEP97MU51E8B0024', 'feature-multi-org2', '刘睿', 'name in (\'Project_list_multiOrg\',\'StageGroup_list\')')
+  pre_multi_list('hotfix-inte', 'tenant-base', 'hotfix-inte', None, 'name in (\'AccountingFactBook_list\')')

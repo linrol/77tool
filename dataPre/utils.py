@@ -32,8 +32,19 @@ class ColumnInfo():
     return (self.__name in ColumnInfo.excludeFields)
 
 class TableDataInfo():
-  def __init__(self, tableName, columnDescription, datas, sql):
+  __tableName = None
+  __exists = True
+  __sql = None
+  __datas = []
+  __dataMap = {}
+  __columnMap = {}
+
+  def __init__(self, tableName, columnDescription, datas, sql, exists=True):
     self.__tableName = tableName
+    self.__exists = exists
+    if not exists:
+      return
+
     self.__sql = sql
     # 表字段解析
     columnMap={}
@@ -46,6 +57,7 @@ class TableDataInfo():
 
     # 表数据解析
     results=[]
+    resultMap={}
     for data in datas:
       result = {}
       for name,columnInfo in columnMap.items():
@@ -68,7 +80,9 @@ class TableDataInfo():
           else:
             result[field_name] = data[field_index]
       results.append(result)
+      resultMap[result['id']] = result
     self.__datas = results
+    self.__dataMap = resultMap
 
   def getTableName(self):
     return self.__tableName
@@ -78,10 +92,25 @@ class TableDataInfo():
     return self.__columnMap
   def getDatas(self):
     return self.__datas
+  def isExists(self):
+    return self.__exists
+  def merge(self, tableDataInfo):
+    datas = tableDataInfo.getDatas()
+    if datas is not None:
+      for data in datas:
+        id = data.get('id')
+        if id not in self.__dataMap:
+          self.__datas.append(data)
+          self.__dataMap[id] = data
+    return self
 
 # 获取pg数据库的数据
 def getDataOfPg(tableName, connect, condition=None, orderBy=None):
   cur = connect.cursor()
+  exists = tableExists(tableName, cur)
+  if not exists:
+    cur.close()
+    return TableDataInfo(tableName, None, None, None, exists)
   sql = "SELECT * from {} WHERE (is_deleted=\'f\' or is_deleted=false )".format(tableName)
   if condition != None and len(condition)>0:
     sql = '{} and ({})'.format(sql, condition)
@@ -95,6 +124,14 @@ def getDataOfPg(tableName, connect, condition=None, orderBy=None):
   tableInfo = TableDataInfo(tableName, cur.description, datas, sql)
   cur.close()
   return tableInfo
+
+def tableExists(tableName, cur):
+  sql = "SELECT relname FROM pg_class WHERE relname = \'{}\'".format(tableName);
+  cur.execute(sql)
+  datas = cur.fetchall()
+  if(datas is None or len(datas) == 0):
+    return False
+  return True
 
 # 解析yaml文件信息
 def analysisYaml(yamlFile=None):

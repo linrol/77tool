@@ -866,3 +866,206 @@ COMMENT ON COLUMN "baseapp_list_columns_schema_sort_field"."last_modified_time" 
 COMMENT ON COLUMN "baseapp_list_columns_schema_sort_field"."customized_fields" IS '自定义属性';
 COMMENT ON TABLE "baseapp_list_columns_schema_sort_field" IS '列表的固定排序字段';
 ;
+
+CREATE TABLE "baseapp_list_sort_definition"
+(
+    "id" VARCHAR(64),
+    "ordinal" INTEGER DEFAULT 0 NOT NULL,
+    "entry_src_system_id" VARCHAR(64) DEFAULT 'EntrySrcSystem.systemInput',
+    "external_system_code" VARCHAR(128) DEFAULT '',
+    "external_object_type" VARCHAR(128) DEFAULT '',
+    "external_object_id" VARCHAR(128) DEFAULT '',
+    "query_list_definition_id" VARCHAR(64),
+    "title" VARCHAR(256) DEFAULT '',
+    "is_default" BOOLEAN DEFAULT false NOT NULL,
+    "disabled" BOOLEAN DEFAULT false NOT NULL,
+    "list_columns_schema_id" VARCHAR(64),
+    "created_user_id" VARCHAR(64),
+    "created_time" TIMESTAMP,
+    "modified_user_id" VARCHAR(64),
+    "modified_time" TIMESTAMP,
+    "is_system" BOOLEAN DEFAULT false NOT NULL,
+    "is_init_data" BOOLEAN DEFAULT false NOT NULL,
+    "is_deleted" BOOLEAN DEFAULT false NOT NULL,
+    "data_version" BIGINT DEFAULT 0 NOT NULL,
+    "last_request_id" VARCHAR(128) DEFAULT '',
+    "last_modified_user_id" VARCHAR(64),
+    "last_modified_time" TIMESTAMP,
+    "customized_fields" JSONB,
+    PRIMARY KEY ("id")
+);
+COMMENT ON COLUMN "baseapp_list_sort_definition"."ordinal" IS '序号';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."entry_src_system_id" IS '数据来源类型';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."external_system_code" IS '外部系统标识';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."external_object_type" IS '外部系统对象类型';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."external_object_id" IS '外部系统唯一标识';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."query_list_definition_id" IS '查询列表方案';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."title" IS '标题';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."is_default" IS '默认排序方案';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."disabled" IS '禁用';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."list_columns_schema_id" IS '列表模型';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."created_user_id" IS '创建人';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."created_time" IS '创建时间';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."modified_user_id" IS '修改人';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."modified_time" IS '修改时间';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."is_system" IS '是否为系统数据';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."is_init_data" IS '是否为预置数据';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."is_deleted" IS '是否为删除数据';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."data_version" IS '数据版本';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."last_request_id" IS '最后一次更新请求的requestId';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."last_modified_user_id" IS '最后修改人';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."last_modified_time" IS '最后修改时间';
+COMMENT ON COLUMN "baseapp_list_sort_definition"."customized_fields" IS '自定义属性';
+COMMENT ON TABLE "baseapp_list_sort_definition" IS '列表排序方案';
+CREATE UNIQUE INDEX "idx_baseapp_list_sort_definition_xak1" ON "baseapp_list_sort_definition" USING btree("query_list_definition_id" ASC NULLS FIRST,"title" ASC NULLS FIRST);
+COMMENT ON INDEX "idx_baseapp_list_sort_definition_xak1" IS '排序方案标题不可重复。';
+
+CREATE TABLE "baseapp_list_sort_item"
+(
+    "id" VARCHAR(64),
+    "ordinal" INTEGER DEFAULT 0 NOT NULL,
+    "entry_src_system_id" VARCHAR(64) DEFAULT 'EntrySrcSystem.systemInput',
+    "external_system_code" VARCHAR(128) DEFAULT '',
+    "external_object_type" VARCHAR(128) DEFAULT '',
+    "external_object_id" VARCHAR(128) DEFAULT '',
+    "list_sort_definition_id" VARCHAR(64),
+    "sort_direction_id" VARCHAR(64) DEFAULT 'SortDirection.asc',
+    "field_name" VARCHAR(256) DEFAULT '',
+    "created_user_id" VARCHAR(64),
+    "created_time" TIMESTAMP,
+    "modified_user_id" VARCHAR(64),
+    "modified_time" TIMESTAMP,
+    "is_system" BOOLEAN DEFAULT false NOT NULL,
+    "is_init_data" BOOLEAN DEFAULT false NOT NULL,
+    "is_deleted" BOOLEAN DEFAULT false NOT NULL,
+    "data_version" BIGINT DEFAULT 0 NOT NULL,
+    "last_request_id" VARCHAR(128) DEFAULT '',
+    "last_modified_user_id" VARCHAR(64),
+    "last_modified_time" TIMESTAMP,
+    "customized_fields" JSONB,
+    PRIMARY KEY ("id")
+);
+COMMENT ON COLUMN "baseapp_list_sort_item"."ordinal" IS '序号';
+COMMENT ON COLUMN "baseapp_list_sort_item"."entry_src_system_id" IS '数据来源类型';
+COMMENT ON COLUMN "baseapp_list_sort_item"."external_system_code" IS '外部系统标识';
+COMMENT ON COLUMN "baseapp_list_sort_item"."external_object_type" IS '外部系统对象类型';
+COMMENT ON COLUMN "baseapp_list_sort_item"."external_object_id" IS '外部系统唯一标识';
+COMMENT ON COLUMN "baseapp_list_sort_item"."list_sort_definition_id" IS '列表排序方案';
+COMMENT ON COLUMN "baseapp_list_sort_item"."sort_direction_id" IS '排序方向';
+COMMENT ON COLUMN "baseapp_list_sort_item"."field_name" IS '字段名';
+COMMENT ON COLUMN "baseapp_list_sort_item"."created_user_id" IS '创建人';
+COMMENT ON COLUMN "baseapp_list_sort_item"."created_time" IS '创建时间';
+COMMENT ON COLUMN "baseapp_list_sort_item"."modified_user_id" IS '修改人';
+COMMENT ON COLUMN "baseapp_list_sort_item"."modified_time" IS '修改时间';
+COMMENT ON COLUMN "baseapp_list_sort_item"."is_system" IS '是否为系统数据';
+COMMENT ON COLUMN "baseapp_list_sort_item"."is_init_data" IS '是否为预置数据';
+COMMENT ON COLUMN "baseapp_list_sort_item"."is_deleted" IS '是否为删除数据';
+COMMENT ON COLUMN "baseapp_list_sort_item"."data_version" IS '数据版本';
+COMMENT ON COLUMN "baseapp_list_sort_item"."last_request_id" IS '最后一次更新请求的requestId';
+COMMENT ON COLUMN "baseapp_list_sort_item"."last_modified_user_id" IS '最后修改人';
+COMMENT ON COLUMN "baseapp_list_sort_item"."last_modified_time" IS '最后修改时间';
+COMMENT ON COLUMN "baseapp_list_sort_item"."customized_fields" IS '自定义属性';
+COMMENT ON TABLE "baseapp_list_sort_item" IS '排序字段';
+CREATE UNIQUE INDEX "idx_baseapp_list_sort_item_xak1" ON "baseapp_list_sort_item" USING btree("list_sort_definition_id" ASC NULLS FIRST,"field_name" ASC NULLS FIRST);
+COMMENT ON INDEX "idx_baseapp_list_sort_item_xak1" IS '排序字段不可重复设置。';
+
+CREATE TABLE "baseapp_list_columns_schema_status_field"
+(
+    "id" VARCHAR(64),
+    "ordinal" INTEGER DEFAULT 0 NOT NULL,
+    "entry_src_system_id" VARCHAR(64) DEFAULT 'EntrySrcSystem.systemInput',
+    "external_system_code" VARCHAR(128) DEFAULT '',
+    "external_object_type" VARCHAR(128) DEFAULT '',
+    "external_object_id" VARCHAR(128) DEFAULT '',
+    "list_column_schema_id" VARCHAR(64),
+    "field_name" TEXT DEFAULT '',
+    "created_user_id" VARCHAR(64),
+    "created_time" TIMESTAMP,
+    "modified_user_id" VARCHAR(64),
+    "modified_time" TIMESTAMP,
+    "is_system" BOOLEAN DEFAULT false NOT NULL,
+    "is_init_data" BOOLEAN DEFAULT false NOT NULL,
+    "is_deleted" BOOLEAN DEFAULT false NOT NULL,
+    "data_version" BIGINT DEFAULT 0 NOT NULL,
+    "last_request_id" VARCHAR(128) DEFAULT '',
+    "last_modified_user_id" VARCHAR(64),
+    "last_modified_time" TIMESTAMP,
+    "customized_fields" JSONB,
+    PRIMARY KEY ("id")
+);
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."ordinal" IS '序号';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."entry_src_system_id" IS '数据来源类型';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."external_system_code" IS '外部系统标识';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."external_object_type" IS '外部系统对象类型';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."external_object_id" IS '外部系统唯一标识';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."list_column_schema_id" IS '列表模型';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."field_name" IS '字段名';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."created_user_id" IS '创建人';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."created_time" IS '创建时间';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."modified_user_id" IS '修改人';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."modified_time" IS '修改时间';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."is_system" IS '是否为系统数据';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."is_init_data" IS '是否为预置数据';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."is_deleted" IS '是否为删除数据';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."data_version" IS '数据版本';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."last_request_id" IS '最后一次更新请求的requestId';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."last_modified_user_id" IS '最后修改人';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."last_modified_time" IS '最后修改时间';
+COMMENT ON COLUMN "baseapp_list_columns_schema_status_field"."customized_fields" IS '自定义属性';
+COMMENT ON TABLE "baseapp_list_columns_schema_status_field" IS '列表模型状态字段';
+CREATE UNIQUE INDEX "idx_baseapp_list_columns_schema_status_field_xak1" ON "baseapp_list_columns_schema_status_field" USING btree("list_column_schema_id" ASC NULLS FIRST,"field_name" ASC NULLS FIRST);
+COMMENT ON INDEX "idx_baseapp_list_columns_schema_status_field_xak1" IS '状态字段不可重复。';
+
+
+CREATE TABLE "baseapp_tab_definition"
+(
+    "id" VARCHAR(64),
+    "ordinal" INTEGER DEFAULT 0 NOT NULL,
+    "entry_src_system_id" VARCHAR(64) DEFAULT 'EntrySrcSystem.systemInput',
+    "external_system_code" VARCHAR(128) DEFAULT '',
+    "external_object_type" VARCHAR(128) DEFAULT '',
+    "external_object_id" VARCHAR(128) DEFAULT '',
+    "query_list_definition_id" VARCHAR(64),
+    "query_definition_id" VARCHAR(64),
+    "list_columns_definition_id" VARCHAR(64),
+    "title" VARCHAR(64) DEFAULT '',
+    "is_default" BOOLEAN DEFAULT false NOT NULL,
+    "created_user_id" VARCHAR(64),
+    "created_time" TIMESTAMP,
+    "modified_user_id" VARCHAR(64),
+    "modified_time" TIMESTAMP,
+    "is_system" BOOLEAN DEFAULT false NOT NULL,
+    "is_init_data" BOOLEAN DEFAULT false NOT NULL,
+    "is_deleted" BOOLEAN DEFAULT false NOT NULL,
+    "data_version" BIGINT DEFAULT 0 NOT NULL,
+    "last_request_id" VARCHAR(128) DEFAULT '',
+    "last_modified_user_id" VARCHAR(64),
+    "last_modified_time" TIMESTAMP,
+    "customized_fields" JSONB,
+    PRIMARY KEY ("id")
+);
+COMMENT ON COLUMN "baseapp_tab_definition"."ordinal" IS '序号';
+COMMENT ON COLUMN "baseapp_tab_definition"."entry_src_system_id" IS '数据来源类型';
+COMMENT ON COLUMN "baseapp_tab_definition"."external_system_code" IS '外部系统标识';
+COMMENT ON COLUMN "baseapp_tab_definition"."external_object_type" IS '外部系统对象类型';
+COMMENT ON COLUMN "baseapp_tab_definition"."external_object_id" IS '外部系统唯一标识';
+COMMENT ON COLUMN "baseapp_tab_definition"."query_list_definition_id" IS '查询列表方案';
+COMMENT ON COLUMN "baseapp_tab_definition"."query_definition_id" IS '查询方案';
+COMMENT ON COLUMN "baseapp_tab_definition"."list_columns_definition_id" IS '列表方案';
+COMMENT ON COLUMN "baseapp_tab_definition"."title" IS '标题';
+COMMENT ON COLUMN "baseapp_tab_definition"."is_default" IS '默认页签';
+COMMENT ON COLUMN "baseapp_tab_definition"."created_user_id" IS '创建人';
+COMMENT ON COLUMN "baseapp_tab_definition"."created_time" IS '创建时间';
+COMMENT ON COLUMN "baseapp_tab_definition"."modified_user_id" IS '修改人';
+COMMENT ON COLUMN "baseapp_tab_definition"."modified_time" IS '修改时间';
+COMMENT ON COLUMN "baseapp_tab_definition"."is_system" IS '是否为系统数据';
+COMMENT ON COLUMN "baseapp_tab_definition"."is_init_data" IS '是否为预置数据';
+COMMENT ON COLUMN "baseapp_tab_definition"."is_deleted" IS '是否为删除数据';
+COMMENT ON COLUMN "baseapp_tab_definition"."data_version" IS '数据版本';
+COMMENT ON COLUMN "baseapp_tab_definition"."last_request_id" IS '最后一次更新请求的requestId';
+COMMENT ON COLUMN "baseapp_tab_definition"."last_modified_user_id" IS '最后修改人';
+COMMENT ON COLUMN "baseapp_tab_definition"."last_modified_time" IS '最后修改时间';
+COMMENT ON COLUMN "baseapp_tab_definition"."customized_fields" IS '自定义属性';
+COMMENT ON TABLE "baseapp_tab_definition" IS '页签方案';
+CREATE UNIQUE INDEX "idx_baseapp_tab_definition_xak1" ON "baseapp_tab_definition" USING btree("query_list_definition_id" ASC NULLS FIRST,"query_definition_id" ASC NULLS FIRST,"list_columns_definition_id" ASC NULLS FIRST);
+COMMENT ON INDEX "idx_baseapp_tab_definition_xak1" IS '查询方案和列表方案不可重复。';

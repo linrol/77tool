@@ -14,7 +14,8 @@ def list_to_map(list):
 def getTableColumn(tableInfoMap):
   tableColumn = {}
   for tableName,info in tableInfoMap.items():
-    tableColumn[tableName] = info.getColumnMap()
+    if info.isExists():
+      tableColumn[tableName] = info.getColumnMap()
   return tableColumn
 
 # 对比产生升级脚本
