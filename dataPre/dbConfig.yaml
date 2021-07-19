@@ -9,7 +9,7 @@ localhost:
     form: 1a
 
 dev:
-  host: 172.31.61.12
+  host: 10.0.140.1
   port: 5432
   user: postgres
   pwd: 123
@@ -42,7 +42,7 @@ hotfix:
     reset: T73UGP507KR0001
 
 hotfix-inte:
-  host: 172.31.61.54
+  host: 10.0.133.209
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -100,7 +100,7 @@ release-db:
 
 
 temp1:
-  host: 172.31.61.26
+  host: 10.0.128.31
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -111,7 +111,7 @@ temp1:
     reset: 0HCEKR50RQ8000V
 
 temp2:
-  host: 172.31.61.28
+  host: 10.0.140.123
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -122,7 +122,7 @@ temp2:
     reset: 87R1UQ50SDB0001
 
 temp3:
-  host: 172.31.61.30
+  host: 10.0.135.141
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -133,7 +133,7 @@ temp3:
     reset: 71F69R50U88001G
 
 temp4:
-  host: 172.31.61.32
+  host: 10.0.141.158
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -144,7 +144,7 @@ temp4:
     reset: Q8X4HR50VQR0001
 
 temp5:
-  host: 172.31.61.34
+  host: 10.0.140.109
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -155,7 +155,7 @@ temp5:
     reset: NVHEKR50WKA002F
 
 temp6:
-  host: 172.31.61.36
+  host: 10.0.129.153
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -188,7 +188,7 @@ temp8:
     reset: Q2GEKR511M2000L
 
 temp9:
-  host: 172.31.61.56
+  host: 10.0.129.97
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -199,7 +199,7 @@ temp9:
     reset: S1B4TR5137G001D
 
 temp10:
-  host: 172.31.61.58
+  host: 10.0.128.164
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -210,7 +210,7 @@ temp10:
     reset: RKGQTR514JJ001L
 
 temp11:
-  host: 172.31.51.15
+  host: 10.0.136.116
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -221,7 +221,7 @@ temp11:
     reset: QXSXHS50KQL0013
 
 temp12:
-  host: 172.31.56.145
+  host: 10.0.134.250
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -232,7 +232,7 @@ temp12:
     reset: QXSXHS50KQL0013
 
 temp13:
-  host: 172.31.51.223
+  host: 10.0.138.215
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -243,7 +243,7 @@ temp13:
     reset: QXSXHS50KQL0015
 
 temp14:
-  host: 172.31.60.220
+  host: 10.0.141.223
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -254,7 +254,7 @@ temp14:
     reset: QXSXHS50KQL0017
 
 temp15:
-  host: 172.31.60.6
+  host: 10.0.140.195
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -264,8 +264,19 @@ temp15:
     form: QXSXHS50KQL0019
     reset: QXSXHS50KQL0019
 
+temp16:
+  host: 10.0.136.73
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-multi-org2
+  tenantId:
+    multiList: X0S2JU50K7W0001
+    form: X0S2JU50K7W0001
+    reset: X0S2JU50K7W0001
+
 temp17:
-  host: 172.31.50.56
+  host: 10.0.141.11
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -276,7 +287,7 @@ temp17:
     reset: X0S2JU50K7W0002
 
 temp18:
-  host: 172.31.49.5
+  host: 10.0.138.103
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -285,3 +296,25 @@ temp18:
     multiList: EP97MU51E8B0024
     form: X0S2JU50K7W0003
     reset: X0S2JU50K7W0003
+
+temp19:
+  host: 10.0.142.93
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-multi-org2
+  tenantId:
+    multiList: X0S2JU50K7W0005
+    form: X0S2JU50K7W0005
+    reset: X0S2JU50K7W0005
+
+temp20:
+  host: 10.0.139.122
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-multi-org2
+  tenantId:
+    multiList: X0S2JU50K7W0004
+    form: X0S2JU50K7W0004
+    reset: X0S2JU50K7W0004
