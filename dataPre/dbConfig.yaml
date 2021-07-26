@@ -12,7 +12,7 @@ dev:
   host: 10.0.140.1
   port: 5432
   user: postgres
-  pwd: 123
+  pwd: stet44{czars
   branch: dev
   tenantId:
     multiList: MQD34N501EX0001

@@ -109,7 +109,7 @@ def load_data_of_group(tableName, connect, tableJoins, groupField, condition=Non
 def compare_and_gen_log(newDatas, originDatas, branch, tableType, source):
   changeDatas = []
   for name,newData in newDatas.items():
-    originTableInfo = originDatas.get(name)
+    originTableInfo = originDatas.get(name, None)
     if originTableInfo is None:
       # 表不存在
       print ('ERROR:表[{}]不存在，请在脚本中添加！！！'.format(name))
@@ -161,9 +161,10 @@ def save_data(newDatas, scriptPath, columnMap):
 # tableName: 表名
 # rootPath: init-data工程根路径
 # commitUser: 提交人
-def commit(rootPath, commitUser, condition):
+def commit(rootPath, commitUser, condition, changeFileNames):
   cmd = 'cd ' + rootPath
-  cmd += ';git add src/main/resources/init-data/multiList'
+  for changeFileName in changeFileNames:
+    cmd += ';git add src/main/resources/init-data/multiList/{}'.format(changeFileName)
   cmd += ';git commit -m "<数据预制>前端多列表方案数据预置--{}(条件：{})"'.format(commitUser, condition)
   # TODO 如果要自动push则需要删除本地分支重新拉取
   # git push -u origin master
@@ -173,6 +174,25 @@ def commit(rootPath, commitUser, condition):
     print("[{}]{}".format(result, msg))
     sys.exit(1)
 
+#获取操作文件
+# newDatas: 新数据
+# originDatas: 原数据
+# tableName: 主表表名
+# groupField: 分组字段
+def get_change_file(newDatas, originDatas, tableName, groupField):
+  newTableInfo = newDatas.get(tableName, None)
+  originTableInfo = originDatas.get(tableName, None)
+  fieldNames = set()
+  for tableData in newTableInfo.getDatas():
+    if tableData != None:
+      groupValue = tableData[groupField]
+      fieldNames.add('MultiList_{}.sql'.format(groupValue))
+  for tableData in originTableInfo.getDatas():
+    if tableData != None:
+      groupValue = tableData[groupField]
+      fieldNames.add('MultiList_{}.sql'.format(groupValue))
+  return fieldNames
+
 def pre_multi_list(env, dbName, branch, commitUser, condition):
   # 获取预制环境
   source = env + "." + dbName
@@ -181,6 +201,7 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
   target = "localhost.preset"
   tableName = 'baseapp_query_definition_group'
   tableType = 'multiList'
+  groupField = 'name'
 
 
   #获取数据库配置
@@ -222,18 +243,20 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
     #将变更在本地库执行
     utils.execute_sql_pg(targetConnect, [changeLog])
 
-
-  #有差异时，先将本地脚本移除，然后将本地升级之后的数据生成预制脚本
-  for oldFile in oldFiles:
-    os.remove(oldFile)
-  filePaths = save_data(load_data_of_group(tableName, targetConnect, tableJoins, 'name'),scriptPath, compareutils.getTableColumn(newDatas))
+  changeFileNames = get_change_file(newDatas, originDatas, tableName, groupField)
+  #有差异时，先将本地有变动的脚本移除，然后将本地升级之后的数据生成预制脚本
+  for changeFileName in changeFileNames:
+    filePath = '{}/multiList/{}'.format(scriptPath, changeFileName)
+    if os.path.exists(filePath):
+      os.remove(filePath)
+  filePaths = save_data(load_data_of_group(tableName, targetConnect, tableJoins, groupField, condition), scriptPath, compareutils.getTableColumn(newDatas))
 
   sourceConnect.close()
   targetConnect.close()
 
   #自动提交
   if commitUser != None and len(commitUser.lstrip())>0:
-    commit(rootPath, commitUser, condition)
+    commit(rootPath, commitUser, condition, changeFileNames)
     print("自动提交")
   # 记录操作日志
   utils.operation_log(source, branch, condition, commitUser, changeLog, tableType)
@@ -247,4 +270,4 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
 
 
 if __name__ == "__main__":
-  pre_multi_list('hotfix-inte', 'tenant-base', 'hotfix-inte', None, 'name in (\'AccountingFactBook_list\')')
+  pre_multi_list('temp18', 'tenant-base', 'feature-multi-org2', 'test', 'name in (\'ApproveBudgetPlan_list_mobile_change\',\'ApproveBudgetPlan_list_mobile\',\'BudgetPlan_view_list_mobile1\')')
