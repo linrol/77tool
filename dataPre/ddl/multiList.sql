@@ -311,6 +311,7 @@ CREATE TABLE "baseapp_query_list_definition"
     "is_for_scheduled_task" BOOLEAN DEFAULT false NOT NULL,
     "seq_no" INTEGER DEFAULT 0 NOT NULL,
     "user_id" VARCHAR(64),
+    "role_id" VARCHAR(64),
     "src_definition_id" VARCHAR(64),
     "public_definition_id" VARCHAR(64),
     "default_list_columns_def_id" VARCHAR(64),
