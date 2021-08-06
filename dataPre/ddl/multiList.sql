@@ -219,6 +219,7 @@ CREATE TABLE "baseapp_query_item_schema"
     "is_enabled" BOOLEAN DEFAULT false NOT NULL,
     "is_convenient" BOOLEAN DEFAULT false NOT NULL,
     "is_convenient_display" BOOLEAN DEFAULT false NOT NULL,
+    "disable_change_convenient" BOOLEAN DEFAULT false NOT NULL,
     "operator_id" VARCHAR(64),
     "is_auto_save" BOOLEAN DEFAULT false NOT NULL,
     "criteria_group" VARCHAR(128) DEFAULT '',
