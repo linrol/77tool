@@ -682,6 +682,7 @@ CREATE TABLE "baseapp_list_columns_definition"
     "is_master" BOOLEAN DEFAULT false NOT NULL,
     "query_list_definition_id" VARCHAR(64),
     "cols" INTEGER DEFAULT 0 NOT NULL,
+    "master_field_path" VARCHAR(256) DEFAULT '',
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
@@ -713,6 +714,7 @@ COMMENT ON COLUMN "baseapp_list_columns_definition"."public_definition_id" IS '�
 COMMENT ON COLUMN "baseapp_list_columns_definition"."is_master" IS '是否主表';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."query_list_definition_id" IS '查询列表方案id';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."cols" IS '列数';
+COMMENT ON COLUMN "baseapp_list_columns_definition"."master_field_path" IS '主表属性路径';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."modified_user_id" IS '修改人';
