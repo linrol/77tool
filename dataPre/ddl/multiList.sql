@@ -79,6 +79,8 @@ CREATE TABLE "baseapp_query_definition_group"
     "object_type" VARCHAR(64),
     "suppress_show_dialog" BOOLEAN DEFAULT false NOT NULL,
     "is_mobile" BOOLEAN DEFAULT false NOT NULL,
+    "apply_scenario_names" JSONB,
+    "default_query_list_definition_id" VARCHAR(64),
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
@@ -102,6 +104,8 @@ COMMENT ON COLUMN "baseapp_query_definition_group"."title" IS '标题';
 COMMENT ON COLUMN "baseapp_query_definition_group"."object_type" IS '业务对象';
 COMMENT ON COLUMN "baseapp_query_definition_group"."suppress_show_dialog" IS '抑制页面初始化时查询弹窗显示';
 COMMENT ON COLUMN "baseapp_query_definition_group"."is_mobile" IS '是否是移动端列表组';
+COMMENT ON COLUMN "baseapp_query_definition_group"."apply_scenario_names" IS '使用场景';
+COMMENT ON COLUMN "baseapp_query_definition_group"."default_query_list_definition_id" IS '默认询列表方案';
 COMMENT ON COLUMN "baseapp_query_definition_group"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_query_definition_group"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_query_definition_group"."modified_user_id" IS '修改人';
