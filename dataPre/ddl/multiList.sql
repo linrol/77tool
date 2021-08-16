@@ -326,6 +326,7 @@ CREATE TABLE "baseapp_query_list_definition"
     "device_type_id" VARCHAR(64) DEFAULT 'DeviceType.pc',
     "is_approval" BOOLEAN DEFAULT false NOT NULL,
     "is_exhibition" BOOLEAN DEFAULT false NOT NULL,
+    "last_query_object" JSONB,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
@@ -350,6 +351,7 @@ COMMENT ON COLUMN "baseapp_query_list_definition"."is_public" IS '是否是公�
 COMMENT ON COLUMN "baseapp_query_list_definition"."is_for_scheduled_task" IS '调度任务专属方案';
 COMMENT ON COLUMN "baseapp_query_list_definition"."seq_no" IS '排序';
 COMMENT ON COLUMN "baseapp_query_list_definition"."user_id" IS '用户';
+COMMENT ON COLUMN "baseapp_query_list_definition"."role_id" IS '角色';
 COMMENT ON COLUMN "baseapp_query_list_definition"."src_definition_id" IS '来源方案';
 COMMENT ON COLUMN "baseapp_query_list_definition"."public_definition_id" IS '公共方案';
 COMMENT ON COLUMN "baseapp_query_list_definition"."default_list_columns_def_id" IS '默认的列表方案id';
@@ -359,6 +361,7 @@ COMMENT ON COLUMN "baseapp_query_list_definition"."object_type" IS '对象类型
 COMMENT ON COLUMN "baseapp_query_list_definition"."device_type_id" IS '设备类型';
 COMMENT ON COLUMN "baseapp_query_list_definition"."is_approval" IS '是否是审批列表方案';
 COMMENT ON COLUMN "baseapp_query_list_definition"."is_exhibition" IS '是否是展示列表方案';
+COMMENT ON COLUMN "baseapp_query_list_definition"."last_query_object" IS '最后一次查询参数';
 COMMENT ON COLUMN "baseapp_query_list_definition"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_query_list_definition"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_query_list_definition"."modified_user_id" IS '修改人';
