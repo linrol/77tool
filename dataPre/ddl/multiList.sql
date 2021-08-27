@@ -741,6 +741,7 @@ CREATE TABLE "baseapp_list_columns_schema"
     "external_object_type" VARCHAR(128) DEFAULT '',
     "external_object_id" VARCHAR(128) DEFAULT '',
     "title" VARCHAR(256) DEFAULT '',
+    "master_field_path" VARCHAR(256),
     "object_type" VARCHAR(64),
     "numeric_scale" INTEGER DEFAULT 0 NOT NULL,
     "is_default" BOOLEAN DEFAULT false NOT NULL,
