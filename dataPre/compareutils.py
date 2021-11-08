@@ -157,7 +157,7 @@ def compare_dict(old, new):
       result += '--修改的keys:' + str(update) + "\n"
 
   else:
-    result = '旧值：{},新值：{}'.format(old, new)
+    result = '旧值：{},新值：{} \n'.format(old, new)
   return result
 
 #根据数据生成插入SQL
