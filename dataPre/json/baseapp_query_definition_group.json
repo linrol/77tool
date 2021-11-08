@@ -73,16 +73,6 @@
                 },
                 "tables": [
                 ]
-              },
-              {
-                "tableName": "baseapp_list_columns_schema_status_field",
-                "orderBy": "lower(list_column_schema_id), ordinal, lower(id)",
-                "key": {
-                  "queryField": "list_column_schema_id",
-                  "valueField": "id"
-                },
-                "tables": [
-                ]
               }
             ]
           }
