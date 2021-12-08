@@ -6,7 +6,7 @@ localhost:
   branch: ztb-test
   tenantId:
     multiList: 1a
-    form: 1a
+    uiconfig: 1a
 
 dev:
   host: 10.0.140.1
@@ -16,7 +16,7 @@ dev:
   branch: dev
   tenantId:
     multiList: MQD34N501EX0001
-    form: MQD34N501EX0001
+    uiconfig: MQD34N501EX0001
     reset: MQD34N501EX0001
 
 test:
@@ -27,7 +27,7 @@ test:
   branch: feature-budget-iteration-3rd
   tenantId:
     multiList: A24SJR50KMK001E
-    form: A24SJR50KMK001E
+    uiconfig: A24SJR50KMK001E
     reset: A24SJR50KMK001E
 
 hotfix:
@@ -38,7 +38,7 @@ hotfix:
   branch: hotfix
   tenantId:
     multiList: T73UGP507KR0001
-    form: T73UGP507KR0001
+    uiconfig: T73UGP507KR0001
     reset: T73UGP507KR0001
 
 hotfix-inte:
@@ -49,7 +49,7 @@ hotfix-inte:
   branch: hotfix-inte
   tenantId:
     multiList: SLTLFR512JD002H
-    form: SLTLFR512JD002H
+    uiconfig: SLTLFR512JD002H
     reset: SLTLFR512JD002H
 
 hotfix-db:
@@ -60,7 +60,7 @@ hotfix-db:
   branch: hotfix-emergency
   tenantId:
     multiList: E6R7JR50MCB0015
-    form: E6R7JR50MCB0015
+    uiconfig: E6R7JR50MCB0015
     reset: E6R7JR50MCB0015
 
 release:
@@ -71,7 +71,7 @@ release:
   branch: release
   tenantId:
     multiList: PSE5KP504EN000F
-    form: PSE5KP504EN000F
+    uiconfig: PSE5KP504EN000F
     reset: PSE5KP504EN000F
 
 
@@ -84,7 +84,7 @@ reports:
   condition:
   tenantId:
     multiList: LNCEPQ50QX80001
-    form: LNCEPQ50QX80001
+    uiconfig: LNCEPQ50QX80001
     reset: LNCEPQ50QX80001
 
 release-db:
@@ -95,7 +95,7 @@ release-db:
   branch: release
   tenantId:
     multiList: L71RJR50PR80015
-    form: L71RJR50PR80015
+    uiconfig: L71RJR50PR80015
     reset: L71RJR50PR80015
 
 
@@ -107,7 +107,7 @@ temp1:
   branch: feature-public-rp-gl
   tenantId:
     multiList: 0HCEKR50RQ8000V
-    form: 0HCEKR50RQ8000V
+    uiconfig: 0HCEKR50RQ8000V
     reset: 0HCEKR50RQ8000V
 
 temp2:
@@ -115,10 +115,10 @@ temp2:
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch: feature-accounting-fact-iteration-8
+  branch: feature-multi-org2
   tenantId:
     multiList: 87R1UQ50SDB0001
-    form: 87R1UQ50SDB0001
+    uiconfig: 87R1UQ50SDB0001
     reset: 87R1UQ50SDB0001
 
 temp3:
@@ -129,7 +129,7 @@ temp3:
   branch: feature-projectSchedule-iteration3
   tenantId:
     multiList: 71F69R50U88001G
-    form: 71F69R50U88001G
+    uiconfig: 71F69R50U88001G
     reset: 71F69R50U88001G
 
 temp4:
@@ -137,10 +137,10 @@ temp4:
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch: feature-contractGenProject
+  branch: feature-xiaoguo
   tenantId:
     multiList: Q8X4HR50VQR0001
-    form: Q8X4HR50VQR0001
+    uiconfig: Q8X4HR50VQR0001
     reset: Q8X4HR50VQR0001
 
 temp5:
@@ -151,7 +151,7 @@ temp5:
   branch:
   tenantId:
     multiList: NVHEKR50WKA002F
-    form: NVHEKR50WKA002F
+    uiconfig: NVHEKR50WKA002F
     reset: NVHEKR50WKA002F
 
 temp6:
@@ -162,7 +162,7 @@ temp6:
   branch:
   tenantId:
     multiList: ACFEKR50X7V000K
-    form: ACFEKR50X7V000K
+    uiconfig: ACFEKR50X7V000K
     reset: ACFEKR50X7V000K
 
 temp7:
@@ -173,7 +173,7 @@ temp7:
   branch:
   tenantId:
     multiList: EEMEKR510KR0004
-    form: EEMEKR510KR0004
+    uiconfig: EEMEKR510KR0004
     reset: EEMEKR510KR0004
 
 temp8:
@@ -184,7 +184,7 @@ temp8:
   branch: feature-project-change
   tenantId:
     multiList: Q2GEKR511M2000L
-    form: Q2GEKR511M2000L
+    uiconfig: Q2GEKR511M2000L
     reset: Q2GEKR511M2000L
 
 temp9:
@@ -195,7 +195,7 @@ temp9:
   branch: feature-multi-org2
   tenantId:
     multiList: S1B4TR5137G001D
-    form: S1B4TR5137G001D
+    uiconfig: S1B4TR5137G001D
     reset: S1B4TR5137G001D
 
 temp10:
@@ -206,7 +206,7 @@ temp10:
   branch: feature-customizedDetailForm
   tenantId:
     multiList: RKGQTR514JJ001L
-    form: RKGQTR514JJ001L
+    uiconfig: RKGQTR514JJ001L
     reset: RKGQTR514JJ001L
 
 temp11:
@@ -217,7 +217,7 @@ temp11:
   branch: feature-epay2
   tenantId:
     multiList: QXSXHS50KQL0013
-    form: QXSXHS50KQL0013
+    uiconfig: QXSXHS50KQL0013
     reset: QXSXHS50KQL0013
 
 temp12:
@@ -228,7 +228,7 @@ temp12:
   branch: feature-receivedInvoiceManagement
   tenantId:
     multiList: QXSXHS50KQL0013
-    form: QXSXHS50KQL0013
+    uiconfig: QXSXHS50KQL0013
     reset: QXSXHS50KQL0013
 
 temp13:
@@ -236,10 +236,10 @@ temp13:
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch: feature-receivedInvoiceManagement
+  branch: feature-inventory
   tenantId:
     multiList: QXSXHS50KQL0015
-    form: QXSXHS50KQL0015
+    uiconfig: QXSXHS50KQL0015
     reset: QXSXHS50KQL0015
 
 temp14:
@@ -250,7 +250,7 @@ temp14:
   branch: feature-projectSchedule-phase2
   tenantId:
     multiList: QXSXHS50KQL0017
-    form: QXSXHS50KQL0017
+    uiconfig: QXSXHS50KQL0017
     reset: QXSXHS50KQL0017
 
 temp15:
@@ -261,7 +261,7 @@ temp15:
   branch: feature-virtual-subject
   tenantId:
     multiList: QXSXHS50KQL0019
-    form: QXSXHS50KQL0019
+    uiconfig: QXSXHS50KQL0019
     reset: QXSXHS50KQL0019
 
 temp16:
@@ -272,7 +272,7 @@ temp16:
   branch: feature-multi-org2
   tenantId:
     multiList: X0S2JU50K7W0001
-    form: X0S2JU50K7W0001
+    uiconfig: X0S2JU50K7W0001
     reset: X0S2JU50K7W0001
 
 temp17:
@@ -283,7 +283,7 @@ temp17:
   branch: feature-budget-print
   tenantId:
     multiList: X0S2JU50K7W0002
-    form: X0S2JU50K7W0002
+    uiconfig: X0S2JU50K7W0002
     reset: X0S2JU50K7W0002
 
 temp18:
@@ -294,7 +294,7 @@ temp18:
   branch: feature-multi-org2
   tenantId:
     multiList: EP97MU51E8B0024
-    form: X0S2JU50K7W0003
+    uiconfig: X0S2JU50K7W0003
     reset: X0S2JU50K7W0003
 
 temp19:
@@ -305,7 +305,7 @@ temp19:
   branch: feature-multi-org2
   tenantId:
     multiList: X0S2JU50K7W0005
-    form: X0S2JU50K7W0005
+    uiconfig: X0S2JU50K7W0005
     reset: X0S2JU50K7W0005
 
 temp20:
@@ -316,5 +316,5 @@ temp20:
   branch: feature-multi-org2
   tenantId:
     multiList: X0S2JU50K7W0004
-    form: X0S2JU50K7W0004
+    uiconfig: X0S2JU50K7W0004
     reset: X0S2JU50K7W0004

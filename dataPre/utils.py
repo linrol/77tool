@@ -92,6 +92,8 @@ class TableDataInfo():
     return self.__columnMap
   def getDatas(self):
     return self.__datas
+  def setDatas(self, datas):
+    self.__datas = datas
   def isExists(self):
     return self.__exists
   def merge(self, tableDataInfo):
@@ -285,6 +287,11 @@ def operation_log(source, branch, condition, commitUser, fileName, tableType):
 
   with open(logFile, mode='w+', encoding='utf-8') as file:
     file.writelines('预制租户【{}】预制分支【{}】提交人【{}】查询条件【{}】 升级文件【{}】\n{}'.format(source, branch, commitUser, condition, fileName, log))
+
+# 数据是否为空
+# data: 需要判断的数据
+def is_empty(data):
+  return data is None or len(data.lstrip()) == 0
 
 # if __name__ == "__main__":
 #   # 获取预制环境
