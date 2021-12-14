@@ -1,39 +1,45 @@
 apps:
-  build: ../../apps/build
-  init-data: ../../apps/init-data
-  baseapp: ../../apps/baseapp
-  graphql: ../../apps/graphql
-  asset: ../../apps/asset
-  asset-api: ../../apps/asset-api
-  basebi: ../../apps/basebi
-  basebi-api: ../../apps/basebi-api
-  budget: ../../apps/budget
-  budget-api: ../../apps/budget-api
-  contract: ../../apps/contract
-  contract-api: ../../apps/contract-api
-  procdesign: ../../apps/procdesign
-  procdesign-api: ../../apps/procdesign-api
-  project: ../../apps/project
-  project-api: ../../apps/project-api
   allocation: ../../apps/allocation
   allocation-api: ../../apps/allocation-api
   arap: ../../apps/arap
   arap-api: ../../apps/arap-api
+  asset: ../../apps/asset
+  asset-api: ../../apps/asset-api
+  baseapp: ../../apps/baseapp
+  basebi: ../../apps/basebi
+  basebi-api: ../../apps/basebi-api
+  biz-common: ../../apps/biz-common
+  budget: ../../apps/budget
+  budget-api: ../../apps/budget-api
+  build: ../../apps/build
   cashier: ../../apps/cashier
   cashier-api: ../../apps/cashier-api
-  invoice: ../../apps/invoice
-  invoice-api: ../../apps/invoice-api
-  reimbursement: ../../apps/reimbursement
-  reimbursement-api: ../../apps/reimbursement-api
+  contract: ../../apps/contract
+  contract-api: ../../apps/contract-api
   factgl: ../../apps/factgl
   factgl-api: ../../apps/factgl-api
-  biz-common: ../../apps/biz-common
+  graphql: ../../apps/graphql
+  init-data: ../../apps/init-data
+  innertrans: ../../apps/innertrans
+  innertrans-api: ../../apps/innertrans-api
+  inventory: ../../apps/inventory
+  inventory-api: ../../apps/inventory-api
+  invoice: ../../apps/invoice
+  invoice-api: ../../apps/invoice-api
+  procdesign: ../../apps/procdesign
+  procdesign-api: ../../apps/procdesign-api
+  project: ../../apps/project
+  project-api: ../../apps/project-api
+  reimbursement: ../../apps/reimbursement
+  reimbursement-api: ../../apps/reimbursement-api
+  salary: ../../apps/salary
+  salary-api: ../../apps/salary-api
 
 global:
-  reconcile: ../../global/reconcile
-  reconcile-api: ../../global/reconcile-api
   identity: ../../global/identity
   identity-api: ../../global/identity-api
+  reconcile: ../../global/reconcile
+  reconcile-api: ../../global/reconcile-api
 
 platform:
   app-archetype: ../../platform/app-archetype
@@ -52,3 +58,4 @@ platform:
   parent: ../../platform/parent
   sql-parser: ../../platform/sql-parser
   testapp: ../../platform/testapp
+
