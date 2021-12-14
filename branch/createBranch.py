@@ -76,6 +76,8 @@ def get_add_project(sourceBranchName, newBranchName, projectInfoMap, existCheck)
       for projectName in projectNames:
         if not (projectName in projectInfoMap):
           path = projectConfigs.get(module, {}).get(projectName, None)
+        else:
+          continue
         projectInfo = utils.ProjectInfo(projectName, path, module)
         result = check_project(sourceBranchName, newBranchName, projectInfo, False)
         if result.isAdd():

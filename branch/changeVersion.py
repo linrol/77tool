@@ -31,10 +31,11 @@ def get_project_version(branchName, projectInfoMap):
         f = open(filename)
         config = yaml.load(f, Loader=yaml.FullLoader)
 
-        projectVersionMap={}
+        projectVersionMap={'baseapp-api':'${version.framework.baseapp-api}'}
         for item in config.values():
-          for k,v in item.items():
-            projectVersionMap[k] = v
+          if type(item) is dict:
+            for k,v in item.items():
+              projectVersionMap[k] = v
         return projectVersionMap
   else:
     print('ERROR: 请在path.yaml文件中指定build工程的路径')
@@ -120,28 +121,15 @@ class VersionUtils():
   #projectVersionMap：工程版本映射关系
   #propertieName：properties中的节点名称
   #targetProjectName：propertieName指代的是哪个工程版本
-  #isReplace：版本和本工程相同时，是否替换为${project.version}
-  def updateProperties(self, projectName, myroot, projectVersionMap, propertieName, targetProjectName, isReplace):
+  def updateProperties(self, projectName, myroot, projectVersionMap, propertieName, targetProjectName):
     propertieVerNode = myroot.find("{}properties/{}{}".format(XML_NS_INC, XML_NS_INC, propertieName))
     update = False
     if propertieVerNode is not None:
       # 更新init-data的version
       old = propertieVerNode.text
       newVersion = projectVersionMap[targetProjectName]
-      if (not isReplace) and old != newVersion:
+      if old != newVersion:
         #不需要替换，并且版本不一致，则需要修改
-        propertieVerNode.text = newVersion
-        update = True
-        print("工程【{}】【{}】版本修改为【{}】".format(projectName, targetProjectName, newVersion))
-      elif isReplace and projectVersionMap[projectName] == newVersion:
-        #需要替换，并且本工程版本号与目标工程版本号一致
-        if old != '${project.version}' and old != newVersion:
-          #旧版本设置的不是${project.version}，则需要设置为${project.version}
-          propertieVerNode.text = '${project.version}'
-          update = True
-          print("工程【{}】【{}】版本修改为【{}】".format(projectName, targetProjectName, '${project.version}'))
-      elif isReplace and old !=newVersion:
-        #需要替换，并且本工程版本号与目标工程版本号不一致，则替换为新版本号
         propertieVerNode.text = newVersion
         update = True
         print("工程【{}】【{}】版本修改为【{}】".format(projectName, targetProjectName, newVersion))
@@ -150,41 +138,31 @@ class VersionUtils():
   #projectName:当前文件所属工程
   #myroot：xml文件
   #projectVersionMap：工程版本映射关系
-  #isReplace：版本和本工程相同时，是否替换为${project.version}
-  def updateDependencies(self, projectInfo, myroot, projectVersionMap, isReplace):
+  def updateDependencies(self, projectInfo, myroot, projectVersionMap):
     update = False
     for dependencieNode in myroot.findall("{}dependencies/{}dependency".format(XML_NS_INC, XML_NS_INC)):
       versionNode = dependencieNode.find("{}version".format(XML_NS_INC))
+      scopeNode = dependencieNode.find("{}scope".format(XML_NS_INC))
       groupId = dependencieNode.find("{}groupId".format(XML_NS_INC)).text
+
+      if scopeNode is not None and scopeNode.text == 'test':
+        #scope=test的版本不修改，由开发人员手动修改
+        continue
 
       if groupId == 'com.q7link.application' and versionNode is not None:
         targetProjectName = dependencieNode.find("{}artifactId".format(XML_NS_INC)).text
+        if targetProjectName.endswith("-private"):
+          targetProjectName = targetProjectName[:-8]
+          print(targetProjectName)
 
-        if targetProjectName in ['testapp','testapp-api','baseapp-api']:
+        if targetProjectName in ['testapp','testapp-api']:
           targetProjectName = 'framework'
-
-        if projectInfo.getModule() == 'platform':
-          selfVersion = projectVersionMap['framework']
-        else:
-          selfVersion = projectVersionMap[projectInfo.getName()]
 
         if targetProjectName in projectVersionMap:
           newVersion = projectVersionMap[targetProjectName]
           old = versionNode.text
-          if (not isReplace) and old != newVersion:
-            #不需要替换，并且版本不一致，则需要修改
-            versionNode.text = newVersion
-            update = True
-            print("工程【{}】【{}】版本修改为【{}】".format(projectInfo.getName(), targetProjectName, newVersion))
-          elif isReplace and selfVersion == newVersion:
-            #需要替换，并且本工程版本号与目标工程版本号一致
-            if old != '${project.version}' and old != newVersion:
-              #旧版本设置的不是${project.version}，则需要设置为${project.version}
-              versionNode.text = '${project.version}'
-              update = True
-              print("工程【{}】【{}】版本修改为【{}】".format(projectInfo.getName(), targetProjectName, '${project.version}'))
-          elif isReplace and old !=newVersion:
-            #需要替换，并且本工程版本号与目标工程版本号不一致，则替换为新版本号
+          if old != newVersion:
+            #版本不一致，则需要修改
             versionNode.text = newVersion
             update = True
             print("工程【{}】【{}】版本修改为【{}】".format(projectInfo.getName(), targetProjectName, newVersion))
@@ -220,14 +198,14 @@ class VersionUtils():
       propertieName = utils.camel(k) + 'Version'
       if projectName != 'testapp' or propertieName != 'initDataVersion':
         # testapp的initData版本不修改
-        update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, k, False) or update
+        update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, k) or update
 
     if projectName == 'parent':
       for change in changes:
         propertieName = 'version.framework.' + change.getName()
-        update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, 'framework', False) or update
-      update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework', 'framework', False) or update
-    update = self.updateDependencies(projectInfo, myroot, projectVersionMap, False) or update
+        update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, 'framework') or update
+      update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework', 'framework') or update
+    update = self.updateDependencies(projectInfo, myroot, projectVersionMap) or update
 
     return update
 
