@@ -2,52 +2,70 @@
 import sys
 import gitlab
 import utils
+from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
+
+class ProjectBranch:
+  def __init__(self, branchName, access, projectNames=None):
+    self.branchName = branchName
+    self.projectNames = projectNames
+    self.access = access
+    # 检查入参
+    self.check_param()
+
+    self.pool = ThreadPoolExecutor(max_workers=10)
+
+  def check_param(self):
+    if self.branchName in ['master', 'stage'] and self.access in ('d','delete') :
+      print('ERROR: 【{}】分支的分支保护不允许删除！！！！！！！！！！！'.format(self.branchName))
+      sys.exit(1)
+
+  def execute(self):
+    projectInfoMap = utils.project_path(self.projectNames)
+    if len(projectInfoMap) > 0:
+      #检查参数是否正确
+      tasks = [self.pool.submit(self.checkAndProtect, projectInfo) for projectInfo in projectInfoMap.values()]
+      wait(tasks, return_when=ALL_COMPLETED)
+    else:
+      print('ERROR: 请在path.yaml文件配置各项目路径！！！')
+      sys.exit(1)
 
 
-#检查参数是否正确（返回：工程信息集合）
-def check_project(projectInfoMap, branchName):
-  protects=[]
-  for projectName, projectInfo in projectInfoMap.items():
-    project = projectInfo.getProject()
-    branch = projectInfo.getBranch(branchName)
+  #检查参数是否正确（返回：工程信息）
+  def checkAndProtect(self, projectInfo):
+    branch = projectInfo.getBranch(self.branchName)
     #分支存在的才进行权限修改
     if (branch is None):
-      continue
+      return None
     else:
-      protects.append(projectInfo)
-  if len(protects) == 0:
-    print("[ERROR]工程分支[{}]不存在： ".format(branchName))
-    print(list(projectInfoMap.keys()))
-    sys.exit(1)
-  else:
-    return protects
+      self.protectBranch(projectInfo)
+      return projectInfo
 
-#设置分支保护
-def protect_branch(projectInfo, branchName,access):
-  projectName = projectInfo.getName()
-  mergeAccessLevel = gitlab.DEVELOPER_ACCESS
-  pushAccessLevel = gitlab.DEVELOPER_ACCESS
-  #release分支设置管理员全权限，hotfix设置管理员merge权限。build和init-data设置管理员全权限
-  if access == 'release':
-    mergeAccessLevel = gitlab.MAINTAINER_ACCESS
-    pushAccessLevel = gitlab.MAINTAINER_ACCESS
-  elif access == 'hotfix' or access == 'emergency':
-    if projectName == 'build' or projectName == 'init-data':
+  #设置分支保护
+  def protectBranch(self, projectInfo):
+    projectName = projectInfo.getName()
+    mergeAccessLevel = gitlab.DEVELOPER_ACCESS
+    pushAccessLevel = gitlab.DEVELOPER_ACCESS
+    #release分支设置管理员全权限，hotfix设置管理员merge权限。build和init-data设置管理员全权限
+    if self.access == 'release':
       mergeAccessLevel = gitlab.MAINTAINER_ACCESS
       pushAccessLevel = gitlab.MAINTAINER_ACCESS
-    else:
-      mergeAccessLevel = gitlab.MAINTAINER_ACCESS
-      pushAccessLevel = gitlab.VISIBILITY_PRIVATE
-  elif access == 'none':
-      mergeAccessLevel = gitlab.VISIBILITY_PRIVATE
-      pushAccessLevel = gitlab.VISIBILITY_PRIVATE
-  elif access == 'd' or access =='delete':
-    projectInfo.deleteBranchProtect(branchName)
-    print('【{}】【{}】分支保护删除成功'.format(projectName, branchName))
-    return
+    elif self.access == 'hotfix' or self.access == 'emergency':
+      if projectName == 'build' or projectName == 'init-data':
+        mergeAccessLevel = gitlab.MAINTAINER_ACCESS
+        pushAccessLevel = gitlab.MAINTAINER_ACCESS
+      else:
+        mergeAccessLevel = gitlab.MAINTAINER_ACCESS
+        pushAccessLevel = gitlab.VISIBILITY_PRIVATE
+    elif self.access == 'none':
+        mergeAccessLevel = gitlab.VISIBILITY_PRIVATE
+        pushAccessLevel = gitlab.VISIBILITY_PRIVATE
+    elif self.access == 'd' or self.access =='delete':
+      projectInfo.deleteBranchProtect(self.branchName)
+      print('【{}】【{}】分支保护删除成功'.format(projectName, self.branchName))
+      return
 
-  projectInfo.protectBranch(branchName, mergeAccessLevel, pushAccessLevel)
-  print('工程【{}】分支【{}】保护成功'.format(projectName, branchName))
+    projectInfo.protectBranch(self.branchName, mergeAccessLevel, pushAccessLevel)
+    print('工程【{}】分支【{}】保护成功'.format(projectName, self.branchName))
 
 
 
@@ -65,16 +83,5 @@ if __name__ == "__main__":
     branchName = sys.argv[1]
     access = sys.argv[2]
 
-    #获取所有工程的本地路径
-    projectInfoMap = utils.project_path(projectNames)
-    if len(projectInfoMap) > 0:
-      #检查参数是否正确
-      protects = check_project(projectInfoMap, branchName)
-      #保护分支
-      for projectInfo in protects:
-        protect_branch(projectInfo, branchName, access)
-        # print('工程【{}】分支【{}】保护成功【{}】'.format(k.name, branchName, access))
-    else:
-      print('ERROR: 请在path.yaml文件配置各项目路径！！！')
-      sys.exit(1)
-    
+  executor = ProjectBranch(branchName, access, projectNames)
+  executor.execute()

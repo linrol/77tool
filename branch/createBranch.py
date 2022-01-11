@@ -2,6 +2,8 @@
 import sys
 import gitlab
 import utils
+import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait, ALL_COMPLETED
 
 #拉分支必须拉的工程
 MUST_PROJECT={'apps': ['build']}
@@ -26,116 +28,146 @@ class CheckResult():
   def getMessage(self):
     return self.__message
 
+class CreateBranch:
+  def __init__(self, newBranchName, sourceBranchName, projectNames=None, existCheck = True):
+    self.newBranchName = newBranchName
+    self.sourceBranchName = sourceBranchName
+    self.projectNames = projectNames
+    self.existCheck = existCheck#是否检查分支存在（false:分支存在则不创建，不存在则创建；true:分支存在则报错，所有工程不创建分支）
+    self.pool = ThreadPoolExecutor(max_workers=10)
 
-#创建分支
-def create_branch(projectInfo, sourceBranchName, newBranchName):
-  projectInfo.createBranch(sourceBranchName, newBranchName)
-  #设置分支保护
-  protect_branch(projectInfo, newBranchName)
-  #删除本地分支
-  projectInfo.deleteLocalBranch(newBranchName)
-  #在本地将新分支拉取出来
-  projectInfo.checkout(newBranchName)
+  def execute(self):
+    #获取需操作工程的信息
+    projectInfoMap = utils.project_path(self.projectNames)
 
-#获取需要创建的工程（返回：ProjectInfo对象数组）
-def get_add_project(sourceBranchName, newBranchName, projectInfoMap, existCheck):
-  error=[]
-  adds=[]
-  relatedModule={''}
-  for projectName,projectInfo in projectInfoMap.items():
-    if projectInfo is None:
-      continue
-    result = check_project(sourceBranchName, newBranchName, projectInfo, existCheck)
-    if result.isAdd():
-      adds.append(projectInfo)
-      relatedModule.add(projectInfo.getModule())
-    elif result.skip():
-      print(result.getMessage())
+    if len(projectInfoMap) > 0:
+      #检查参数是否正确
+      adds = self.get_add_project(projectInfoMap)
+      #创建分支
+      if len(adds) > 0 :
+        tasks = [self.pool.submit(self.create_branch, projectInfo) for projectInfo in adds]
+        wait(tasks, return_when=ALL_COMPLETED)
     else:
-      error.append(result.getMessage())
+      print('ERROR: 请在path.yaml文件配置各工程路径！！！')
+      sys.exit(1)
 
-  projectConfigs = utils.project_config()
-  # 拉取工程分支，自动拉取必须要拉的工程
-  for module,projectNames in MUST_PROJECT.items():
-    for projectName in projectNames:
-      if not (projectName in projectInfoMap):
-        path = projectConfigs.get(module, {}).get(projectName, None)
-        projectInfo = utils.ProjectInfo(projectName, path, module)
-        result = check_project(sourceBranchName, newBranchName, projectInfo, False)
-        if result.isAdd():
-          adds.append(projectInfo)
-          relatedModule.add(projectInfo.getModule())
-        elif result.skip():
-          print(result.getMessage())
-        else:
-          error.append(result.getMessage())
+  #创建分支
+  def create_branch(self, projectInfo):
+    try:
+      projectInfo.createBranch(self.sourceBranchName, self.newBranchName)
+      #设置分支保护
+      self.protect_branch(projectInfo)
+      #删除本地分支
+      projectInfo.deleteLocalBranch(self.newBranchName)
+      #在本地将新分支拉取出来
+      projectInfo.checkout(self.newBranchName)
+    except Exception as e:
+      print("ERROR: 项目：{}".format(projectInfo.getName()))
+      traceback.print_exc()
+    print('工程【{}】基于分支【{}】创建分支【{}】成功'.format(projectInfo.getName(), self.sourceBranchName, self.newBranchName))
 
-  # 拉取某个模块的工程时，自动拉取该模块下的必须要拉的工程
-  for module,projectNames in MODULE_PROJECT.items():
-    if module in relatedModule:
+  #获取需要创建的工程（返回：ProjectInfo对象数组）
+  def get_add_project(self, projectInfoMap):
+    error=[]
+    adds=[]
+    relatedModule={''}
+    tasks = [self.pool.submit(self.check_project, projectInfo, self.existCheck) for projectInfo in projectInfoMap.values()]
+    for future in as_completed(tasks):
+      result = future.result()
+      if result.isAdd():
+        projectInfo = result.getProjectInfo()
+        adds.append(projectInfo)
+        relatedModule.add(projectInfo.getModule())
+      elif result.skip():
+        print(result.getMessage())
+      else:
+        error.append(result.getMessage())
+
+    projectConfigs = utils.project_config()
+    # 拉取工程分支，自动拉取必须要拉的工程
+    for module,projectNames in MUST_PROJECT.items():
       for projectName in projectNames:
         if not (projectName in projectInfoMap):
           path = projectConfigs.get(module, {}).get(projectName, None)
-        projectInfo = utils.ProjectInfo(projectName, path, module)
-        result = check_project(sourceBranchName, newBranchName, projectInfo, False)
-        if result.isAdd():
-          adds.append(projectInfo)
-          relatedModule.add(projectInfo.getModule())
-        elif result.skip():
-          print(result.getMessage())
-        else:
-          error.append(result.getMessage())
+          projectInfo = utils.ProjectInfo(projectName, path, module)
+          result = self.check_project(projectInfo, False)
+          if result.isAdd():
+            adds.append(projectInfo)
+            relatedModule.add(projectInfo.getModule())
+          elif result.skip():
+            print(result.getMessage())
+          else:
+            error.append(result.getMessage())
 
-  if len(error) > 0:
-    #如果有错误信息则不执行创建分支
-    utils.print_list("ERROR: ", error)
-    sys.exit(1)
-  else:
-    return adds
+    # 拉取某个模块的工程时，自动拉取该模块下的必须要拉的工程
+    for module,projectNames in MODULE_PROJECT.items():
+      if module in relatedModule:
+        for projectName in projectNames:
+          if not (projectName in projectInfoMap):
+            path = projectConfigs.get(module, {}).get(projectName, None)
+          else:
+            continue
+          projectInfo = utils.ProjectInfo(projectName, path, module)
+          result = self.check_project(projectInfo, False)
+          if result.isAdd():
+            adds.append(projectInfo)
+            relatedModule.add(projectInfo.getModule())
+          elif result.skip():
+            print(result.getMessage())
+          else:
+            error.append(result.getMessage())
 
-#检查工程目标分支是否符合创建条件
-def check_project(sourceBranchName, newBranchName, projectInfo, existCheck):
-  projectName = projectInfo.getName()
-
-  if projectInfo.getPath() is None:
-    errorMessgae = 'ERROR: 请在path.yaml文件配置工程【{}】路径！！！'.format(projectName)
-    return CheckResult(projectInfo, False, errorMessgae)
-
-  project = projectInfo.getProject()
-  if project is None :
-    errorMessgae = '工程【{}】不存在'.format(projectName)
-    return CheckResult(projectInfo, False, errorMessgae)
-  else:
-    sourceBranch = projectInfo.getBranch(sourceBranchName)
-    #来源分支存在才能拉取新分支
-    if (sourceBranch is None):
-      warnMessage = 'WARNING：工程【{}】来源分支【{}】不存在！！！！！！'.format(projectName, sourceBranchName)
-      return CheckResult(projectInfo, True, warnMessage)
+    if len(error) > 0:
+      #如果有错误信息则不执行删除
+      utils.print_list("ERROR: ", error)
+      sys.exit(1)
     else:
-      newBranch = projectInfo.getBranch(newBranchName)
-      if (newBranch is None):
-        return CheckResult(projectInfo, False, None)
+      return adds
+
+
+  #检查工程目标分支是否符合创建条件
+  def check_project(self, projectInfo, existCheck):
+    projectName = projectInfo.getName()
+
+    if projectInfo.getPath() is None:
+      errorMessgae = 'ERROR: 请在path.yaml文件配置工程【{}】路径！！！'.format(projectName)
+      return CheckResult(projectInfo, False, errorMessgae)
+
+    project = projectInfo.getProject()
+    if project is None :
+      errorMessgae = '工程【{}】不存在'.format(projectName)
+      return CheckResult(projectInfo, False, errorMessgae)
+    else:
+      sourceBranch = projectInfo.getBranch(self.sourceBranchName)
+      #来源分支存在才能拉取新分支
+      if (sourceBranch is None):
+        warnMessage = 'WARNNING：工程【{}】来源分支【{}】不存在！！！！！！'.format(projectName, self.sourceBranchName)
+        return CheckResult(projectInfo, True, warnMessage)
       else:
-        if(existCheck):
-          errorMessgae = '工程【{}】分支【{}】已存在'.format(projectName, newBranchName)
-          return CheckResult(projectInfo, False, errorMessgae)
+        newBranch = projectInfo.getBranch(self.newBranchName)
+        if (newBranch is None):
+          return CheckResult(projectInfo, False, None)
         else:
-          projectInfo.checkout(newBranchName)
-          warnMessage = 'WARNING：工程【{}】目标分支【{}】已存在！！！'.format(projectName, newBranchName)
-          return CheckResult(projectInfo, True, warnMessage)
+          if(existCheck):
+            errorMessgae = '工程【{}】分支【{}】已存在'.format(projectName, self.newBranchName)
+            return CheckResult(projectInfo, False, errorMessgae)
+          else:
+            projectInfo.checkout(self.newBranchName)
+            warnMessage = 'WARNNING：工程【{}】目标分支【{}】已存在！！！'.format(projectName, self.newBranchName)
+            return CheckResult(projectInfo, True, warnMessage)
 
 
-#设置分支保护
-def protect_branch(projectInfo, branchName):
-  #release、hotfix、emergency、stage-emergency、hotfix-inte、dev分支预先设置管理员全权限，便于修改版本号
-  if branchName == 'release' or branchName == 'hotfix' or branchName == 'emergency' or branchName == 'stage-emergency' or branchName == 'hotfix-inte' or branchName == 'dev':
-    mergeAccessLevel = gitlab.MAINTAINER_ACCESS
-    pushAccessLevel = gitlab.MAINTAINER_ACCESS
-    projectInfo.protectBranch(branchName, mergeAccessLevel, pushAccessLevel)
-    print('工程【{}】分支【{}】保护成功'.format(projectInfo.getName(), branchName))
-  else:
-    #其他分支不设置分支保护
-    return
+  #设置分支保护
+  def protect_branch(self, projectInfo):
+    #release、hotfix、emergency、stage-emergency、hotfix-inte、dev分支预先设置管理员全权限，便于修改版本号
+    if self.newBranchName in ['release', 'hotfix', 'emergency', 'stage-emergency', 'hotfix-inte', 'dev']:
+      mergeAccessLevel = gitlab.MAINTAINER_ACCESS
+      pushAccessLevel = gitlab.MAINTAINER_ACCESS
+      projectInfo.protectBranch(self.newBranchName, mergeAccessLevel, pushAccessLevel)
+      print('工程【{}】分支【{}】保护成功'.format(projectInfo.getName(), self.newBranchName))
+    else:
+      #其他分支不设置分支保护
+      return
 
 #创建工程分支
 #python3 createBranch.py master hotfix fiance build init-data
@@ -157,21 +189,5 @@ if __name__ == "__main__":
       newBranchName = infos[0]
       existCheck = (infos[1].lower() != 'false')
 
-    #获取需操作工程的信息
-    projectInfoMap = utils.project_path(projectNames)
-
-    if len(projectInfoMap) > 0:
-      #检查参数是否正确
-      adds = get_add_project(sourceBranchName, newBranchName, projectInfoMap, existCheck)
-      #创建分支
-      for projectInfo in adds:
-        try:
-          create_branch(projectInfo, sourceBranchName, newBranchName)
-        except Exception:
-          print("项目：{}".format(projectInfo.getName()))
-          raise
-        print('工程【{}】基于分支【{}】创建分支【{}】成功'.format(projectInfo.getName(), sourceBranchName, newBranchName))
-    else:
-      print('ERROR: 请在path.yaml文件配置各工程路径！！！')
-      sys.exit(1)
-    
+    executor = CreateBranch(newBranchName, sourceBranchName, projectNames, existCheck)
+    executor.execute()
