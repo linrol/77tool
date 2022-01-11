@@ -291,7 +291,10 @@ def operation_log(source, branch, condition, commitUser, fileName, tableType):
 # 数据是否为空
 # data: 需要判断的数据
 def is_empty(data):
-  return data is None or len(data.lstrip()) == 0
+  if type(data) is str:
+    return data is None or len(data.lstrip()) == 0
+  else:
+    return data is None or len(data) == 0
 
 # if __name__ == "__main__":
 #   # 获取预制环境
