@@ -123,7 +123,7 @@ def pre_form(env, dbName, branch, commitUser, condition):
   tableType = 'form'
   #获取需要操作的所有表及其查询条件
   tableNames = {}
-  uiConfigConditions = 'type not in (\'forms\',\'notifyShow\',\'shortCuts\',\'portletLayout\')'
+  uiConfigConditions = 'type not in (\'forms\',\'notifyShow\',\'shortCuts\',\'portletLayout\',\'extendMetadata\')'
   if not utils.is_empty(condition):
     uiConfigConditions = '{} and {}'.format(uiConfigConditions, condition)
   tableNames['baseapp_ui_config'] = uiConfigConditions
