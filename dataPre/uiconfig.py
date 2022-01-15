@@ -106,7 +106,7 @@ def save_ui_config(tableDataInfo, dataPath):
 # commitUser: 提交人
 def commit(rootPath, commitUser):
   cmd = 'cd ' + rootPath
-  cmd += ';git add src/main/resources/init-data/uiConfig'
+  cmd += ';git add src/main/resources/init-data/baseapp/uiConfig'
   cmd += ';git commit -m "<数据预制>前端UiConfig数据预置--{}"'.format(commitUser)
   [result, msg] = subprocess.getstatusoutput(cmd)
   if result != 0:
@@ -133,7 +133,7 @@ def pre_form(env, dbName, branch, commitUser, condition):
 
   projectName = 'init-data'
   rootPath = localConfig[projectName]
-  dataPath = rootPath + '/src/main/resources/init-data'
+  dataPath = rootPath + '/src/main/resources/init-data/baseapp'
 
   utils.chectout_branch(projectName, rootPath, branch)
 
@@ -192,7 +192,7 @@ if __name__ == "__main__":
   # 获取预制环境
   env = 'temp13'
   dbName='tenant1'
-  branch ='feature-inventory'
+  branch ='feature-platform-q4'
   condition ='content->>\'entityName\' in (\'InvCtrlLedger\')'
 
   # dbConfigs = utils.analysisYaml()

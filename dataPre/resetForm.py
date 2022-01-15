@@ -75,7 +75,7 @@ def reset_form(env, dbName, branch):
 
   projectName = 'init-data'
   rootPath = localConfig[projectName]
-  dataPath = rootPath + '/src/main/resources/init-data'
+  dataPath = rootPath + '/src/main/resources/init-data/baseapp'
 
   #检出指定分支
   utils.chectout_branch(projectName, rootPath, branch)
@@ -107,7 +107,7 @@ if __name__ == "__main__":
   # 获取预制环境
   env = 'localhost'
   dbName='testapp'
-  branch ='release'
+  branch ='feature-platform-q4'
 
   # dbConfigs = utils.analysisYaml()
   # pgConfig = dbConfigs.get(env,None)
