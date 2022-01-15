@@ -164,7 +164,7 @@ def save_data(newDatas, scriptPath, columnMap):
 def commit(rootPath, commitUser, condition, changeFileNames):
   cmd = 'cd ' + rootPath
   for changeFileName in changeFileNames:
-    cmd += ';git add src/main/resources/init-data/multiList/{}'.format(changeFileName)
+    cmd += ';git add src/main/resources/init-data/baseapp/multiList/{}'.format(changeFileName)
   cmd += ';git commit -m "<数据预制>前端多列表方案数据预置--{}(条件：{})"'.format(commitUser, condition)
   # TODO 如果要自动push则需要删除本地分支重新拉取
   # git push -u origin master
@@ -210,7 +210,7 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
 
   projectName = 'init-data'
   rootPath = localConfig[projectName]
-  scriptPath = rootPath + '/src/main/resources/init-data'
+  scriptPath = rootPath + '/src/main/resources/init-data/baseapp'
 
   utils.chectout_branch(projectName, rootPath, branch)
 
@@ -270,4 +270,4 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
 
 
 if __name__ == "__main__":
-  pre_multi_list('temp18', 'tenant-base', 'feature-multi-org2', 'test', 'name in (\'ApproveBudgetPlan_list_mobile_change\',\'ApproveBudgetPlan_list_mobile\',\'BudgetPlan_view_list_mobile1\')')
+  pre_multi_list('localhost', 'testapp', 'feature-platform-q4', 'ztb', 'name in (\'ProjectSchedule_list\', \'ProjectTask_mobile_list\',\'projectScheduleTemplate_list\')')
