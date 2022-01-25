@@ -199,6 +199,9 @@ class VersionUtils():
         if targetProjectName in projectVersionMap:
           newVersion = projectVersionMap[targetProjectName]
           old = versionNode.text
+          if projectInfo.getModule() == 'platform' and old.startswith('${'):
+            #platform下的工程不替换变量版本
+            continue
           if old != newVersion:
             #版本不一致，则需要修改
             versionNode.text = newVersion
