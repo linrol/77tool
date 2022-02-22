@@ -5,75 +5,113 @@ import yaml
 import sys
 import traceback
 import utils
-import subprocess
+import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import xml.etree.ElementTree as ET
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 
-#获取各工程版本
-def get_project_version(branchName, projectInfoMap):
-  buildName = 'build'
-  if buildName in list(projectInfoMap.keys()):
-    buildInfo = projectInfoMap[buildName]
-    buildPath = buildInfo.getPath()
-    buildBranch = buildInfo.getBranch(branchName)
-    if buildBranch is None:
-      print('ERROR: 工程【build】不存在分支【{}】'.format(branchName))
-      sys.exit(1)
+class ChangeVersion:
+  def __init__(self, branchName,updateTest=False, needClear= False):
+    self.branchName = branchName
+    self.needClear= needClear#是否清空开发脚本，默认false(不清空)
+    self.updateTest= updateTest#是否更新测试包版本，默认false(不更新)
+    self.pool = ThreadPoolExecutor(max_workers=10)
+
+  def execute(self):
+    projectInfoMap = utils.project_path()
+    if len(projectInfoMap) > 0:
+      # 获取各工程版本
+      projectVersionMap = self.get_project_version(projectInfoMap)
+
+      # 获取需要修改的工程（即：有该分支的工程）
+      changes = []
+      tasks = [self.pool.submit(self.get_project, projectInfo) for projectInfo in projectInfoMap.values()]
+      for future in as_completed(tasks):
+        result = future.result()
+        if result is not None:
+          changes.append(result)
+
+      #根据config.yaml修改拥有指定分支的工程依赖版本
+      util = VersionUtils()
+      for projectInfo in changes:
+        util.update(projectInfo, projectVersionMap, changes, self.updateTest)
+
+      #清空开发脚本及接口调用信息
+      if self.needClear and ('build' in projectInfoMap):
+        self.clear_script(projectInfoMap['build'].getPath())
+        self.clear_interface(projectInfoMap['build'].getPath())
+        print('清空脚本完成')
+
     else:
-      if not buildInfo.checkout(branchName):
-        print('ERROR: 工程【build】检出分支【{}】失败'.format(branchName))
+      print('ERROR: 请在path.yaml文件配置各项目路径！！！')
+      sys.exit(1)
+
+  #获取各工程版本
+  def get_project_version(self, projectInfoMap):
+    buildName = 'build'
+    if buildName in list(projectInfoMap.keys()):
+      buildInfo = projectInfoMap[buildName]
+      buildPath = buildInfo.getPath()
+      buildBranch = buildInfo.getBranch(self.branchName)
+      if buildBranch is None:
+        print('ERROR: 工程【build】不存在分支【{}】'.format(self.branchName))
         sys.exit(1)
       else:
-        # 获取config.yaml
-        filename = os.path.join(os.curdir, buildPath + '/config.yaml').replace("\\", "/")
-        f = open(filename)
-        config = yaml.load(f, Loader=yaml.FullLoader)
+        if not buildInfo.checkout(self.branchName):
+          print('ERROR: 工程【build】检出分支【{}】失败'.format(self.branchName))
+          sys.exit(1)
+        else:
+          # 获取config.yaml
+          filename = os.path.join(os.curdir, buildPath + '/config.yaml').replace("\\", "/")
+          f = open(filename)
+          config = yaml.load(f, Loader=yaml.FullLoader)
 
-        projectVersionMap={'baseapp-api':'${version.framework.baseapp-api}'}
-        for item in config.values():
-          if type(item) is dict:
-            for k,v in item.items():
-              projectVersionMap[k] = v
-        return projectVersionMap
-  else:
-    print('ERROR: 请在path.yaml文件中指定build工程的路径')
-    sys.exit(1)
+          projectVersionMap={'baseapp-api':'${version.framework.baseapp-api}'}
+          for item in config.values():
+            if type(item) is dict:
+              for k,v in item.items():
+                projectVersionMap[k] = v
+          return projectVersionMap
+    else:
+      print('ERROR: 请在path.yaml文件中指定build工程的路径')
+      sys.exit(1)
 
-#获取需要执行的项目，并检出其指定分支
-def get_project(branchName, projectInfoMap):
-  changes =[]
-  for projectName,projectInfo in projectInfoMap.items():
-    branch = projectInfo.getBranch(branchName)
+
+  #获取需要执行的项目，并检出其指定分支
+  def get_project(self, projectInfo):
+    branch = projectInfo.getBranch(self.branchName)
     #有指定分支的项目切换到指定分支
     if (branch is None):
-      continue
+      return None
     else:
-      if projectInfo.checkout(branchName):
-        changes.append(projectInfo)
-  return changes
-
-#清空开发脚本
-def clear_script(buildPath):
-  childPaths = ['1_before', '2_after', 'recovery']
-  for itemPath in childPaths:
-    filePath = buildPath + "/upgrade/" + itemPath
-    fileNames = os.listdir(filePath)
-    for filename in fileNames:
-      if (filename.lower().find('identity') != -1) or (filename.lower().find('reconcile') != -1) or (filename.lower().find('tenantallin') != -1) :
-        #清空文件内容
-        file=open(filePath+"/" + filename, "r+")
-        file.truncate()
+      if projectInfo.checkout(self.branchName):
+        return projectInfo
       else:
-        #删除文件
-        os.remove(filePath+"/" + filename)
+        return None
 
-#清空接口调用文件
-def clear_interface(buildPath):
-  filePath = buildPath + "/upgrade"
-  file=open(filePath+"/upgrade_Readme.md", "r+")
-  file.truncate()
+  #清空开发脚本
+  def clear_script(self, buildPath):
+    childPaths = ['1_before', '2_after', 'recovery']
+    for itemPath in childPaths:
+      filePath = buildPath + "/upgrade/" + itemPath
+      fileNames = os.listdir(filePath)
+      for filename in fileNames:
+        if (filename.lower().find('identity') != -1) or (filename.lower().find('reconcile') != -1) or (filename.lower().find('tenantallin') != -1) :
+          #清空文件内容
+          file=open(filePath+"/" + filename, "r+")
+          file.truncate()
+        else:
+          #删除文件
+          os.remove(filePath+"/" + filename)
+
+  #清空接口调用文件
+  def clear_interface(self, buildPath):
+    filePath = buildPath + "/upgrade"
+    file=open(filePath+"/upgrade_Readme.md", "r+")
+    file.truncate()
+
 
 class CommentedTreeBuilder(ET.TreeBuilder):
   def __init__(self, element_factory=None):
@@ -235,7 +273,7 @@ class VersionUtils():
 
   # 对pom文件中的版本进行替换
   # config config.yaml文件内容
-  def update(self, projectInfo, projectVersionMap, updateTest, changes):
+  def update(self, projectInfo, projectVersionMap, changes, updateTest):
     path = os.path.abspath(projectInfo.getPath())
     if not os.path.exists(path):
       print ("ERROR: 输入参数错误, 目录{}".format(path))
@@ -288,21 +326,5 @@ if __name__ == "__main__":
     branchName = infos[0]
     updateTest = infos[1].lower() == 'test'
 
-  #获取所有工程的本地路径
-  projectInfoMap = utils.project_path()
-  if len(projectInfoMap) > 0:
-    changes = get_project(branchName, projectInfoMap)
-    projectVersionMap = get_project_version(branchName, projectInfoMap)
-
-    #根据config.yaml修改拥有指定分支的工程依赖版本
-    util = VersionUtils()
-    for projectInfo in changes:
-      util.update(projectInfo, projectVersionMap, updateTest, changes)
-
-    #清空开发脚本及接口调用信息
-    if needClear and ('build' in projectInfoMap):
-      clear_script(projectInfoMap['build'].getPath())
-      clear_interface(projectInfoMap['build'].getPath())
-  else:
-    print('ERROR: 请在path.yaml文件配置各项目路径！！！')
-    sys.exit(1)
+  executor = ChangeVersion(branchName, updateTest, needClear)
+  executor.execute()

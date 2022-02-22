@@ -30,6 +30,8 @@ apps:
   procdesign-api: ../../apps/procdesign-api
   project: ../../apps/project
   project-api: ../../apps/project-api
+  purchase: ../../apps/purchase
+  purchase-api: ../../apps/purchase-api
   reimbursement: ../../apps/reimbursement
   reimbursement-api: ../../apps/reimbursement-api
   salary: ../../apps/salary
