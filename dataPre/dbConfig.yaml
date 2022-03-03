@@ -20,7 +20,7 @@ dev:
     reset: MQD34N501EX0001
 
 test:
-  host: 10.0.140.197
+  host: postgres.nx-test-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -31,7 +31,7 @@ test:
     reset: A24SJR50KMK001E
 
 hotfix:
-  host: 10.0.136.59
+  host: postgres.nx-hotfix-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -42,7 +42,7 @@ hotfix:
     reset: T73UGP507KR0001
 
 hotfix-inte:
-  host: 10.0.133.209
+  host: postgres.nx-hotfix-inte-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -53,7 +53,7 @@ hotfix-inte:
     reset: SLTLFR512JD002H
 
 hotfix-db:
-  host: 10.0.138.85
+  host: postgres.nx-hotfix-db-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -64,7 +64,7 @@ hotfix-db:
     reset: E6R7JR50MCB0015
 
 release:
-  host: 10.0.128.55
+  host: postgres.nx-release-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -76,7 +76,7 @@ release:
 
 
 reports:
-  host: 10.0.130.148
+  host: postgres.nx-reports-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -88,7 +88,7 @@ reports:
     reset: LNCEPQ50QX80001
 
 release-db:
-  host: 10.0.143.85
+  host: postgres.nx-release-db-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -100,7 +100,7 @@ release-db:
 
 
 temp1:
-  host: 10.0.128.31
+  host: postgres.nx-temp1-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -111,7 +111,7 @@ temp1:
     reset: 0HCEKR50RQ8000V
 
 temp2:
-  host: 10.0.140.123
+  host: postgres.nx-temp2-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -122,7 +122,7 @@ temp2:
     reset: 87R1UQ50SDB0001
 
 temp3:
-  host: 10.0.135.141
+  host: postgres.nx-temp3-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -133,7 +133,7 @@ temp3:
     reset: 71F69R50U88001G
 
 temp4:
-  host: 10.0.141.158
+  host: postgres.nx-temp4-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -144,7 +144,7 @@ temp4:
     reset: Q8X4HR50VQR0001
 
 temp5:
-  host: 10.0.140.109
+  host: postgres.nx-temp5-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -155,7 +155,7 @@ temp5:
     reset: NVHEKR50WKA002F
 
 temp6:
-  host: 10.0.129.153
+  host: postgres.nx-temp6-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -166,7 +166,7 @@ temp6:
     reset: ACFEKR50X7V000K
 
 temp7:
-  host: 10.0.133.189
+  host: postgres.nx-temp7-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -177,18 +177,18 @@ temp7:
     reset: EEMEKR510KR0004
 
 temp8:
-  host: 10.0.138.50
+  host: postgres.nx-temp8-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
-  branch: feature-project-change
+  branch: feature-project
   tenantId:
     multiList: Q2GEKR511M2000L
     uiconfig: Q2GEKR511M2000L
     reset: Q2GEKR511M2000L
 
 temp9:
-  host: 10.0.129.97
+  host: postgres.nx-temp9-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -199,7 +199,7 @@ temp9:
     reset: S1B4TR5137G001D
 
 temp10:
-  host: 10.0.128.164
+  host: postgres.nx-temp10-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -210,7 +210,7 @@ temp10:
     reset: RKGQTR514JJ001L
 
 temp11:
-  host: 10.0.136.116
+  host: postgres.nx-temp11-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -221,7 +221,7 @@ temp11:
     reset: QXSXHS50KQL0013
 
 temp12:
-  host: 10.0.134.250
+  host: postgres.nx-temp12-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -243,7 +243,7 @@ temp13:
     reset: QXSXHS50KQL0015
 
 temp14:
-  host: 10.0.141.223
+  host: postgres.nx-temp14-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -254,7 +254,7 @@ temp14:
     reset: QXSXHS50KQL0017
 
 temp15:
-  host: 10.0.140.195
+  host: postgres.nx-temp15-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -265,7 +265,7 @@ temp15:
     reset: QXSXHS50KQL0019
 
 temp16:
-  host: 10.0.136.73
+  host: postgres.nx-temp16-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -276,7 +276,7 @@ temp16:
     reset: X0S2JU50K7W0001
 
 temp17:
-  host: 10.0.141.11
+  host: postgres.nx-temp17-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -309,7 +309,7 @@ temp19:
     reset: X0S2JU50K7W0005
 
 temp20:
-  host: 10.0.139.122
+  host: postgres.nx-temp20-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -318,3 +318,14 @@ temp20:
     multiList: X0S2JU50K7W0004
     uiconfig: X0S2JU50K7W0004
     reset: X0S2JU50K7W0004
+
+temp21:
+  host: 10.0.130.219
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-purchase-invoice
+  tenantId:
+    multiList: X0S2JU50K7W0006
+    uiconfig: X0S2JU50K7W0006
+    reset: X0S2JU50K7W0006
