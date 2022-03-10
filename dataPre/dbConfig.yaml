@@ -9,7 +9,7 @@ localhost:
     uiconfig: 1a
 
 dev:
-  host: 10.0.140.1
+  host: postgres.nx-dev-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -232,7 +232,7 @@ temp12:
     reset: QXSXHS50KQL0013
 
 temp13:
-  host: 10.0.138.215
+  host: postgres.nx-temp13-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -287,7 +287,7 @@ temp17:
     reset: X0S2JU50K7W0002
 
 temp18:
-  host: 10.0.138.103
+  host: postgres.nx-temp18-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -298,7 +298,7 @@ temp18:
     reset: X0S2JU50K7W0003
 
 temp19:
-  host: 10.0.142.93
+  host: postgres.nx-temp19-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -320,7 +320,7 @@ temp20:
     reset: X0S2JU50K7W0004
 
 temp21:
-  host: 10.0.130.219
+  host: postgres.nx-temp21-k8s.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
@@ -329,3 +329,14 @@ temp21:
     multiList: X0S2JU50K7W0006
     uiconfig: X0S2JU50K7W0006
     reset: X0S2JU50K7W0006
+
+temp22:
+  host: postgres.nx-temp22-k8s.e7link.com
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-purchase-invoice
+  tenantId:
+    multiList: X0S2JU50K7W0007
+    uiconfig: X0S2JU50K7W0007
+    reset: X0S2JU50K7W0007
