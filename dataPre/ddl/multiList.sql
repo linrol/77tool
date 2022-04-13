@@ -32,6 +32,7 @@ CREATE TABLE "baseapp_query_definition"
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
     "customized_fields" JSONB,
+    "deleted_fields" JSONB,
     PRIMARY KEY ("id")
 );
 COMMENT ON COLUMN "baseapp_query_definition"."entry_src_system_id" IS '数据来源类型';
@@ -698,6 +699,7 @@ CREATE TABLE "baseapp_list_columns_definition"
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
     "customized_fields" JSONB,
+    "deleted_fields" JSONB,
     PRIMARY KEY ("id")
 );
 COMMENT ON COLUMN "baseapp_list_columns_definition"."ordinal" IS '序号';
