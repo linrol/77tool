@@ -32,7 +32,8 @@ def close_git(projectMap):
       component.remove(mapping)
 
   for projectName,projectInfo in projectMap.items():
-    element = Element('mapping', {'directory':'$PROJECT_DIR$/{}/{}'.format(projectInfo.getModule(), projectName), 'vcs':'Git'})
+    dirNames = projectInfo.getPath().split('/')
+    element = Element('mapping', {'directory':'$PROJECT_DIR$/{}/{}'.format(dirNames[-2], dirNames[-1]), 'vcs':'Git'})
     element.tail = '\n    '
     component.append(element)
 
