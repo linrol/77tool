@@ -14,6 +14,8 @@ apps:
   build: ../../apps/build
   cashier: ../../apps/cashier
   cashier-api: ../../apps/cashier-api
+  consolidation: ../../apps/consolidation
+  consolidation-api: ../../apps/consolidation-api
   contract: ../../apps/contract
   contract-api: ../../apps/contract-api
   factgl: ../../apps/factgl
@@ -22,6 +24,7 @@ apps:
   init-data: ../../apps/init-data
   innertrans: ../../apps/innertrans
   innertrans-api: ../../apps/innertrans-api
+  inv-common: ../../apps/inv-common
   inventory: ../../apps/inventory
   inventory-api: ../../apps/inventory-api
   invoice: ../../apps/invoice
