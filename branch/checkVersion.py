@@ -12,7 +12,7 @@ BUILD_PATH='../../apps/build'
 
 class CheckVersion:
   def __init__(self, project_names):
-    self.pool = ThreadPoolExecutor(max_workers=10)
+    self.pool = ThreadPoolExecutor(max_workers=100)
     self.project_names = project_names
 
     gl = gitlab.Gitlab(utils.URL, utils.TOKEN)
@@ -40,7 +40,8 @@ class CheckVersion:
     tasks = [self.pool.submit(self.check_version, branch.name) for branch in branches]
 
     for future in as_completed(tasks):
-      if ~future.result():
+      res = future.result()
+      if not res:
         check_result = False
     return check_result
 
@@ -75,5 +76,5 @@ if __name__ == "__main__":
 
   executor = CheckVersion(projectNames)
   if executor.execute():
-    print('enjoy！版本号冲突检查全部通过')
+   print('enjoy！版本号冲突检查通过')
 
