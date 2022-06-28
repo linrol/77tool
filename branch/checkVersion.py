@@ -19,6 +19,7 @@ class CheckVersion:
     gl = gitlab.Gitlab(utils.URL, utils.TOKEN)
     gl.auth()
     self.gl = gl
+    self.projects = self.gl.projects
 
     this_config_file = os.path.join(os.curdir, BUILD_PATH + '/config.yaml').replace("\\", "/")
     self.config_yaml = yaml.load(open(this_config_file), Loader=yaml.FullLoader)
@@ -35,19 +36,46 @@ class CheckVersion:
     else:
       return False
 
-  def get_branches(self):
-    branches = self.gl.projects.get(141).branches.list(all=True)
+  #根据工程名称获取Gitlab工程对象
+  def get_project(self, projectName):
+    projects = self.projects.list(search=projectName)
+    if len(projects) == 1:
+      return projects[0]
+    if len(projects) > 1:
+      for project in projects:
+        if project.name_with_namespace.startswith("backend") and project.name == projectName:
+          return project
+    else:
+      return None
+
+  #根据工程名称获取所有的分支
+  def get_project_branches(self, project_name):
+    branches = self.get_project(project_name).branches.list(all=True)
     return list(filter(self.branch_filter, branches))
 
-  def get_branch_yaml(self, branch_name):
-    f = self.gl.projects.get(141).files.get(file_path='config.yaml', ref=branch_name)
+  #检查工程名称指定的分支是否存在
+  def exist_project_branch(self, project_name, branch_name):
+    project = self.get_project(project_name)
+    if project is None:
+      return True
+    branches = project.branches.list(search=branch_name)
+    if len(branches) > 0:
+      for branch in branches:
+        if branch.name == branch_name:
+          return True
+    else:
+      return False
+
+  #根据工程名称获取指定分支的文件
+  def get_project_branch_file(self, project_name, branch_name):
+    f = self.get_project(project_name).files.get(file_path='config.yaml', ref=branch_name)
     config_yaml = yaml.load(f.decode() , Loader=yaml.FullLoader)
     return config_yaml
 
   def execute(self):
     # 遍历分支比较快照版本号是否重复
     check_result = True
-    branches = self.get_branches()
+    branches = self.get_project_branches("build")
 
     tasks = [self.pool.submit(self.check_version, branch.name) for branch in branches]
 
@@ -63,7 +91,7 @@ class CheckVersion:
       # 跳过当前分支
       return check_result
     # 获取对应分支的config.yaml进行版本号比较
-    config_yaml = self.get_branch_yaml(branch_name)
+    config_yaml = self.get_project_branch_file("build", branch_name)
     for category in config_yaml:
       projects = config_yaml.get(category)
       if isinstance(projects,list):
@@ -81,12 +109,13 @@ class CheckVersion:
         if(app_version is None):
           continue
         if version == app_version:
-          check_result = False
-          print('工程【{}】版本号【{}】和分支【{}】冲突，请注意调整'.format(project, version, branch_name))
+          if self.exist_project_branch(project, branch_name):
+            if self.exist_project_branch(project, self.this_branch):
+              check_result = False
+              print('工程【{}】版本号【{}】和分支【{}】冲突，请注意调整'.format(project, version, branch_name))
     return check_result
 
-#检出指定分支，支持设置git分支管理
-#python3 checkout.py hotfix true
+#python3 checkVersion.py [project...]
 if __name__ == "__main__":
   projectNames =[]
   if len(sys.argv) > 1:
