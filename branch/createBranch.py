@@ -3,12 +3,16 @@ import sys
 import gitlab
 import utils
 import traceback
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed, wait, ALL_COMPLETED
+
 
 #拉分支必须拉的工程
 MUST_PROJECT={'apps': ['build']}
 #拉各模块工程时，必须要拉取的工程
 MODULE_PROJECT = {'platform': ['parent', 'testapp']}
+
+BRANCH_REGEX=r'^(sprint|emergency|stage-patch|release)20[2-9][0-9][0-1][0-9][0-3][0-9]$'
 
 class CheckResult():
   def __init__(self, projectInfo, skip, message):
@@ -160,7 +164,7 @@ class CreateBranch:
   #设置分支保护
   def protect_branch(self, projectInfo):
     #release、hotfix、emergency、stage-emergency、hotfix-inte、dev分支预先设置管理员全权限，便于修改版本号
-    if self.newBranchName in ['release', 'hotfix', 'emergency', 'stage-emergency', 'hotfix-inte', 'dev']:
+    if re.match(BRANCH_REGEX, self.newBranchName) is not None or self.newBranchName in ['release', 'hotfix', 'emergency', 'stage-emergency', 'hotfix-inte', 'dev']:
       mergeAccessLevel = gitlab.MAINTAINER_ACCESS
       pushAccessLevel = gitlab.MAINTAINER_ACCESS
       projectInfo.protectBranch(self.newBranchName, mergeAccessLevel, pushAccessLevel)

@@ -191,7 +191,7 @@ class VersionUtils():
         targetProjectName = dependencieNode.find("{}artifactId".format(XML_NS_INC)).text
         if targetProjectName.endswith("-private"):
           targetProjectName = targetProjectName[:-8]
-          print(targetProjectName)
+          # print(targetProjectName)
 
         if targetProjectName in ['testapp','testapp-api','baseapp-api']:
           targetProjectName = 'framework'
