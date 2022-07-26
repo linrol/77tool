@@ -6,8 +6,8 @@ import closeGit
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class Checout:
-  def __init__(self, branchName, close=False):
-    self.branchName = branchName
+  def __init__(self, branchNames, close=False):
+    self.branchNames = branchNames
     self.close = close
     self.pool = ThreadPoolExecutor(max_workers=10)
 
@@ -30,29 +30,30 @@ class Checout:
 
   #检查是否有分支，如果有则检出分支
   def checkoutBranch(self, projectInfo):
-    branch = projectInfo.getBranch(self.branchName)
-    if branch is None:
-      return None
-    else:
-      projectInfo.checkout(branchName)
-      print('工程【{}】检出分支【{}】成功'.format(projectInfo.getName(), branchName))
-      return projectInfo
+
+    for branchName in self.branchNames.split("."):
+      branch = projectInfo.getBranch(branchName)
+      if branch is not None:
+        projectInfo.checkout(branchName)
+        print('工程【{}】检出分支【{}】成功'.format(projectInfo.getName(), branchName))
+        return projectInfo
+    return None
 
 #检出指定分支，支持设置git分支管理
 #python3 checkout.py hotfix true
 if __name__ == "__main__":
 
-  branchName=''
+  branchNames=''
   close = False # 是否需要关闭git管理
   if len(sys.argv) == 2 :
-    branchName=sys.argv[1]
+    branchNames=sys.argv[1]
   elif len(sys.argv) == 3 :
-    branchName=sys.argv[1]
+    branchNames=sys.argv[1]
     close = (sys.argv[2].lower() == 'true')
   else:
     print ("ERROR: 输入参数错误, 正确的参数为：<branch> [<closeGit>]")
     sys.exit(1)
 
-  executor = Checout(branchName, close)
+  executor = Checout(branchNames, close)
   executor.execute()
 
