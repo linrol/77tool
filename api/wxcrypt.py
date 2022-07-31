@@ -6,7 +6,6 @@
 
 """
 # ------------------------------------------------------------------------
-import logging
 import base64
 import random
 import hashlib
@@ -17,6 +16,7 @@ import xml.etree.cElementTree as ET
 import socket
 
 import ierror
+from log import logger
 
 
 """
@@ -53,7 +53,6 @@ class SHA1:
             sha.update("".join(sortlist).encode())
             return ierror.WXBizMsgCrypt_OK, sha.hexdigest()
         except Exception as e:
-            logger = logging.getLogger()
             logger.error(e)
             return ierror.WXBizMsgCrypt_ComputeSignature_Error, None
 
@@ -79,7 +78,6 @@ class XMLParse:
             encrypt = xml_tree.find("Encrypt")
             return ierror.WXBizMsgCrypt_OK, encrypt.text
         except Exception as e:
-            logger = logging.getLogger()
             logger.error(e)
             return ierror.WXBizMsgCrypt_ParseXml_Error, None
 
@@ -160,7 +158,6 @@ class Prpcrypt(object):
             # 使用BASE64对加密后的字符串进行编码
             return ierror.WXBizMsgCrypt_OK, base64.b64encode(ciphertext)
         except Exception as e:
-            logger = logging.getLogger()
             logger.error(e)
             return ierror.WXBizMsgCrypt_EncryptAES_Error, None
 
@@ -174,7 +171,6 @@ class Prpcrypt(object):
             # 使用BASE64对密文进行解码，然后AES-CBC解密
             plain_text = cryptor.decrypt(base64.b64decode(text))
         except Exception as e:
-            logger = logging.getLogger()
             logger.error(e)
             return ierror.WXBizMsgCrypt_DecryptAES_Error, None
         try:
@@ -188,7 +184,6 @@ class Prpcrypt(object):
             xml_content = content[4: xml_len + 4]
             from_receiveid = content[xml_len + 4:]
         except Exception as e:
-            logger = logging.getLogger()
             logger.error(e)
             return ierror.WXBizMsgCrypt_IllegalBuffer, None
 
@@ -214,15 +209,16 @@ class WXBizMsgCrypt(object):
             # return ierror.WXBizMsgCrypt_IllegalAesKey,None
         self.m_sToken = sToken
         self.m_sReceiveId = sReceiveId
+    def add_receive(self, receive_id):
+        self.m_sReceiveId.add(receive_id)
 
-        # 验证URL
-        # @param sMsgSignature: 签名串，对应URL参数的msg_signature
-        # @param sTimeStamp: 时间戳，对应URL参数的timestamp
-        # @param sNonce: 随机串，对应URL参数的nonce
-        # @param sEchoStr: 随机串，对应URL参数的echostr
-        # @param sReplyEchoStr: 解密之后的echostr，当return返回0时有效
-        # @return：成功0，失败返回对应的错误码
-
+    # 验证URL
+    # @param sMsgSignature: 签名串，对应URL参数的msg_signature
+    # @param sTimeStamp: 时间戳，对应URL参数的timestamp
+    # @param sNonce: 随机串，对应URL参数的nonce
+    # @param sEchoStr: 随机串，对应URL参数的echostr
+    # @param sReplyEchoStr: 解密之后的echostr，当return返回0时有效
+    # @return：成功0，失败返回对应的错误码
     def VerifyURL(self, sMsgSignature, sTimeStamp, sNonce, sEchoStr):
         sha1 = SHA1()
         ret, signature = sha1.getSHA1(self.m_sToken, sTimeStamp, sNonce, sEchoStr)
