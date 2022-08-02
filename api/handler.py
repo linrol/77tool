@@ -1,7 +1,10 @@
-import os
+import time
+
 from wxcrop import Crop
-from wxmessage import data_pre_old_help, data_pre_new_help, get_pre_map
+from wxmessage import branch_create, data_pre_old_help, data_pre_new_help, get_pre_map, get_branch_create_map
 from shell import Shell
+from redislock import RedisLock
+from redisclient import redisClient
 
 class Handler:
     def __init__(self, crypt, suite, action, data):
@@ -10,7 +13,7 @@ class Handler:
         self.action = action
         self.data = data
 
-    async def accept(self):
+    def accept(self):
         if self.action == 'command':
             return self.accept_command()
         if self.action == 'data':
@@ -24,29 +27,55 @@ class Handler:
         if info_type == 'create_auth':
             self.suite.save_auth_code(self.data.get('AuthCode'))
             self.crypt.add_receive(self.suite.init_crop().crop_id)
-        return "success"
+        return True
 
     # 消费数据回调：拉分支、修改版本号、打tag、预制列表方案
     def accept_data(self):
         msg_type = self.data.get('MsgType')
         content = self.data.get('Content')
         to_user = self.data['FromUserName']
+        time.sleep(50)
         crop = Crop(self.data['ToUserName'], self.suite.get_access_token())
-        if msg_type == 'event' and self.data.get('EventKey', '') == 'new':
-            crop.send_markdown_msg(to_user, data_pre_new_help)
-        if msg_type == 'event' and self.data.get('EventKey', '') == 'old':
-            crop.send_markdown_msg(to_user, data_pre_old_help)
-        if msg_type == 'text' and '新列表方案' in content:
-            self.exec_data_pre(crop, content.split('\n'), 'new')
-        if msg_type == 'text' and '老列表方案' in content:
-            self.exec_data_pre(crop, content.split('\n'), 'old')
+        if msg_type == 'event':
+            if self.data.get('EventKey', '') == 'new':
+                crop.send_markdown_msg(to_user, data_pre_new_help)
+            if self.data.get('EventKey', '') == 'old':
+                crop.send_markdown_msg(to_user, data_pre_old_help)
+            if self.data.get('EventKey', '') == 'branch_create':
+                crop.send_markdown_msg(to_user, branch_create)
+        if msg_type == 'text':
+            lock = RedisLock(redisClient.get_connection())
+            # lock_value = lock.get_lock("lock", 300)
+            try:
+                if '新列表方案' in content:
+                    self.exec_data_pre(crop, content.split('\n'), 'new')
+                if '老列表方案' in content:
+                    self.exec_data_pre(crop, content.split('\n'), 'old')
+                if '拉分支' in content:
+                    self.create_branch(crop, content.split('\n'))
+            finally:
+                pass
+                # lock.del_lock("lock", lock_value)
 
-    # 执行脚本预制新列表方案
+
+    # 执行脚本预制列表方案
     def exec_data_pre(self, crop, params, data_type):
-        shell = Shell('init-data')
         from_user = self.data['FromUserName']
+        shell = Shell(from_user, 'init-data')
         try:
             ret, msg = shell.exec_data_pre(from_user, data_type, *get_pre_map(params))
             crop.send_text_msg(from_user, str(msg))
         except Exception as err:
             crop.send_text_msg(from_user, str(err))
+
+    # 拉分支
+    def create_branch(self, crop, params):
+        from_user = self.data['FromUserName']
+        shell = Shell(from_user, None)
+        try:
+            ret, msg = shell.create_branch(*get_branch_create_map(params))
+            crop.send_text_msg(from_user, str(ret) + "\n" + str(msg))
+        except Exception as err:
+            crop.send_text_msg(from_user, "False\n" + str(err))
+        pass
+

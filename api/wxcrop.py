@@ -3,7 +3,7 @@ from log import logger
 
 from wxmessage import msg_params
 from request import post
-from redisclient import client
+from redisclient import redisClient
 
 class Crop:
   def __init__(self, crop_id, suite_token):
@@ -12,10 +12,10 @@ class Crop:
     self.crop_key = 'wechat-work-' + self.crop_id
 
   def get(self, key):
-    return client.hget(self.crop_key, key)
+    return redisClient.get_connection().hget(self.crop_key, key)
 
   def save(self, key, value):
-    client.hmset(self.crop_key, {key: value})
+    redisClient.get_connection().hmset(self.crop_key, {key: value})
 
   def get_permanent_cod(self):
     return self.get('permanent_code')

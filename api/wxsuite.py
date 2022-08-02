@@ -2,7 +2,7 @@ import time
 from log import logger
 from wxcrop import Crop
 from request import post
-from redisclient import client
+from redisclient import redisClient
 
 class Suite:
   def __init__(self, suite_id, suite_secret):
@@ -11,10 +11,10 @@ class Suite:
     self.suite_key = 'wechat-work-' + suite_id
 
   def get(self, key):
-    return client.hget(self.suite_key, key)
+    return redisClient.get_connection().hget(self.suite_key, key)
 
   def save(self, key, value):
-    client.hmset(self.suite_key, {key: value})
+    redisClient.get_connection().hmset(self.suite_key, {key: value})
 
   def get_ticket(self):
     return self.get('suite_ticket')
@@ -71,5 +71,9 @@ class Suite:
     auth_corp_ids = corp_id if auth_corp_ids is None else corp_id + ',' + auth_corp_ids
     self.save('auth_corp_ids', auth_corp_ids)
 
-  def get_auth_corps(self):
-    return self.get('auth_corp_ids')
+  def init_crypt_received(self, crypt):
+    auth_corps = self.get('auth_corp_ids')
+    if auth_corps is not None:
+      for c in auth_corps.split(','):
+        crypt.add_receive(c)
+    pass

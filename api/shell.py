@@ -17,10 +17,12 @@ def chdir_data_pre():
     os.chdir("../dataPre/")
 
 class Shell(utils.ProjectInfo):
-    def __init__(self, project_name):
+    def __init__(self, user_name, project_name):
         chdir_branch()
-        self.project = utils.project_path().get(project_name)
-        add_method(self.project)
+        self.user_name = user_name
+        if project_name is not None:
+            self.project = utils.project_path().get(project_name)
+            add_method(self.project)
 
     # 获取目标分支+当前人是否还存在未合并的mr分支
     def get_open_mr_branch(self, mr_key, branch):
@@ -73,3 +75,18 @@ class Shell(utils.ProjectInfo):
         finally:
             self.project.checkout('master')
             self.project.deleteLocalBranch(temp_branch)
+
+    # 创建分支
+    def create_branch(self, source, target, project_names):
+        cmd = 'cd ../branch;python3 createBranch.py {} {} {}'.format(source, target, " ".join(project_names))
+        [ret, msg] = subprocess.getstatusoutput(cmd)
+        self.checkout_branch('master')
+        return [ret == 0, msg]
+        # return "基于{}创建{}分支成功".format(source, target)
+
+    # 切换所有模块的分支
+    def checkout_branch(self, branch_name):
+        user_name = self.user_name
+        cmd = 'cd ../branch;python3 checkout.py {}'.format(branch_name)
+        return subprocess.getstatusoutput(cmd)
+
