@@ -19,7 +19,6 @@ class ProjectInfo():
     self.__module = module
     self.__project = None
     self.__checkPath()
-    self.gl = None
     # self.fetch()# TODO 是否fetch
 
   def getName(self):
@@ -41,7 +40,6 @@ class ProjectInfo():
       gl = gitlab.Gitlab(URL, TOKEN)
       try:
         gl.auth()
-        self.gl = gl
         projects = gl.projects.list(search=self.__name) # 此处是模糊查询
         if len(projects) > 0:
           for project in projects:
