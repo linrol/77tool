@@ -265,7 +265,7 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
   print("本次预制多列表方案操作为：")
   print("预制租户: " + source)
   print("分支: " + branch)
-
+  return True
 
 
 

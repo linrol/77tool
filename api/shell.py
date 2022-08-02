@@ -47,8 +47,8 @@ class Shell(utils.ProjectInfo):
         add_mr(mr_key, mr.web_url.rsplit("/",1)[1])
         return True, mr.web_url
 
-    def exec_data_pre(self, from_user, data_type, env, tenant_id, branch, commit_user, condition_value):
-        mr_key = from_user + env + tenant_id + branch
+    def exec_data_pre(self, data_type, env, tenant_id, branch, condition_value, mr_user):
+        mr_key = self.user_name + env + tenant_id + branch
         opened_mr, temp_branch = self.get_open_mr_branch(mr_key, branch)
         try:
             # 仅当不存在待合并的分支才创建远程分支
@@ -62,13 +62,13 @@ class Shell(utils.ProjectInfo):
             chdir_data_pre()
             ret = None
             if data_type == 'new':
-                ret = multi.pre_multi_list(env, tenant_id, temp_branch, commit_user, condition)
+                ret = multi.pre_multi_list(env, tenant_id, temp_branch, self.user_name, condition)
             if data_type == 'old':
-                ret = uiconfig.pre_form(env, tenant_id, temp_branch, commit_user, condition)
+                ret = uiconfig.pre_form(env, tenant_id, temp_branch, self.user_name, condition)
             chdir_branch()
             if not ret:
                 raise Exception("预制数据失败，请检查输出日志")
-            return self.create_mr(mr_key, opened_mr, temp_branch, branch, '<数据预置>前端多列表方案预置', 'linrol')
+            return self.create_mr(mr_key, opened_mr, temp_branch, branch, '<数据预置>前端多列表方案预置', mr_user)
         except Exception as err:
             self.project.deleteRemoteBranch(temp_branch)
             return False, err

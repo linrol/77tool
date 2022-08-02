@@ -2,7 +2,7 @@ import time
 from log import logger
 
 from wxmessage import msg_params
-from request import post
+from request import get, post
 from redisclient import redisClient
 
 class Crop:
@@ -55,6 +55,12 @@ class Crop:
 
   def send_markdown_msg(self, to_user, content):
     self.send_message(to_user, 'markdown', content)
+
+  def get_user_name(self, user_id):
+    url = 'https://qyapi.weixin.qq.com/cgi-bin/user/get?access_token={}&userid={}'
+    body = get(url.format(self.get_corp_token(), user_id))
+    logger.info("user_info...." + body)
+    return body.get('name')
 
   def send_message(self, to_user, msg_type, content):
     msg_params['touser'] = to_user

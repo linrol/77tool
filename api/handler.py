@@ -46,7 +46,6 @@ class Handler:
             lock = RedisLock(redisClient.get_connection())
             lock_value = lock.get_lock("lock", 120)
             try:
-                # time.sleep(100)
                 if '新列表方案' in content:
                     self.exec_data_pre(crop, content.split('\n'), 'new')
                 if '老列表方案' in content:
@@ -59,22 +58,24 @@ class Handler:
 
     # 执行脚本预制列表方案
     def exec_data_pre(self, crop, params, data_type):
-        from_user = self.data['FromUserName']
-        shell = Shell(from_user, 'init-data')
+        user_id = self.data['FromUserName']
+        user_name = crop.get_user_name(user_id)
+        shell = Shell(user_name, 'init-data')
         try:
-            ret, msg = shell.exec_data_pre(from_user, data_type, *get_pre_map(params))
-            crop.send_text_msg(from_user, str(msg))
+            ret, msg = shell.exec_data_pre(data_type, *get_pre_map(params))
+            crop.send_text_msg(user_id, str(msg))
         except Exception as err:
-            crop.send_text_msg(from_user, str(err))
+            crop.send_text_msg(user_id, str(err))
 
     # 拉分支
     def create_branch(self, crop, params):
-        from_user = self.data['FromUserName']
-        shell = Shell(from_user, None)
+        user_id = self.data['FromUserName']
+        user_name = crop.get_user_name()
+        shell = Shell(user_name, None)
         try:
             ret, msg = shell.create_branch(*get_branch_create_map(params))
-            crop.send_text_msg(from_user, str(ret) + "\n" + str(msg))
+            crop.send_text_msg(user_id, str(ret) + "\n" + str(msg))
         except Exception as err:
-            crop.send_text_msg(from_user, "False\n" + str(err))
+            crop.send_text_msg(user_id, "False\n" + str(err))
         pass
 

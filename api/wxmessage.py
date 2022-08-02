@@ -63,11 +63,11 @@ def get_map(lines):
 
 def get_pre_map(lines):
     pre_data_map = get_map(lines)
-    require_keys = {"环境","租户","分支","列表组"}.difference(pre_data_map.keys())
+    require_keys = {"环境","租户","分支","列表组","合并人"}.difference(pre_data_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     tenant_id = "tenant" + pre_data_map.get('租户')
-    return pre_data_map.get('环境'), tenant_id, pre_data_map.get('分支'), "branch.bot", pre_data_map.get('列表组')
+    return pre_data_map.get('环境'), tenant_id, pre_data_map.get('分支'), pre_data_map.get('列表组'), pre_data_map.get("合并人")
 
 def get_branch_create_map(lines):
     branch_create_map = get_map(lines)

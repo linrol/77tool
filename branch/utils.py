@@ -9,7 +9,8 @@ import re
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 URL='http://gitlab.q7link.com'
-TOKEN=''
+# TOKEN='NZ4CEzg1-wWH6ZckWUyD'
+TOKEN='v5kHG8DLAUDs2tXVfJKW'
 
 class ProjectInfo():
   def __init__(self, name, path, module):
@@ -18,6 +19,7 @@ class ProjectInfo():
     self.__module = module
     self.__project = None
     self.__checkPath()
+    self.gl = None
     # self.fetch()# TODO 是否fetch
 
   def getName(self):
@@ -39,6 +41,7 @@ class ProjectInfo():
       gl = gitlab.Gitlab(URL, TOKEN)
       try:
         gl.auth()
+        self.gl = gl
         projects = gl.projects.list(search=self.__name) # 此处是模糊查询
         if len(projects) > 0:
           for project in projects:
