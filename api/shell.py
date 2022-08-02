@@ -5,7 +5,8 @@ import time
 
 from redisclient import add_mr, get_mr_ids, delete_mr
 from MethodUtil import add_method
-sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
+# sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
+sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage/api")
 from branch import utils
 from dataPre import multi
 from dataPre import uiconfig
