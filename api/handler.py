@@ -34,19 +34,19 @@ class Handler:
         msg_type = self.data.get('MsgType')
         content = self.data.get('Content')
         to_user = self.data['FromUserName']
-        time.sleep(50)
         crop = Crop(self.data['ToUserName'], self.suite.get_access_token())
         if msg_type == 'event':
-            if self.data.get('EventKey', '') == 'new':
+            if self.data.get('EventKey', '') == 'data_pre_new':
                 crop.send_markdown_msg(to_user, data_pre_new_help)
-            if self.data.get('EventKey', '') == 'old':
+            if self.data.get('EventKey', '') == 'data_pre_old':
                 crop.send_markdown_msg(to_user, data_pre_old_help)
             if self.data.get('EventKey', '') == 'branch_create':
                 crop.send_markdown_msg(to_user, branch_create)
         if msg_type == 'text':
             lock = RedisLock(redisClient.get_connection())
-            # lock_value = lock.get_lock("lock", 300)
+            lock_value = lock.get_lock("lock", 120)
             try:
+                # time.sleep(100)
                 if '新列表方案' in content:
                     self.exec_data_pre(crop, content.split('\n'), 'new')
                 if '老列表方案' in content:
@@ -54,8 +54,7 @@ class Handler:
                 if '拉分支' in content:
                     self.create_branch(crop, content.split('\n'))
             finally:
-                pass
-                # lock.del_lock("lock", lock_value)
+                lock.del_lock("lock", lock_value)
 
 
     # 执行脚本预制列表方案
