@@ -5,7 +5,7 @@ import time
 
 from redisclient import add_mr, get_mr_ids, delete_mr
 from MethodUtil import add_method
-# sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
+sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage/api")
 from branch import utils
 from dataPre import multi
@@ -18,9 +18,9 @@ def chdir_data_pre():
     os.chdir("../dataPre/")
 
 class Shell(utils.ProjectInfo):
-    def __init__(self, user_name, project_name):
+    def __init__(self, user_id, project_name):
         chdir_branch()
-        self.user_name = user_name
+        self.user_id = user_id
         if project_name is not None:
             self.project = utils.project_path().get(project_name)
             add_method(self.project)
@@ -43,7 +43,7 @@ class Shell(utils.ProjectInfo):
         if ret != 0:
             return False, msg
         if opened_mr is not None:
-            return True , opened_mr.web_url
+            return True, opened_mr.web_url
         mr = self.project.createMrRequest(temp_branch, branch, title, assignee)
         add_mr(mr_key, mr.web_url.rsplit("/",1)[1])
         return True, mr.web_url
@@ -87,7 +87,7 @@ class Shell(utils.ProjectInfo):
 
     # 切换所有模块的分支
     def checkout_branch(self, branch_name):
-        user_name = self.user_name
+        user_id = self.user_id
         cmd = 'cd ../branch;python3 checkout.py {}'.format(branch_name)
         return subprocess.getstatusoutput(cmd)
 

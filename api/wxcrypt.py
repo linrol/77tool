@@ -209,8 +209,12 @@ class WXBizMsgCrypt(object):
             # return ierror.WXBizMsgCrypt_IllegalAesKey,None
         self.m_sToken = sToken
         self.m_sReceiveId = sReceiveId
-    def add_receive(self, receive_id):
-        self.m_sReceiveId.add(receive_id)
+    def add_receive(self, receive_ids):
+        if receive_ids is None:
+            return self
+        for receive_id in receive_ids.split(','):
+            self.m_sReceiveId.add(receive_id)
+        return self
 
     # 验证URL
     # @param sMsgSignature: 签名串，对应URL参数的msg_signature

@@ -1,11 +1,15 @@
 import time
 from log import logger
-from wxcrop import Crop
 from request import post
 from redisclient import redisClient
 
 class Suite:
-  def __init__(self, suite_id, suite_secret):
+  def __init__(self, domain, gitlab_domain, gitlab_app_id, gitlab_secret, suite_id, suite_secret):
+    self.domain = domain
+    self.gitlab_domain = gitlab_domain
+    self.gitlab_app_id = gitlab_app_id
+    self.gitlab_secret = gitlab_secret
+
     self.suite_id = suite_id
     self.suite_secret = suite_secret
     self.suite_key = 'wechat-work-' + suite_id
@@ -50,7 +54,7 @@ class Suite:
     logger.error(body)
     raise Exception(body)
 
-  def init_crop(self):
+  def init_auth_crop(self):
     suite_token = self.get_access_token()
     url = 'https://qyapi.weixin.qq.com/cgi-bin/service/get_permanent_code?suite_access_token={}'
     params = {'auth_code': self.get_auth_code()}
@@ -58,11 +62,11 @@ class Suite:
     corp_id = body.get('auth_corp_info').get('corpid')
     agent_id = body.get('auth_info').get('agent')[0].get('agentid')
     permanent_code = body.get('permanent_code')
-    crop = Crop(corp_id, suite_token)
-    crop.save_permanent_cod(permanent_code)
-    crop.save_agent_id(agent_id)
     self.add_auth_corp_ids(corp_id)
-    return crop
+    return corp_id, agent_id, permanent_code
+
+  def get_auth_crop_ids(self):
+    return self.get('auth_corp_ids')
 
   def add_auth_corp_ids(self, corp_id):
     auth_corp_ids = self.get('auth_corp_ids')
@@ -70,10 +74,3 @@ class Suite:
       return
     auth_corp_ids = corp_id if auth_corp_ids is None else corp_id + ',' + auth_corp_ids
     self.save('auth_corp_ids', auth_corp_ids)
-
-  def init_crypt_received(self, crypt):
-    auth_corps = self.get('auth_corp_ids')
-    if auth_corps is not None:
-      for c in auth_corps.split(','):
-        crypt.add_receive(c)
-    pass

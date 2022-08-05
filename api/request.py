@@ -17,3 +17,12 @@ def post(url, params):
         logger.error(body.get('errmsg'))
         raise Exception(body.get('errmsg'))
     return body
+
+def post_form(url, params):
+    response = requests.post(url, data=params)
+    body = json.loads(response.text)
+    if response.status_code != 200:
+        logger.error(body)
+        raise Exception(body)
+    return body
+
