@@ -6,7 +6,7 @@ menu_help = {
                   "\n>列表组：<font color=\"comment\">输入列表方案组名称，例：Budget_Plan_Change_list</font>" 
                   "\n>合并人：<font color=\"comment\">输入分支有权限合并者人姓名（空时无需MR，直接提交）</font>" 
                   "\n>" 
-                  "\n>复制以上模版，修改后回复给我，成功预制后将以消息通知到你" 
+                  "\n>复制以上模版，修改后回复我，成功预制后将会发送消息通知" 
                   "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
   "data_pre_old": ">**老列表方案** " 
                   "\n>环　境：<font color=\"comment\">输入预制数据来源环境，例：temp1</font>" 
@@ -15,17 +15,24 @@ menu_help = {
                   "\n>列表组：<font color=\"comment\">输入列表方案组名称，例：Budget_Plan_Change_list</font>" 
                   "\n>合并人：<font color=\"comment\">输入分支有权限合并者人姓名（空时无需MR，直接提交）</font>" 
                   "\n>" 
-                  "\n>复制以上模版，修改后回复我，成功后将会发送消息通知" 
+                  "\n>复制本模版，修改后回复我，成功后将会发送消息通知" 
                   "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
   "branch_create": ">**拉分支** " 
                    "\n>来源分支：<font color=\"comment\">输入基于哪个分支拉取，例：stage</font>" 
                    "\n>目标分支：<font color=\"comment\">输入拉取后的分支名称，例：feature-purchase-budget</font>" 
                    "\n>模　　块：<font color=\"comment\">输入需要拉模块或工程，例：app-common,budget,project-api</font>" 
-                   "\n>复制以上模版，修改后回复我，成功后将会发送消息通知" 
+                   "\n>复制本模版，修改后回复我，成功预制后将会发送消息通知" 
                    "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
 }
 
-go_oauth_msg = "首次使用，请先进行gitlab身份认证\n复制链接：{}到浏览器中打开或点击<a href=\"{}\">去授权</a>"
+go_oauth_card_msg = {
+  "title": "授权认证通知",
+  "description": "首次使用，请先进行gitlab身份认证\n复制链接：{}在浏览器中打开",
+  "url": "{}",
+  "btntxt": "去认证"
+}
+
+go_oauth_text_msg = "首次使用，请先进行gitlab身份认证\n复制链接{}在浏览器中打开\n或点击<a href=\"{}\">去授权</a>"
 
 msg_params = {
   "touser": "",
@@ -33,8 +40,9 @@ msg_params = {
   "agentid": ""
 }
 
-from xml.etree.ElementTree import fromstring
 import unicodedata as ucd
+from xml.etree.ElementTree import fromstring
+from redisclient import get_user_id
 
 def xml2map(raw_xml):
     data = {}
@@ -42,7 +50,7 @@ def xml2map(raw_xml):
         data[node.tag] = node.text
     return data
 
-def is_chinese(word):
+def is_chinese(k, word):
     for ch in word:
         if '\u4e00' <= ch <= '\u9fff':
             return True
@@ -58,14 +66,16 @@ def get_map(lines):
             continue
         k = kv[0]
         v = kv[1]
-        if k == '' or v == '' or is_chinese(v):
+        if '人' in k:
+          v = get_user_id(v)
+        if k == '' or v == '' or is_chinese(k, v):
             continue
         map[k] = v
     return map
 
 def get_pre_map(lines):
     pre_data_map = get_map(lines)
-    require_keys = {"环境","租户","分支","列表组","合并人"}.difference(pre_data_map.keys())
+    require_keys = {"环境", "租户", "分支", "列表组", "合并人"}.difference(pre_data_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     tenant_id = "tenant" + pre_data_map.get('租户')
@@ -73,7 +83,7 @@ def get_pre_map(lines):
 
 def get_branch_create_map(lines):
     branch_create_map = get_map(lines)
-    require_keys = {"来源分支","目标分支","模块"}.difference(branch_create_map.keys())
+    require_keys = {"来源分支", "目标分支", "模块"}.difference(branch_create_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     return branch_create_map.get('来源分支'), branch_create_map.get('目标分支'), branch_create_map.get('模块').split(",")

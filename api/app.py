@@ -2,12 +2,11 @@ import argparse
 from flask import Flask,request, make_response
 from concurrent.futures import ThreadPoolExecutor
 
-from wxcrypt import WXBizMsgCrypt
+
 from wxsuite import Suite
 from wxcrop import Crop
 from wxmessage import xml2map
 from handler import Handler
-from log import logger
 
 executor = ThreadPoolExecutor()
 
@@ -17,19 +16,19 @@ def parse_args():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--domain', '-d', type=str, help='your host')
     arg_parser.add_argument('--port', '-p', default=8075, type=int, help="port to build web server")
-    arg_parser.add_argument('--suiteid', '-si', type=str, help='your suite id')
-    arg_parser.add_argument('--secret', '-ss', type=str, help='your Secret')
+    arg_parser.add_argument('--suite_id', '-si', type=str, help='your suite id')
+    arg_parser.add_argument('--suite_secret', '-ss', type=str, help='your Secret')
     arg_parser.add_argument('--token', '-st', type=str, help='token set in suite app')
     arg_parser.add_argument('--aeskey', '-sk', type=str, help='encoding aeskey')
     arg_parser.add_argument('--gitlab_domain', '-gd', type=str, help='gitlab domain')
-    arg_parser.add_argument('--gitlab_appid', '-gi', type=str, help='gitlab appid')
+    arg_parser.add_argument('--gitlab_app_id', '-gi', type=str, help='gitlab appid')
     arg_parser.add_argument('--gitlab_secret', '-gs', type=str, help='gitlab secret')
 
     return arg_parser.parse_args()
 args = parse_args()
 
-suite = Suite(args.domain, args.gitlab_domain, args.gitlab_appid, args.gitlab_secret, args.suiteid, args.secret)
-crypt = WXBizMsgCrypt(args.token, args.aeskey, {args.suiteid, ''}).add_receive(suite.get_auth_crop_ids())
+suite = Suite(args)
+crypt = suite.get_crypt()
 
 @app.route("/gitlab/oauth", methods=["GET", "POST"])
 def oauth():
@@ -63,13 +62,9 @@ def recv(action: str):
     if ret != 0:
         return make_response({"errcode": ret}, 500)
 
-    logger.info("start" + xml2map(xml).get('Content',''))
     handler = Handler(crypt, suite, action, xml2map(xml))
     executor.submit(handler.accept)
-    logger.info("end" + xml2map(xml).get('Content',''))
     return make_response("success")
-
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=args.port)

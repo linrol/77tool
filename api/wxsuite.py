@@ -2,23 +2,35 @@ import time
 from log import logger
 from request import post
 from redisclient import redisClient
+from wxcrypt import WXBizMsgCrypt
 
 class Suite:
-  def __init__(self, domain, gitlab_domain, gitlab_app_id, gitlab_secret, suite_id, suite_secret):
-    self.domain = domain
-    self.gitlab_domain = gitlab_domain
-    self.gitlab_app_id = gitlab_app_id
-    self.gitlab_secret = gitlab_secret
+  def __init__(self, args):
+    self.args = args
+    self.domain = args.domain
+    self.gitlab_domain = args.gitlab_domain
+    self.gitlab_app_id = args.gitlab_app_id
+    self.gitlab_secret = args.gitlab_secret
 
-    self.suite_id = suite_id
-    self.suite_secret = suite_secret
-    self.suite_key = 'wechat-work-' + suite_id
+    self.suite_id = args.suite_id
+    self.suite_secret = args.suite_secret
+    self.suite_key = 'wechat-work-' + args.suite_id
+    self.crypt = self.init_crypt()
+
 
   def get(self, key):
     return redisClient.get_connection().hget(self.suite_key, key)
 
   def save(self, key, value):
     redisClient.get_connection().hmset(self.suite_key, {key: value})
+
+  def init_crypt(self):
+    return WXBizMsgCrypt(self.args.token, self.args.aeskey, {''}).add_receive(self.suite_id).add_receive(self.get_auth_crop_ids())
+
+  def get_crypt(self):
+    if self.crypt is None:
+      self.init_crypt()
+    return self.crypt
 
   def get_ticket(self):
     return self.get('suite_ticket')
@@ -74,3 +86,4 @@ class Suite:
       return
     auth_corp_ids = corp_id if auth_corp_ids is None else corp_id + ',' + auth_corp_ids
     self.save('auth_corp_ids', auth_corp_ids)
+    self.crypt = None

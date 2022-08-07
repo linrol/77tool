@@ -2,7 +2,7 @@ import time
 import json
 from log import logger
 
-from wxmessage import msg_params, go_oauth_msg
+from wxmessage import msg_params, go_oauth_text_msg
 from request import get, post, post_form
 from redisclient import redisClient
 
@@ -73,11 +73,14 @@ class Crop:
     return crop_access_token
 
   def send_text_msg(self, to_user, content):
-    self.send_message(to_user, 'text', content)
+    self.send_message(to_user, 'text', {"content": content})
+
+  def send_text_card_msg(self, to_user, content):
+    self.send_message(to_user, 'textcard', content)
 
   def send_markdown_msg(self, to_user, content):
     if content is not None:
-      self.send_message(to_user, 'markdown', content)
+      self.send_message(to_user, 'markdown', {"content": content})
 
   def save_gitlab_auth_info(self, user_auth_code, crop_user_key, user_key):
     params = {
@@ -101,7 +104,9 @@ class Crop:
       auth_url = "http://{}/oauth/authorize?client_id={}&response_type=code&redirect_uri={}".format(self.suite.gitlab_domain, self.suite.gitlab_app_id, redirect_uri)
       short_body = post("https://durl-openapi.{}/url".format(self.suite.domain), {"fullUrl": auth_url, "expirationTime": 0, "isFrozen": 0})
       short_url = "https://durl.{}/{}".format(self.suite.domain, short_body.get("data").get("shortKey"))
-      self.send_text_msg(user_key, go_oauth_msg.format(short_url, auth_url))
+      # go_oauth_msg['url'] = auth_url
+      # go_oauth_msg['description'] = go_oauth_msg.get('description').format(short_url)
+      self.send_text_msg(user_key, go_oauth_text_msg.format(short_url, short_url))
       raise Exception("需用户授权同意后操作")
     return json.loads(user_info).get("user_id", None)
 
@@ -109,7 +114,7 @@ class Crop:
     msg_params['touser'] = to_user
     msg_params["msgtype"] = msg_type
     msg_params["agentid"] = self.get_agent_id()
-    msg_params[msg_type] = {"content" : content}
+    msg_params[msg_type] = content
     url = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={}'
     body = post(url.format(self.get_corp_token()), msg_params)
     logger.info(body)

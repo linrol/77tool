@@ -1,23 +1,49 @@
+import json
+
 import redis
 class RedisClient(object):
     def __init__(self):
         self.pool = redis.ConnectionPool(host = "linrol.cn", port = 6379,
-                                         password = 'linrol_redis',db=0,
+                                         password = 'linrol_redis',db=1,
                                          decode_responses=True, max_connections=16)
+
+    def __del__(self):
+        """析构函数"""
+        # print("__del__")
+        self.get_connection().close()
+
     def get_connection(self):
         return redis.Redis(connection_pool = self.pool)
 
 redisClient = RedisClient()
 
+def duplicate_msg(msg):
+    msg_id = msg.get('MsgId')
+    if msg_id is None:
+        return False
+    connection = redisClient.get_connection()
+    is_accept = connection.hexists("crop-msg-log", msg_id)
+    if not is_accept:
+        connection.hmset("crop-msg-log", {msg_id: json.dumps(msg)})
+    return is_accept
+
+
 def add_mr(key, mr_id):
+    connection = redisClient.get_connection()
     mr_ids = get_mr_ids(key)
     if mr_ids is None:
-        redisClient.get_connection().hmset("q7link-mr-log", {key: mr_id})
+        connection.hmset("q7link-mr-log", {key: mr_id})
     else:
-        redisClient.get_connection().hmset("q7link-mr-log", {key: mr_ids + "," + mr_id})
+        connection.hmset("q7link-mr-log", {key: mr_ids + "," + mr_id})
 
 def get_mr_ids(key):
     return redisClient.get_connection().hget("q7link-mr-log", key)
 
 def delete_mr(key):
     redisClient.get_connection().hdel("q7link-mr-log", key)
+
+def get_user_id(chines_name):
+    if chines_name is None or chines_name == '':
+        return chines_name
+    user_id = redisClient.get_connection().hget("q7link-git-user", chines_name)
+    return chines_name if user_id is None else user_id

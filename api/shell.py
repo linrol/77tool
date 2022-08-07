@@ -3,13 +3,15 @@ import sys
 import subprocess
 import time
 
+from concurrent.futures import ThreadPoolExecutor
+
 from redisclient import add_mr, get_mr_ids, delete_mr
 from MethodUtil import add_method
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage/api")
 from branch import utils
-from dataPre import multi
-from dataPre import uiconfig
+
+executor = ThreadPoolExecutor()
 
 def chdir_branch():
     os.chdir("../branch/")
@@ -18,12 +20,17 @@ def chdir_data_pre():
     os.chdir("../dataPre/")
 
 class Shell(utils.ProjectInfo):
-    def __init__(self, user_id, project_name):
+    def __init__(self, user_id, lock, lock_value, source_branch=None, target_branch=None):
         chdir_branch()
         self.user_id = user_id
-        if project_name is not None:
-            self.project = utils.project_path().get(project_name)
-            add_method(self.project)
+        self.lock = lock
+        self.lock_value = lock_value
+        self.projects = utils.project_path()
+        self.source_branch = source_branch
+        self.target_branch = target_branch
+        self.init_data_project = self.project = self.projects.get('init-data')
+        add_method(self.init_data_project)
+        # self.rest_branch_env()
 
     # 获取目标分支+当前人是否还存在未合并的mr分支
     def get_open_mr_branch(self, mr_key, branch):
@@ -31,63 +38,96 @@ class Shell(utils.ProjectInfo):
         mr_ids = get_mr_ids(mr_key)
         if mr_ids is None:
             return None, temp_branch
-        mr_list = self.project.getProject().mergerequests.list(state='opened', iids=mr_ids.split(","))
+        mr_list = self.init_data_project.getProject().mergerequests.list(state='opened', iids=mr_ids.split(","))
         if mr_list is not None and len(mr_list) > 0:
             return mr_list[0], mr_list[0].source_branch
         delete_mr(mr_key)
         return None, temp_branch
 
     def create_mr(self, mr_key, opened_mr, temp_branch, branch, title, assignee):
-        cmd = 'cd {};git push origin {}'.format(self.project.getPath(), temp_branch)
+        cmd = 'cd {};git push origin {}'.format(self.init_data_project.getPath(), temp_branch)
         [ret, msg] = subprocess.getstatusoutput(cmd)
         if ret != 0:
             return False, msg
         if opened_mr is not None:
             return True, opened_mr.web_url
-        mr = self.project.createMrRequest(temp_branch, branch, title, assignee)
-        add_mr(mr_key, mr.web_url.rsplit("/",1)[1])
+        mr = self.init_data_project.createMrRequest(temp_branch, branch, title, assignee)
+        add_mr(mr_key, mr.web_url.rsplit("/", 1)[1])
         return True, mr.web_url
 
-    def exec_data_pre(self, data_type, env, tenant_id, branch, condition_value, mr_user):
-        mr_key = self.user_name + env + tenant_id + branch
-        opened_mr, temp_branch = self.get_open_mr_branch(mr_key, branch)
+    def exec_data_pre(self, data_type, env, tenant_id, condition_value, mr_user):
+        mr_key = self.user_id + env + tenant_id + self.target_branch
+        opened_mr, temp_branch = self.get_open_mr_branch(mr_key, self.target_branch)
         try:
             # 仅当不存在待合并的分支才创建远程分支
             if opened_mr is None:
-                self.project.createBranch(branch, temp_branch)
+                self.init_data_project.createBranch(self.target_branch, temp_branch)
             #删除本地分支
-            self.project.deleteLocalBranch(temp_branch)
+            self.init_data_project.deleteLocalBranch(temp_branch)
             #在本地将新分支拉取出来
-            self.project.checkout(temp_branch)
-            condition = "name = '{}'".format(condition_value)
+            self.init_data_project.checkout(temp_branch)
+            condition = "name='{}'".format(condition_value)
             chdir_data_pre()
             ret = None
+            msg = None
             if data_type == 'new':
-                ret = multi.pre_multi_list(env, tenant_id, temp_branch, self.user_name, condition)
+                cmd = 'cd ../dataPre;python3 multi.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, self.user_id, condition)
+                [ret, msg] = subprocess.getstatusoutput(cmd)
             if data_type == 'old':
-                ret = uiconfig.pre_form(env, tenant_id, temp_branch, self.user_name, condition)
+                cmd = 'cd ../dataPre;python3 uiconfig.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, self.user_id, condition)
+                [ret, msg] = subprocess.getstatusoutput(cmd)
             chdir_branch()
-            if not ret:
-                raise Exception("预制数据失败，请检查输出日志")
-            return self.create_mr(mr_key, opened_mr, temp_branch, branch, '<数据预置>前端多列表方案预置', mr_user)
+            if ret != 0:
+                raise Exception(msg + "\n预制失败，请检查输出日志")
+            mr_title = '<数据预置>前端多列表方案预置-{}'.format(self.user_id)
+            return self.create_mr(mr_key, opened_mr, temp_branch, self.target_branch, mr_title, mr_user)
         except Exception as err:
-            self.project.deleteRemoteBranch(temp_branch)
-            return False, err
+            self.init_data_project.deleteRemoteBranch(temp_branch)
+            return False, str(err)
         finally:
-            self.project.checkout('master')
-            self.project.deleteLocalBranch(temp_branch)
+            executor.submit(self.rest_branch_env, self.lock, self.lock_value)
+            self.init_data_project.deleteLocalBranch(temp_branch)
 
     # 创建分支
-    def create_branch(self, source, target, project_names):
-        cmd = 'cd ../branch;python3 createBranch.py {} {} {}'.format(source, target, " ".join(project_names))
-        [ret, msg] = subprocess.getstatusoutput(cmd)
-        self.checkout_branch('master')
-        return [ret == 0, msg]
-        # return "基于{}创建{}分支成功".format(source, target)
+    def create_branch(self, project_names):
+        try:
+            self.checkout_branch(self.target_branch)
+            cmd = 'cd ../branch;python3 createBranch.py {} {} {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
+            [ret, create_msg] = subprocess.getstatusoutput(cmd)
+            if ret != 0:
+                return False, create_msg
+            cmd = 'cd ../branch;python3 genVersion.py {} {} {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
+            [ret, gen_version_msg] = subprocess.getstatusoutput(cmd)
+            if ret != 0:
+                return False, gen_version_msg
+            cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
+            [ret, change_version_msg] = subprocess.getstatusoutput(cmd)
+            if ret != 0:
+                return False, change_version_msg
+            self.commit_and_push(self.target_branch)
+            return True, create_msg + "\n" + change_version_msg
+        except Exception as err:
+            return False, str(err)
+        finally:
+            executor.submit(self.rest_branch_env, self.lock, self.lock_value)
 
     # 切换所有模块的分支
     def checkout_branch(self, branch_name):
-        user_id = self.user_id
         cmd = 'cd ../branch;python3 checkout.py {}'.format(branch_name)
         return subprocess.getstatusoutput(cmd)
+
+    # 重值值班助手环境，切换到master分支，删除本地的target分支
+    def rest_branch_env(self, lock, lock_value):
+        self.checkout_branch('master')
+        for project in self.projects.values():
+            project.deleteLocalBranch(self.target_branch)
+        lock.del_lock("lock", lock_value)
+
+    def commit_and_push(self, branch):
+        for name, project in self.projects.items():
+            commit_title = "{}-task-0000-拉分支--{}({})".format(branch, name, self.user_id)
+            path = project.getPath()
+            cmd = 'cd ' + path + ";git add .;git commit -m " + commit_title
+            cmd += ";git push origin {}".format(branch)
+
 

@@ -1,10 +1,9 @@
-import time
-
 from wxcrop import Crop
 from wxmessage import menu_help, get_pre_map, get_branch_create_map
 from shell import Shell
 from redislock import RedisLock
-from redisclient import redisClient
+from redisclient import redisClient, duplicate_msg
+from log import logger
 
 class Handler:
     def __init__(self, crypt, suite, action, data):
@@ -14,6 +13,8 @@ class Handler:
         self.data = data
 
     def accept(self):
+        if duplicate_msg(self.data):
+            return "duplicate accept"
         if self.action == 'command':
             return self.accept_command()
         if self.action == 'data':
@@ -37,42 +38,42 @@ class Handler:
         user_key = self.data['FromUserName']
         crop = Crop(self.data['ToUserName'], self.suite)
         if msg_type == 'event':
-            user_id = crop.get_user_id(user_key)
             help_msg = menu_help.get(self.data.get('EventKey', None), None)
-            crop.send_markdown_msg(user_key, help_msg)
+            if help_msg is not None and crop.get_user_id(user_key):
+                crop.send_markdown_msg(user_key, help_msg)
         if msg_type == 'text':
-            lock = RedisLock(redisClient.get_connection())
-            lock_value = lock.get_lock("lock", 120)
+            if not ('新列表方案' in content or '老列表方案' in content or'拉分支' in content):
+                logger.info("ignore message:{}", self.data)
+                return "ignore message"
+            ret_msg = None
+            user_id = None
             try:
+                lock = RedisLock(redisClient.get_connection())
+                lock_value = lock.get_lock("lock", 300)
+                user_id = crop.get_user_id(user_key)
                 if '新列表方案' in content:
-                    self.exec_data_pre(crop, content.split('\n'), 'new')
+                    ret, ret_msg = self.exec_data_pre(user_id, content.split('\n'), 'new', lock, lock_value)
                 if '老列表方案' in content:
-                    self.exec_data_pre(crop, content.split('\n'), 'old')
+                    ret, ret_msg = self.exec_data_pre(user_id, content.split('\n'), 'old', lock, lock_value)
                 if '拉分支' in content:
-                    self.create_branch(crop, content.split('\n'))
+                    ret, ret_msg = self.create_branch(user_id, content.split('\n'), lock, lock_value)
+            except Exception as err:
+                ret_msg = str(err)
             finally:
-                lock.del_lock("lock", lock_value)
+                # lock.del_lock("lock", lock_value)
+                crop.send_text_msg(user_key, str(ret_msg))
+                logger.info("* {}_{} ret: {}".format(user_id, self.data.get('MsgId', ''), str(ret_msg)))
+
 
 
     # 执行脚本预制列表方案
-    def exec_data_pre(self, crop, params, data_type):
-        user_key = self.data['FromUserName']
-        user_id = crop.get_user_id(user_key)
-        shell = Shell(user_id, 'init-data')
-        try:
-            ret, msg = shell.exec_data_pre(data_type, *get_pre_map(params))
-            crop.send_text_msg(user_key, str(msg))
-        except Exception as err:
-            crop.send_text_msg(user_key, str(err))
+    def exec_data_pre(self, user_id, params, data_type, lock, lock_value):
+        pre_map = get_pre_map(params)
+        shell = Shell(user_id, lock, lock_value, target_branch=pre_map[3])
+        return shell.exec_data_pre(data_type, *pre_map)
 
     # 拉分支
-    def create_branch(self, crop, params):
-        user_key = self.data['FromUserName']
-        user_id = crop.get_user_id()
-        shell = Shell(user_id, None)
-        try:
-            ret, msg = shell.create_branch(*get_branch_create_map(params))
-            crop.send_text_msg(user_key, str(ret) + "\n" + str(msg))
-        except Exception as err:
-            crop.send_text_msg(user_key, "False\n" + str(err))
-        pass
+    def create_branch(self, user_id, params, lock, lock_value):
+        source, target, project_names = get_branch_create_map(params)
+        shell = Shell(user_id, lock, lock_value, source, target)
+        return shell.create_branch(project_names)

@@ -189,16 +189,9 @@ def pre_form(env, dbName, branch, commitUser, condition):
   print("条件: " + condition)
 
 if __name__ == "__main__":
-  # 获取预制环境
-  env = 'temp13'
-  dbName='tenant1'
-  branch ='feature-platform-q4'
-  condition ='content->>\'entityName\' in (\'InvCtrlLedger\')'
+  if len(sys.argv) != 6:
+    print("ERROR: 输入参数错误, 正确的参数为：<env> <tenantId> <branch> <commitUser> <condition>")
+    sys.exit(1)
+  else:
+    pre_form(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
 
-  # dbConfigs = utils.analysisYaml()
-  # pgConfig = dbConfigs.get(env,None)
-  # branch = 'dev'
-  # tenantId = pgConfig.get('tenantId', None)
-
-  commitUser = ''
-  pre_form(env, dbName, branch, commitUser, condition)

@@ -270,4 +270,8 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
 
 
 if __name__ == "__main__":
-  pre_multi_list('localhost', 'testapp', 'feature-platform-q4', 'ztb', 'name in (\'ProjectSchedule_list\', \'ProjectTask_mobile_list\',\'projectScheduleTemplate_list\')')
+  if len(sys.argv) != 6:
+    print("ERROR: 输入参数错误, 正确的参数为：<env> <tenantId> <branch> <commitUser> <condition>")
+    sys.exit(1)
+  else:
+    pre_multi_list(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
