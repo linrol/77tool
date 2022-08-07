@@ -105,7 +105,7 @@ class Shell(utils.ProjectInfo):
             if ret != 0:
                 return False, change_version_msg
             self.commit_and_push(self.target_branch)
-            return True, create_msg + "\n" + change_version_msg
+            return True, (create_msg + change_version_msg).replace("\n", "").replace("工程", "\n工程")
         except Exception as err:
             return False, str(err)
         finally:
@@ -124,10 +124,26 @@ class Shell(utils.ProjectInfo):
         lock.del_lock("lock", lock_value)
 
     def commit_and_push(self, branch):
+        protect_cmd = "cd ../branch;python3 protectBranch.py {} release".format(branch)
+        [ret, msg] = subprocess.getstatusoutput(protect_cmd)
+        if ret != 0:
+            raise Exception(msg)
+        push_cmd = ''
         for name, project in self.projects.items():
-            commit_title = "{}-task-0000-拉分支--{}({})".format(branch, name, self.user_id)
             path = project.getPath()
-            cmd = 'cd ' + path + ";git add .;git commit -m " + commit_title
-            cmd += ";git push origin {}".format(branch)
+            _, project_branch = subprocess.getstatusoutput('cd {};git branch --show-current'.format(path))
+            if project_branch != branch:
+                continue
+            _, project_commit = subprocess.getstatusoutput("cd {};git status -s".format(path))
+            if len(project_commit) < 1:
+                continue
+            commit_title = "{}-task-0000-拉分支--{}({})".format(branch, name, self.user_id)
+            push_cmd += ';cd ' + path + ';git add .;git commit -m "{}"'.format(commit_title)
+            push_cmd += ";git push origin {}".format(branch)
+        if len(push_cmd) < 1:
+            return
+        [ret, msg] = subprocess.getstatusoutput(push_cmd.replace(';', '', 1))
+        if ret != 0:
+            raise Exception(msg)
 
 

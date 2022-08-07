@@ -33,8 +33,15 @@ class GenVersion:
     for project_name in project_names:
       if project_name in project_convert:
         project_name = "framework"
+      target_project_version = target_branch_version.get(project_name)
+      if target_project_version is None:
+        # print("工程【】不存在".format(project_name))
+        # sys.exit(1)
+        continue
       # 过滤目标分支中已拉取过的工程
       if 'SNAPSHOT' in target_branch_version.get(project_name):
+        # print("工程【】已存在目标分支{}版本号已更新过".format(project_name, self.target_branch))
+        # sys.exit(1)
         continue
       result.add(project_name)
     return list(result), utils.project_path(set.union(result, {"build"}))
