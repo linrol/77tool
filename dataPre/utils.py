@@ -8,7 +8,7 @@ import gitlab
 from pathlib import Path
 
 URL='http://gitlab.q7link.com'
-TOKEN='khw5vE4nW48kibsY-CgM'
+TOKEN='xy1MZeykVxGQh7mvB4a3'
 
 
 # jsonFields = ['content']
