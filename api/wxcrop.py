@@ -117,4 +117,4 @@ class Crop:
     msg_params[msg_type] = content
     url = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={}'
     body = post(url.format(self.get_corp_token()), msg_params)
-    logger.info(body)
+    # logger.info(body)

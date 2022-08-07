@@ -125,9 +125,12 @@ class Shell(utils.ProjectInfo):
         lock.del_lock("lock", lock_value)
 
     def commit_and_push(self, branch):
+        logger.info("111")
         protect_cmd = "cd ../branch;python3 protectBranch.py {} release".format(branch)
+        logger.info("222")
         [ret, msg] = subprocess.getstatusoutput(protect_cmd)
         if ret != 0:
+            logger.info("333" + msg)
             raise Exception(msg)
         logger.info(msg)
         push_cmd = ''
