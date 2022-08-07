@@ -137,9 +137,11 @@ class Shell(utils.ProjectInfo):
         for name, project in self.projects.items():
             path = project.getPath()
             _, project_branch = subprocess.getstatusoutput('cd {};git branch --show-current'.format(path))
+            logger.info("444" + project_branch)
             if project_branch != branch:
                 continue
             _, project_commit = subprocess.getstatusoutput("cd {};git status -s".format(path))
+            logger.info("555" + project_commit)
             if len(project_commit) < 1:
                 continue
             commit_title = "{}-task-0000-拉分支--{}({})".format(branch, name, self.user_id)
