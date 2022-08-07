@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from redisclient import add_mr, get_mr_ids, delete_mr
 from MethodUtil import add_method
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
-sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage/api")
+sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 from branch import utils
 
 executor = ThreadPoolExecutor()
