@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from redisclient import add_mr, get_mr_ids, delete_mr
 from MethodUtil import add_method
+from log import logger
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 from branch import utils
@@ -128,6 +129,7 @@ class Shell(utils.ProjectInfo):
         [ret, msg] = subprocess.getstatusoutput(protect_cmd)
         if ret != 0:
             raise Exception(msg)
+        logger.info(msg)
         push_cmd = ''
         for name, project in self.projects.items():
             path = project.getPath()
@@ -143,6 +145,7 @@ class Shell(utils.ProjectInfo):
         if len(push_cmd) < 1:
             return
         [ret, msg] = subprocess.getstatusoutput(push_cmd.replace(';', '', 1))
+        logger.info(msg)
         if ret != 0:
             raise Exception(msg)
 
