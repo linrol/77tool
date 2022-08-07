@@ -125,23 +125,18 @@ class Shell(utils.ProjectInfo):
         lock.del_lock("lock", lock_value)
 
     def commit_and_push(self, branch):
-        logger.info("111")
         protect_cmd = "cd ../branch;python3 protectBranch.py {} release".format(branch)
-        logger.info("222")
         [ret, msg] = subprocess.getstatusoutput(protect_cmd)
         if ret != 0:
-            logger.info("333" + msg)
+            logger.info(msg)
             raise Exception(msg)
-        logger.info(msg)
         push_cmd = ''
         for name, project in self.projects.items():
             path = project.getPath()
             _, project_branch = subprocess.getstatusoutput('cd {};git branch --show-current'.format(path))
-            logger.info("444" + project_branch)
             if project_branch != branch:
                 continue
             _, project_commit = subprocess.getstatusoutput("cd {};git status -s".format(path))
-            logger.info("555" + project_commit)
             if len(project_commit) < 1:
                 continue
             commit_title = "{}-task-0000-拉分支--{}({})".format(branch, name, self.user_id)
@@ -150,8 +145,8 @@ class Shell(utils.ProjectInfo):
         if len(push_cmd) < 1:
             return
         [ret, msg] = subprocess.getstatusoutput(push_cmd.replace(';', '', 1))
-        logger.info(msg)
         if ret != 0:
+            logger.info(msg)
             raise Exception(msg)
 
 
