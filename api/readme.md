@@ -1,0 +1,1 @@
+python3 app.py -d="linrol.cn" -p=8075 -si="ww5e5ed9923186815b" -ss="_xHeEAD6qvJI7VGDUdJMLwJN2d-v2MsMq8pFD6PSTP4" -st="L2ARHwS" -sk="FA7um3dJATfpMG1sWcYqAw21kCvIvqZfP8KH5YMWaXG" -gd="gitlab.q7link.com" -gi="cdd8afbfd433d3b15a06f0b313fdf6060a5a04d63d9871ac0f366a3bffa44214" -gs="b6960421995e1272d286258a06df48021f0c37761907e59c62798a75d0631b11"
