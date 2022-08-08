@@ -4,7 +4,7 @@ import redis
 class RedisClient(object):
     def __init__(self):
         self.pool = redis.ConnectionPool(host = "linrol.cn", port = 6379,
-                                         password = 'linrol_redis',db=1,
+                                         password = 'linrol_redis',db=2,
                                          decode_responses=True, max_connections=16)
 
     def __del__(self):

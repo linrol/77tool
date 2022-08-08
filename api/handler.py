@@ -6,41 +6,27 @@ from redisclient import redisClient, duplicate_msg
 from log import logger
 
 class Handler:
-    def __init__(self, crypt, suite, action, data):
+    def __init__(self, crypt, crop, action, data):
         self.crypt = crypt
-        self.suite = suite
+        self.crop = crop
         self.action = action
         self.data = data
 
     def accept(self):
         if duplicate_msg(self.data):
             return "duplicate accept"
-        if self.action == 'command':
-            return self.accept_command()
         if self.action == 'data':
             return self.accept_data()
-
-    # 消费指令回调：获取第三方应用凭证；企业接入第三方应用授权
-    def accept_command(self):
-        info_type = self.data.get('InfoType', '')
-        if info_type == 'suite_ticket':
-            self.suite.save_ticket(self.data.get('SuiteTicket'))
-        if info_type == 'create_auth':
-            self.suite.save_auth_code(self.data.get('AuthCode'))
-            corp_id, agent_id, permanent_code = self.suite.init_auth_crop()
-            Crop(corp_id, self.suite).save_agent_id(agent_id).save_permanent_cod(permanent_code)
-        return True
 
     # 消费数据回调：拉分支、修改版本号、打tag、预制列表方案
     def accept_data(self):
         msg_type = self.data.get('MsgType')
         content = self.data.get('Content')
         user_key = self.data['FromUserName']
-        crop = Crop(self.data['ToUserName'], self.suite)
         if msg_type == 'event':
             help_msg = menu_help.get(self.data.get('EventKey', None), None)
-            if help_msg is not None and crop.get_user_id(user_key):
-                crop.send_markdown_msg(user_key, help_msg)
+            if help_msg is not None and self.crop.get_user_id(user_key):
+                self.crop.send_markdown_msg(user_key, help_msg)
         if msg_type == 'text':
             if not ('新列表方案' in content or '老列表方案' in content or'拉分支' in content):
                 logger.info("ignore message:{}", self.data)
@@ -50,7 +36,7 @@ class Handler:
             try:
                 lock = RedisLock(redisClient.get_connection())
                 lock_value = lock.get_lock("lock", 300)
-                user_id = crop.get_user_id(user_key)
+                user_id = self.crop.get_user_id(user_key)
                 if '新列表方案' in content:
                     ret, ret_msg = self.exec_data_pre(user_id, content.split('\n'), 'new', lock, lock_value)
                 if '老列表方案' in content:
@@ -61,7 +47,7 @@ class Handler:
                 ret_msg = str(err)
             finally:
                 # lock.del_lock("lock", lock_value)
-                crop.send_text_msg(user_key, str(ret_msg))
+                self.crop.send_text_msg(user_key, str(ret_msg))
                 logger.info("* {}_{} ret: {}".format(user_id, self.data.get('MsgId', ''), str(ret_msg)))
 
 

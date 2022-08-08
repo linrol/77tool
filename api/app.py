@@ -1,9 +1,7 @@
 import argparse
-from flask import Flask,request, make_response
+from flask import Flask, request, make_response
 from concurrent.futures import ThreadPoolExecutor
 
-
-from wxsuite import Suite
 from wxcrop import Crop
 from wxmessage import xml2map
 from handler import Handler
@@ -16,10 +14,10 @@ def parse_args():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--domain', '-d', type=str, help='your host')
     arg_parser.add_argument('--port', '-p', default=8075, type=int, help="port to build web server")
-    arg_parser.add_argument('--suite_id', '-si', type=str, help='your suite id')
-    arg_parser.add_argument('--suite_secret', '-ss', type=str, help='your Secret')
-    arg_parser.add_argument('--token', '-st', type=str, help='token set in suite app')
-    arg_parser.add_argument('--aeskey', '-sk', type=str, help='encoding aeskey')
+    arg_parser.add_argument('--crop_id', '-i', type=str, help='your crop id')
+    arg_parser.add_argument('--crop_secret', '-s', type=str, help='your crop Secret')
+    arg_parser.add_argument('--token', '-t', type=str, help='token set in crop app')
+    arg_parser.add_argument('--aeskey', '-k', type=str, help='encoding aeskey')
     arg_parser.add_argument('--gitlab_domain', '-gd', type=str, help='gitlab domain')
     arg_parser.add_argument('--gitlab_app_id', '-gi', type=str, help='gitlab appid')
     arg_parser.add_argument('--gitlab_secret', '-gs', type=str, help='gitlab secret')
@@ -27,17 +25,15 @@ def parse_args():
     return arg_parser.parse_args()
 args = parse_args()
 
-suite = Suite(args)
-crypt = suite.get_crypt()
+crop = Crop(args)
+crypt = crop.get_crypt()
+# crop.create_button()
 
 @app.route("/gitlab/oauth", methods=["GET", "POST"])
 def oauth():
-    crop_user_key = request.args.get('crop_user_key').split(">")
-    crop_id = crop_user_key[0]
-    user_key = crop_user_key[1]
+    user_key = request.args.get('user_key')
     auth_code = request.args.get('code')
-    crop = Crop(crop_id, suite)
-    return crop.save_gitlab_auth_info(auth_code, request.args.get('crop_user_key'), user_key)
+    return crop.save_gitlab_auth_info(auth_code, user_key)
 
 
 @app.route("/callback/<action>", methods=["GET"])
@@ -62,7 +58,7 @@ def recv(action: str):
     if ret != 0:
         return make_response({"errcode": ret}, 500)
 
-    handler = Handler(crypt, suite, action, xml2map(xml))
+    handler = Handler(crypt, crop, action, xml2map(xml))
     executor.submit(handler.accept)
     return make_response("success")
 
