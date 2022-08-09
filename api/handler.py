@@ -29,7 +29,7 @@ class Handler:
                 self.crop.send_markdown_msg(user_key, help_msg)
         if msg_type == 'text':
             if not ('新列表方案' in content or '老列表方案' in content or'拉分支' in content):
-                logger.info("ignore message:{}", self.data)
+                logger.info("ignore message:%s", self.data)
                 return "ignore message"
             ret_msg = None
             user_id = None
