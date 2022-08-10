@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 
-branch_weight = {"emergency": 1, "stage-patch": 1, "sprint": 5}
+branch_weight = {"emergency": 1, "stage-patch": 1, "sprint": 7}
 project_convert = ["app-build-plugins", "app-common", "baseapp-api", "common-base", "common-base-api", "graphql-api", "graphql-impl", "json-schema-plugin", "mbg-plugins", "metadata-api", "metadata-impl", "sql-parser"]
 branch_group = {}
 class GenVersion:
