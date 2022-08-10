@@ -61,11 +61,17 @@ class Handler:
         task_content = get_create_branch_task(self.event_task_id)
         if task_content is None:
             return "event task {} not found".format(self.event_task_id)
-        task_info = self.event_task_id.split("@")
         task_code = task_content.split("@")[0]
+        _operation = self.event_key.split("@")[0]
+        if _operation == 'deny':
+            # 拒绝任务
+            self.crop.disable_task_button(self.user_id, task_code, "已拒绝")
+            return "deny task[{}]".format(task_content)
+        # 同意任务
+        self.crop.disable_task_button(self.user_id, task_code, "已同意，任务运行中")
+        task_info = self.event_task_id.split("@")
         task_projects = task_content.split("@")[1].split(",")
-        self.create_branch(task_info[0], task_info[2], task_info[3], task_projects)
-        self.crop.disable_task_button(self.user_id, task_code)
+        return self.create_branch(task_info[0], task_info[2], task_info[3], task_projects)
 
     # 验证是否为监听的内容
     def is_listen_content(self):
