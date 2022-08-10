@@ -1,9 +1,8 @@
 import argparse
 from flask import Flask, request, make_response
 from concurrent.futures import ThreadPoolExecutor
-
+from log import logger
 from wxcrop import Crop
-from wxmessage import xml2map
 from handler import Handler
 
 executor = ThreadPoolExecutor()
@@ -48,18 +47,19 @@ def verify(action: str):
     else:
         return "error"
 
-@app.route("/callback/<action>",methods=["POST"])
-def recv(action: str):
+@app.route("/callback/data",methods=["POST"])
+def callback():
     msg_signature = request.args.get('msg_signature')
     timestamp = request.args.get('timestamp')
     nonce = request.args.get('nonce')
     body = request.data.decode('utf-8')
-    ret, xml = crypt.DecryptMsg(body, msg_signature, timestamp, nonce)
+    ret, raw_content = crypt.DecryptMsg(body, msg_signature, timestamp, nonce)
     if ret != 0:
+        logger.error("验证企业微信消息真实性失败")
         return make_response({"errcode": ret}, 500)
 
-    handler = Handler(crypt, crop, action, xml2map(xml))
-    executor.submit(handler.accept)
+    # 启用异步任务消费消息
+    executor.submit(Handler(crypt, crop, raw_content).accept)
     return make_response("success")
 
 if __name__ == "__main__":

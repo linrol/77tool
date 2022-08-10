@@ -20,31 +20,71 @@ menu_help = {
   "branch_create": ">**拉分支** " 
                    "\n>来源分支：<font color=\"comment\">输入基于哪个分支拉取，例：stage</font>" 
                    "\n>目标分支：<font color=\"comment\">输入拉取后的分支名称，例：feature-purchase-budget</font>" 
-                   "\n>模　　块：<font color=\"comment\">输入需要拉模块或工程，例：app-common,budget,project-api</font>" 
+                   "\n>工程模块：<font color=\"comment\">输入需要拉模块或工程，例：app-common,budget,project-api</font>" 
                    "\n>复制本模版，修改后回复我，成功预制后将会发送消息通知" 
                    "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
 }
 
-go_oauth_card_msg = {
-  "title": "授权认证通知",
-  "description": "首次使用，请先进行gitlab身份认证\n复制链接：{}在浏览器中打开",
-  "url": "{}",
-  "btntxt": "去认证"
-}
-
-go_oauth_text_msg = "首次使用，请先进行gitlab身份认证\n复制链接{}在浏览器中打开\n或点击<a href=\"{}\">去授权</a>"
-
-msg_params = {
+msg = {
   "touser": "",
   "msgtype": "",
   "agentid": ""
+}
+
+msg_content = {
+    "oauth_text_msg": "首次使用，请先进行gitlab身份认证\n复制链接{}在浏览器中打开\n或点击<a href=\"{}\">去授权</a>",
+    "create_branch_task": {
+        "card_type": "button_interaction",
+        "source": {
+            "desc": "值班助手",
+            "desc_color": 1
+        },
+        "main_title": {
+            "title": "值班助手-来自{}的拉分支请求"
+        },
+        "sub_title_text": "请确认以下信息，同意后自动拉取分支并修改版本号",
+        "horizontal_content_list": [
+            {
+                "type": 3,
+                "keyname": "发起人",
+                "value": "龚建平",
+                "userid": "LuoLin"
+            },
+            {
+                "keyname": "来源分支",
+                "value": "stage",
+            },
+            {
+                "keyname": "目标分支",
+                "value": "sprint20220818"
+            },
+            {
+                "keyname": "工程模块",
+                "value": "project，budget，app-common"
+            }
+        ],
+        "task_id": "",
+        "button_list": [
+            {
+                "text": "同意",
+                "style": 2,
+                "key": "agree@"
+            },
+            {
+                "text": "拒绝",
+                "style": 3,
+                "key": "deny@"
+            }
+        ]
+    },
+    "create_branch_task_response": "本次拉取分支的任务已发送到值班人：{}，请等待值班审批同意后将开始执行"
 }
 
 import unicodedata as ucd
 from xml.etree.ElementTree import fromstring
 from redisclient import get_user_id
 
-def xml2map(raw_xml):
+def xml2dirt(raw_xml):
     data = {}
     for node in list(fromstring(raw_xml.decode('utf-8'))):
         data[node.tag] = node.text
@@ -73,17 +113,41 @@ def get_map(lines):
         map[k] = v
     return map
 
-def get_pre_map(lines):
-    pre_data_map = get_map(lines)
+def get_pre_dirt(msg_content):
+    pre_data_map = get_map(msg_content.split('\n'))
     require_keys = {"环境", "租户", "分支", "列表组", "合并人"}.difference(pre_data_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     tenant_id = "tenant" + pre_data_map.get('租户')
     return pre_data_map.get('环境'), tenant_id, pre_data_map.get('分支'), pre_data_map.get('列表组'), pre_data_map.get("合并人")
 
-def get_branch_create_map(lines):
-    branch_create_map = get_map(lines)
-    require_keys = {"来源分支", "目标分支", "模块"}.difference(branch_create_map.keys())
+def get_branch_create_dirt(msg_content):
+    branch_create_map = get_map(msg_content.split('\n'))
+    require_keys = {"来源分支", "目标分支", "工程模块"}.difference(branch_create_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
-    return branch_create_map.get('来源分支'), branch_create_map.get('目标分支'), branch_create_map.get('模块').split(",")
+    return branch_create_map.get('来源分支'), branch_create_map.get('目标分支'), branch_create_map.get('工程模块').split(",")
+
+def build_create_branch_task_msg(apply_user_id, apply_user_name, task_id, source, target, projects):
+    task_info_list = [{
+        "type": 3,
+        "keyname": "申请人",
+        "value": apply_user_name,
+        "userid": apply_user_id
+    }, {
+        "keyname": "来源分支",
+        "value": source,
+    }, {
+        "keyname": "目标分支",
+        "value": target,
+    }, {
+        "keyname": "工程模块",
+        "value": "，".join(projects),
+    }]
+    msg_content["create_branch_task"]["main_title"]["title"] = "值班助手-来自{}的拉分支请求".format(apply_user_name)
+    msg_content["create_branch_task"]["horizontal_content_list"] = task_info_list
+    msg_content["create_branch_task"]["task_id"] = task_id
+    msg_content["create_branch_task"]["button_list"][0]["key"] = "agree@" + task_id
+    msg_content["create_branch_task"]["button_list"][1]["key"] = "deny@" + task_id
+    return msg_content["create_branch_task"]
+

@@ -8,6 +8,8 @@ from concurrent.futures import ThreadPoolExecutor
 from redisclient import add_mr, get_mr_ids, delete_mr
 from MethodUtil import add_method
 from log import logger
+from redisclient import redisClient
+from redislock import RedisLock
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 from branch import utils
@@ -21,16 +23,16 @@ def chdir_data_pre():
     os.chdir("../dataPre/")
 
 class Shell(utils.ProjectInfo):
-    def __init__(self, user_id, lock, lock_value, source_branch=None, target_branch=None):
+    def __init__(self, user_id, source_branch=None, target_branch=None):
         chdir_branch()
         self.user_id = user_id
-        self.lock = lock
-        self.lock_value = lock_value
         self.projects = utils.project_path()
         self.source_branch = source_branch
         self.target_branch = target_branch
         self.init_data_project = self.project = self.projects.get('init-data')
         add_method(self.init_data_project)
+        self.lock = RedisLock(redisClient.get_connection())
+        self.lock_value = None
         # self.rest_branch_env()
 
     # 获取目标分支+当前人是否还存在未合并的mr分支
@@ -57,9 +59,10 @@ class Shell(utils.ProjectInfo):
         return True, mr.web_url
 
     def exec_data_pre(self, data_type, env, tenant_id, condition_value, mr_user):
-        mr_key = self.user_id + env + tenant_id + self.target_branch
-        opened_mr, temp_branch = self.get_open_mr_branch(mr_key, self.target_branch)
         try:
+            self.lock_value = self.lock.get_lock("lock", 300)
+            mr_key = self.user_id + env + tenant_id + self.target_branch
+            opened_mr, temp_branch = self.get_open_mr_branch(mr_key, self.target_branch)
             # 仅当不存在待合并的分支才创建远程分支
             if opened_mr is None:
                 self.init_data_project.createBranch(self.target_branch, temp_branch)
@@ -86,13 +89,16 @@ class Shell(utils.ProjectInfo):
             self.init_data_project.deleteRemoteBranch(temp_branch)
             return False, str(err)
         finally:
-            executor.submit(self.rest_branch_env, self.lock, self.lock_value)
             self.init_data_project.deleteLocalBranch(temp_branch)
+            executor.submit(self.rest_branch_env)
 
     # 创建分支
     def create_branch(self, project_names):
         try:
-            self.checkout_branch(self.target_branch)
+            self.lock_value = self.lock.get_lock("lock", 300)
+            [ret, checkout_msg] = self.checkout_branch(self.source_branch)
+            if ret != 0:
+                return False, checkout_msg
             cmd = 'cd ../branch;python3 createBranch.py {} {} {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
             [ret, create_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
@@ -110,7 +116,7 @@ class Shell(utils.ProjectInfo):
         except Exception as err:
             return False, str(err)
         finally:
-            executor.submit(self.rest_branch_env, self.lock, self.lock_value)
+            executor.submit(self.rest_branch_env)
 
     # 切换所有模块的分支
     def checkout_branch(self, branch_name):
@@ -118,11 +124,12 @@ class Shell(utils.ProjectInfo):
         return subprocess.getstatusoutput(cmd)
 
     # 重值值班助手环境，切换到master分支，删除本地的target分支
-    def rest_branch_env(self, lock, lock_value):
+    def rest_branch_env(self):
         self.checkout_branch('master')
         for project in self.projects.values():
             project.deleteLocalBranch(self.target_branch)
-        lock.del_lock("lock", lock_value)
+        if self.lock_value is not None:
+           self.lock.del_lock("lock", self.lock_value)
 
     def commit_and_push(self, branch):
         protect_cmd = "cd ../branch;python3 protectBranch.py {} release".format(branch)

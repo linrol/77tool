@@ -47,3 +47,9 @@ def get_user_id(chines_name):
         return chines_name
     user_id = redisClient.get_connection().hget("q7link-git-user", chines_name)
     return chines_name if user_id is None else user_id
+
+def save_create_branch_task(key, value):
+    redisClient.get_connection().hmset("q7link-user-task", {key: value})
+
+def get_create_branch_task(key):
+    return redisClient.get_connection().hget("q7link-user-task", key)

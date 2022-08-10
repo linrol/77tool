@@ -3,7 +3,7 @@ import json
 from request import get, post, post_form
 from redisclient import redisClient
 from wxcrypt import WXBizMsgCrypt
-from wxmessage import msg_params, go_oauth_text_msg
+from wxmessage import msg, msg_content
 from log import logger
 
 class Crop:
@@ -84,34 +84,52 @@ class Crop:
     logger.info(body)
 
   def send_message(self, to_user, msg_type, content):
-    msg_params['touser'] = to_user
-    msg_params["msgtype"] = msg_type
-    msg_params["agentid"] = self.get_agent_id()
-    msg_params[msg_type] = content
+    msg['touser'] = to_user
+    msg["msgtype"] = msg_type
+    msg["agentid"] = self.get_agent_id()
+    msg[msg_type] = content
     url = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={}'
-    body = post(url.format(self.get_access_token()), msg_params)
+    return post(url.format(self.get_access_token()), msg)
     # logger.info(body)
 
+  def send_template_card(self, to_user, content):
+    return self.send_message(to_user, 'template_card', content)
+
   def send_text_msg(self, to_user, content):
-    self.send_message(to_user, 'text', {"content": content})
+    return self.send_message(to_user, 'text', {"content": content})
 
   def send_text_card_msg(self, to_user, content):
-    self.send_message(to_user, 'textcard', content)
+    return self.send_message(to_user, 'textcard', content)
 
   def send_markdown_msg(self, to_user, content):
-    if content is not None:
-      self.send_message(to_user, 'markdown', {"content": content})
+    return self.send_message(to_user, 'markdown', {"content": content})
 
-  def get_user_id(self, user_key):
+  def get_duty_info(self, role):
+    # body = get("http://10.0.144.53:5000/api/verify/duty/users")
+    # duty_info = list(filter(lambda m: m.get("duty_order") == "1", body.get("data").get(role)))[0]
+    # return duty_info.get("user_id"), duty_info.get("user_name")
+    return "LuoLin", "罗林"
+
+  def get_gitlab_user_id(self, user_key):
     user_info = self.get("{}-q7link-gitlab".format(user_key))
     if user_info is None:
       redirect_uri = "https://branch.{}/gitlab/oauth?user_key={}".format(self.domain, user_key)
       auth_url = "http://{}/oauth/authorize?client_id={}&response_type=code&redirect_uri={}".format(self.gitlab_domain, self.gitlab_app_id, redirect_uri)
       short_body = post("https://durl-openapi.{}/url".format(self.domain), {"fullUrl": auth_url, "expirationTime": 0, "isFrozen": 0})
       short_url = "https://durl.{}/{}".format(self.domain, short_body.get("data").get("shortKey"))
-      self.send_text_msg(user_key, go_oauth_text_msg.format(short_url, short_url))
+      self.send_text_msg(user_key, msg_content.get("oauth_text_msg").format(short_url, short_url))
       raise Exception("需用户授权同意后操作")
     return json.loads(user_info).get("user_id", None)
+
+  def get_user_name(self, user_id):
+    user_name = self.get("{}-userinfo".format(user_id))
+    if user_name is not None:
+      return user_name
+    url = "https://qyapi.weixin.qq.com/cgi-bin/user/get?access_token={}&userid={}"
+    body = get(url.format(self.get_access_token(), user_id))
+    self.save("{}-userinfo".format(user_id), body.get("name"))
+    return body.get("name")
+
 
   def save_gitlab_auth_info(self, user_auth_code, user_key):
     params = {
@@ -127,3 +145,16 @@ class Crop:
     auth_user = get("http://{}/api/v4/user?access_token={}".format(self.gitlab_domain, git_access_token))
     self.save("{}-q7link-gitlab".format(user_key), json.dumps({"user_id": auth_user.get("username"), "git_refresh_token": git_refresh_token}))
     return "授权成功，请关闭本页面回到企业微信继续操作"
+
+  def disable_task_button(self, user_id, task_code):
+    params = {
+      "userids": [user_id],
+      "agentid": self.get_agent_id(),
+      "response_code": task_code,
+      "button": {
+        "replace_name": "已同意"
+      }
+    }
+    url = "https://qyapi.weixin.qq.com/cgi-bin/message/update_template_card?access_token={}"
+    return post(url.format(self.get_access_token()), params)
+

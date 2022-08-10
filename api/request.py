@@ -11,7 +11,7 @@ def get(url):
     return body
 
 def post(url, params):
-    response = requests.post(url, json.dumps(params))
+    response = requests.post(url, json.dumps(params, ensure_ascii=False).encode('utf-8'))
     body = json.loads(response.text)
     if body.get('errcode', '0') != 0 and 'errmsg' in body:
         logger.error(body.get('errmsg'))
