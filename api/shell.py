@@ -59,10 +59,10 @@ class Shell(utils.ProjectInfo):
         return True, mr.web_url
 
     def exec_data_pre(self, data_type, env, tenant_id, condition_value, mr_user):
+        mr_key = self.user_id + env + tenant_id + self.target_branch
+        opened_mr, temp_branch = self.get_open_mr_branch(mr_key, self.target_branch)
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
-            mr_key = self.user_id + env + tenant_id + self.target_branch
-            opened_mr, temp_branch = self.get_open_mr_branch(mr_key, self.target_branch)
             # 仅当不存在待合并的分支才创建远程分支
             if opened_mr is None:
                 self.init_data_project.createBranch(self.target_branch, temp_branch)
