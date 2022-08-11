@@ -1,9 +1,8 @@
-import time
-
-from wxmessage import menu_help, get_pre_dirt, get_branch_create_dirt, xml2dirt, build_create_branch_task_msg, msg_content
 from shell import Shell
-from redisclient import duplicate_msg, save_create_branch_task, get_create_branch_task
+from task import Task
 from log import logger
+from wxmessage import menu_help, get_pre_dirt, get_branch_create_dirt, xml2dirt
+from redisclient import duplicate_msg, get_create_branch_task
 
 require_git_oauth_event = ["data_pre_new", "data_pre_old"]
 
@@ -36,8 +35,7 @@ class Handler:
             accept_ret = self.accept_event_task()
         else:
             accept_ret = self.accept_data()
-        logger.info("* {}_{} accept ret: {}".format(self.user_id,
-                                                    self.msg_id,
+        logger.info("* {}_{} accept ret: {}".format(self.user_id, self.msg_id,
                                                     accept_ret))
         return accept_ret
 
@@ -56,6 +54,7 @@ class Handler:
         #     return "need to gitlab authorization"
         self.crop.send_markdown_msg(self.user_id, help_msg)
         return help_msg
+
     # 消费事件任务类消息
     def accept_event_task(self):
         task_content = get_create_branch_task(self.event_task_id)
@@ -71,7 +70,8 @@ class Handler:
         self.crop.disable_task_button(self.user_id, task_code, "已同意，任务运行中")
         task_info = self.event_task_id.split("@")
         task_projects = task_content.split("@")[1].split(",")
-        return self.create_branch(task_info[0], task_info[2], task_info[3], task_projects)
+        return self.create_branch(task_info[0], task_info[2], task_info[3],
+                                  task_projects)
 
     # 验证是否为监听的内容
     def is_listen_content(self):
@@ -112,21 +112,9 @@ class Handler:
 
     # 创建拉分支的任务
     def create_branch_task(self):
-        _dirt = get_branch_create_dirt(self.msg_content)
-        duty_user_id, duty_user_name = self.crop.get_duty_info("backend")
-        task_id = "{}@{}@{}@{}@{}".format(self.user_id, duty_user_id, _dirt[0], _dirt[1], int(time.time()))
-        apply_user_id = self.user_id
-        apply_user_name = self.crop.get_user_name(apply_user_id)
-        task_msg_4duty_user = build_create_branch_task_msg(apply_user_id, apply_user_name, task_id, *_dirt)
-        # 发送值班审核通知
-        body = self.crop.send_template_card(duty_user_id, task_msg_4duty_user)
-        # 发送申请人的回执通知
-        task_msg_4_apply_user = msg_content.get("create_branch_task_response").format(duty_user_name)
-        self.crop.send_text_msg(self.user_id, str(task_msg_4_apply_user))
-        create_branch_code = "{}@{}".format(body.get("response_code"), ",".join(_dirt[2]))
-        save_create_branch_task(task_id, create_branch_code)
-        return "create branch task success"
-
-
-
-
+        req_user = (self.user_id, self.crop.get_user_name(self.user_id))
+        duty_user = self.crop.get_duty_info("backend")
+        req_task_info = get_branch_create_dirt(self.msg_content)
+        return Task(self.crop).build_create_branch_task(*req_task_info,
+                                                        req_user,
+                                                        duty_user)

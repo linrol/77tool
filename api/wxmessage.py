@@ -128,12 +128,12 @@ def get_branch_create_dirt(msg_content):
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     return branch_create_map.get('来源分支'), branch_create_map.get('目标分支'), branch_create_map.get('工程模块').split(",")
 
-def build_create_branch_task_msg(apply_user_id, apply_user_name, task_id, source, target, projects):
+def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, projects):
     task_info_list = [{
         "type": 3,
         "keyname": "申请人",
-        "value": apply_user_name,
-        "userid": apply_user_id
+        "value": req_user_name,
+        "userid": req_user_id
     }, {
         "keyname": "来源分支",
         "value": source,
@@ -144,10 +144,10 @@ def build_create_branch_task_msg(apply_user_id, apply_user_name, task_id, source
         "keyname": "工程模块",
         "value": "，".join(projects),
     }]
-    msg_content["create_branch_task"]["main_title"]["title"] = "值班助手-来自{}的拉分支请求".format(apply_user_name)
+    msg_content["create_branch_task"]["main_title"]["title"] = "值班助手-来自{}的拉分支请求".format(req_user_name)
     msg_content["create_branch_task"]["horizontal_content_list"] = task_info_list
     msg_content["create_branch_task"]["task_id"] = task_id
     msg_content["create_branch_task"]["button_list"][0]["key"] = "agree@" + task_id
     msg_content["create_branch_task"]["button_list"][1]["key"] = "deny@" + task_id
-    return msg_content["create_branch_task"]
+    return msg_content["create_branch_task"], str(msg_content["create_branch_task_response"].format(duty_user_name))
 

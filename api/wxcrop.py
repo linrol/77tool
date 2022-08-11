@@ -9,6 +9,7 @@ from log import logger
 class Crop:
   def __init__(self, args):
     self.args = args
+    self.isdev = args.env != 'prod'
     self.domain = args.domain
     self.gitlab_domain = args.gitlab_domain
     self.gitlab_app_id = args.gitlab_app_id
@@ -30,7 +31,7 @@ class Crop:
     return self.get("agent_id")
 
   def init_crypt(self):
-    return WXBizMsgCrypt(self.args.token, self.args.aeskey, {self.crop_id})
+    return WXBizMsgCrypt(self.args.token, self.args.aes_key, {self.crop_id})
 
   def get_crypt(self):
     if self.crypt is None:
@@ -105,10 +106,12 @@ class Crop:
     return self.send_message(to_user, 'markdown', {"content": content})
 
   def get_duty_info(self, role):
-    body = get("http://10.0.144.51:5000/api/verify/duty/users")
-    duty_info = list(filter(lambda m: m.get("duty_order") == "1", body.get("data").get(role)))[0]
-    return duty_info.get("user_id"), duty_info.get("user_name")
-    # return "LuoLin", "罗林"
+    if self.isdev:
+      return "LuoLin", "罗林"
+    else:
+      body = get("http://10.0.144.51:5000/api/verify/duty/users")
+      duty_info = list(filter(lambda m: m.get("duty_order") == "1", body.get("data").get(role)))[0]
+      return duty_info.get("user_id"), duty_info.get("user_name")
 
   def get_gitlab_user_id(self, user_key):
     user_info = self.get("{}-q7link-gitlab".format(user_key))

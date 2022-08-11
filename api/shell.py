@@ -43,7 +43,7 @@ class Shell(utils.ProjectInfo):
             return None, temp_branch
         mr_list = self.init_data_project.getProject().mergerequests.list(state='opened', iids=mr_ids.split(","))
         if mr_list is not None and len(mr_list) > 0:
-            return mr_list[0], mr_list[0].source_branch
+            return mr_list[0], mr_list[0].source
         delete_mr(mr_key)
         return None, temp_branch
 
@@ -146,7 +146,7 @@ class Shell(utils.ProjectInfo):
             _, project_commit = subprocess.getstatusoutput("cd {};git status -s".format(path))
             if len(project_commit) < 1:
                 continue
-            commit_title = "{}-task-0000-拉分支--{}({})".format(branch, name, self.user_id)
+            commit_title = "{}-task-0000-修改版本号--{}({})".format(branch, name, self.user_id)
             push_cmd += ';cd ' + path + ';git add .;git commit -m "{}"'.format(commit_title)
             push_cmd += ";git push origin {}".format(branch)
         if len(push_cmd) < 1:
@@ -155,5 +155,11 @@ class Shell(utils.ProjectInfo):
         if ret != 0:
             logger.info(msg)
             raise Exception(msg)
+        protect_cmd = "cd ../../branch-manage/branch;python3 protectBranch.py {} hotfix".format(branch)
+        [ret, msg] = subprocess.getstatusoutput(protect_cmd)
+        if ret != 0:
+            logger.info(msg)
+            raise Exception(msg)
+
 
 
