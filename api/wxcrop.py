@@ -105,7 +105,7 @@ class Crop:
     return self.send_message(to_user, 'markdown', {"content": content})
 
   def get_duty_info(self, role):
-    body = get("http://10.0.144.53:5000/api/verify/duty/users?date=2022-08-16")
+    body = get("http://10.0.144.51:5000/api/verify/duty/users?date=2022-08-16")
     duty_info = list(filter(lambda m: m.get("duty_order") == "1", body.get("data").get(role)))[0]
     return duty_info.get("user_id"), duty_info.get("user_name")
     # return "LuoLin", "罗林"
