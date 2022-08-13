@@ -118,3 +118,4 @@ class Handler:
         ret = Task().build_create_branch_task(self.crop.send_template_card,
                                               *req_user + duty_user + task_info)
         self.crop.send_text_msg(self.user_id, ret)
+        return "create branch task success"
