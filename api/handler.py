@@ -1,7 +1,7 @@
 from shell import Shell
 from task import Task
 from log import logger
-from wxmessage import menu_help, get_pre_dirt, get_branch_create_dirt, xml2dirt
+from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, xml2dirt
 from redisclient import duplicate_msg, get_create_branch_task
 
 require_git_oauth_event = ["data_pre_new", "data_pre_old"]
@@ -114,8 +114,9 @@ class Handler:
     def create_branch_task(self):
         req_user = (self.user_id, self.user_name)
         duty_user = self.crop.get_duty_info("backend")
-        task_info = get_branch_create_dirt(self.msg_content)
+        task_info = req_user + duty_user + get_branch_dirt(self.msg_content)
         ret = Task().build_create_branch_task(self.crop.send_template_card,
-                                              *req_user + duty_user + task_info)
+                                              *task_info)
         self.crop.send_text_msg(self.user_id, ret)
-        return "create branch task success"
+        return "create project[{}] branch[{}] task success".format(
+            task_info[-1], task_info[-2])

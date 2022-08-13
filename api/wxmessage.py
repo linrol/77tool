@@ -121,12 +121,12 @@ def get_pre_dirt(msg_content):
     tenant_id = "tenant" + pre_data_map.get('租户')
     return pre_data_map.get('环境'), tenant_id, pre_data_map.get('分支'), pre_data_map.get('列表组'), pre_data_map.get("合并人")
 
-def get_branch_create_dirt(msg_content):
-    branch_create_map = get_map(msg_content.split('\n'))
-    require_keys = {"来源分支", "目标分支", "工程模块"}.difference(branch_create_map.keys())
+def get_branch_dirt(msg_content):
+    branch_map = get_map(msg_content.split('\n'))
+    require_keys = {"来源分支", "目标分支", "工程模块"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
-    return branch_create_map.get('来源分支'), branch_create_map.get('目标分支'), branch_create_map.get('工程模块').split(",")
+    return branch_map.get('来源分支'), branch_map.get('目标分支'), branch_map.get('工程模块')
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
     task_info_list = [{
