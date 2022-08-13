@@ -19,7 +19,7 @@ menu_help = {
                   "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
   "branch_create": ">**拉分支** " 
                    "\n>来源分支：<font color=\"comment\">输入基于哪个分支拉取，例：stage</font>" 
-                   "\n>目标分支：<font color=\"comment\">输入拉取后的分支名称，例：feature-purchase-budget</font>" 
+                   "\n>目标分支：<font color=\"comment\">输入拉取后的分支名称，例：sprint20220818</font>" 
                    "\n>工程模块：<font color=\"comment\">输入需要拉模块或工程，例：app-common,budget,project-api</font>" 
                    "\n>复制本模版，修改后回复我，成功预制后将会发送消息通知" 
                    "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
@@ -128,7 +128,7 @@ def get_branch_create_dirt(msg_content):
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     return branch_create_map.get('来源分支'), branch_create_map.get('目标分支'), branch_create_map.get('工程模块').split(",")
 
-def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, projects):
+def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
     task_info_list = [{
         "type": 3,
         "keyname": "申请人",
@@ -142,7 +142,7 @@ def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id
         "value": target,
     }, {
         "keyname": "工程模块",
-        "value": "，".join(projects),
+        "value": project_names,
     }]
     msg_content["create_branch_task"]["main_title"]["title"] = "值班助手-来自{}的拉分支请求".format(req_user_name)
     msg_content["create_branch_task"]["horizontal_content_list"] = task_info_list

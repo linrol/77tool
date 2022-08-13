@@ -105,6 +105,7 @@ class Crop:
   def send_markdown_msg(self, to_user, content):
     return self.send_message(to_user, 'markdown', {"content": content})
 
+
   def get_duty_info(self, role):
     if self.isdev:
       return "LuoLin", "罗林"

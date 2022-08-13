@@ -17,6 +17,7 @@ class Handler:
         self.msg_content = self.data.get('Content')
         # 可能时密文或者明文
         self.user_id = self.data['FromUserName']
+        self.user_name = self.crop.get_user_name(self.user_id)
         self.git_user_id = None
         # 消息类型
         self.msg_type = self.data.get('MsgType', '')
@@ -35,7 +36,7 @@ class Handler:
             accept_ret = self.accept_event_task()
         else:
             accept_ret = self.accept_data()
-        logger.info("* {}_{} accept ret: {}".format(self.user_id, self.msg_id,
+        logger.info("* {}_{} accept ret: {}".format(self.user_name, self.msg_id,
                                                     accept_ret))
         return accept_ret
 
@@ -69,9 +70,8 @@ class Handler:
         # 同意任务
         self.crop.disable_task_button(self.user_id, task_code, "已同意，任务运行中")
         task_info = self.event_task_id.split("@")
-        task_projects = task_content.split("@")[1].split(",")
         return self.create_branch(task_info[0], task_info[2], task_info[3],
-                                  task_projects)
+                                  task_content.split("@")[1].split(","))
 
     # 验证是否为监听的内容
     def is_listen_content(self):
@@ -112,9 +112,9 @@ class Handler:
 
     # 创建拉分支的任务
     def create_branch_task(self):
-        req_user = (self.user_id, self.crop.get_user_name(self.user_id))
+        req_user = (self.user_id, self.user_name)
         duty_user = self.crop.get_duty_info("backend")
-        req_task_info = get_branch_create_dirt(self.msg_content)
-        return Task(self.crop).build_create_branch_task(*req_task_info,
-                                                        req_user,
-                                                        duty_user)
+        task_info = get_branch_create_dirt(self.msg_content)
+        ret = Task().build_create_branch_task(self.crop.send_template_card,
+                                              *req_user + duty_user + task_info)
+        self.crop.send_text_msg(self.user_id, ret)
