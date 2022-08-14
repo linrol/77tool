@@ -24,6 +24,7 @@ class Handler:
         self.is_text_msg = self.msg_type == 'text'
         self.event_key = self.data.get('EventKey', '')
         self.event_task_id = self.data.get('TaskId', None)
+        self.event_task_code = self.data.get('ResponseCode', None)
         self.is_event_task = self.event_task_id is not None
         self.is_event_msg = self.msg_type == 'event' and not self.is_event_task
 
@@ -65,13 +66,17 @@ class Handler:
         _operation = self.event_key.split("@")[0]
         if _operation == 'deny':
             # 拒绝任务
-            self.crop.disable_task_button(self.user_id, task_code, "已拒绝")
+            self.crop.disable_task_button(self.user_id, self.event_task_code,
+                                          "已拒绝")
             return "deny task[{}]".format(task_content)
         # 同意任务
-        self.crop.disable_task_button(self.user_id, task_code, "已同意，任务运行中")
+        self.crop.disable_task_button(self.user_id, self.event_task_code,
+                                      "任务执行中...")
         task_info = self.event_task_id.split("@")
-        return self.create_branch(task_info[0], task_info[2], task_info[3],
-                                  task_content.split("@")[1].split(","))
+        ret_msg = self.create_branch(task_info[0], task_info[2], task_info[3],
+                                    task_content.split("@")[1].split(","))
+        self.crop.disable_task_button(self.user_id, task_code, "任务执行完成")
+        return ret_msg
 
     # 验证是否为监听的内容
     def is_listen_content(self):

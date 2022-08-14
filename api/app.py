@@ -47,7 +47,7 @@ def oauth():
 
 
 @app.route("/callback/<action>", methods=["GET"])
-def verify():
+def verify(action: str):
     msg_signature = request.args.get('msg_signature')
     timestamp = request.args.get('timestamp')
     nonce = request.args.get('nonce')

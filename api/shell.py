@@ -29,8 +29,10 @@ class Shell(utils.ProjectInfo):
         self.projects = utils.project_path()
         self.source_branch = source_branch
         self.target_branch = target_branch
-        self.init_data_project = self.project = self.projects.get('init-data')
-        add_method(self.init_data_project)
+        self.project_init_data = self.project = self.projects.get('init-data')
+        self.project_build = self.projects.get('build')
+        self.init_target_branch = self.project_build.getBranch(target_branch) is None
+        add_method(self.project_init_data)
         self.lock = RedisLock(redisClient.get_connection())
         self.lock_value = None
         # self.rest_branch_env()
@@ -41,20 +43,20 @@ class Shell(utils.ProjectInfo):
         mr_ids = get_mr_ids(mr_key)
         if mr_ids is None:
             return None, temp_branch
-        mr_list = self.init_data_project.getProject().mergerequests.list(state='opened', iids=mr_ids.split(","))
+        mr_list = self.project_init_data.getProject().mergerequests.list(state='opened', iids=mr_ids.split(","))
         if mr_list is not None and len(mr_list) > 0:
             return mr_list[0], mr_list[0].source
         delete_mr(mr_key)
         return None, temp_branch
 
     def create_mr(self, mr_key, opened_mr, temp_branch, branch, title, assignee):
-        cmd = 'cd {};git push origin {}'.format(self.init_data_project.getPath(), temp_branch)
+        cmd = 'cd {};git push origin {}'.format(self.project_init_data.getPath(), temp_branch)
         [ret, msg] = subprocess.getstatusoutput(cmd)
         if ret != 0:
             return False, msg
         if opened_mr is not None:
             return True, opened_mr.web_url
-        mr = self.init_data_project.createMrRequest(temp_branch, branch, title, assignee)
+        mr = self.project_init_data.createMrRequest(temp_branch, branch, title, assignee)
         add_mr(mr_key, mr.web_url.rsplit("/", 1)[1])
         return True, mr.web_url
 
@@ -65,11 +67,11 @@ class Shell(utils.ProjectInfo):
             self.lock_value = self.lock.get_lock("lock", 300)
             # 仅当不存在待合并的分支才创建远程分支
             if opened_mr is None:
-                self.init_data_project.createBranch(self.target_branch, temp_branch)
+                self.project_init_data.createBranch(self.target_branch, temp_branch)
             #删除本地分支
-            self.init_data_project.deleteLocalBranch(temp_branch)
+            self.project_init_data.deleteLocalBranch(temp_branch)
             #在本地将新分支拉取出来
-            self.init_data_project.checkout(temp_branch)
+            self.project_init_data.checkout(temp_branch)
             condition = "name='{}'".format(condition_value)
             chdir_data_pre()
             ret = None
@@ -86,10 +88,10 @@ class Shell(utils.ProjectInfo):
             mr_title = '<数据预置>前端多列表方案预置-{}'.format(self.user_id)
             return self.create_mr(mr_key, opened_mr, temp_branch, self.target_branch, mr_title, mr_user)
         except Exception as err:
-            self.init_data_project.deleteRemoteBranch(temp_branch)
+            self.project_init_data.deleteRemoteBranch(temp_branch)
             return False, str(err)
         finally:
-            self.init_data_project.deleteLocalBranch(temp_branch)
+            self.project_init_data.deleteLocalBranch(temp_branch)
             executor.submit(self.rest_branch_env)
 
     # 创建分支
@@ -108,6 +110,8 @@ class Shell(utils.ProjectInfo):
             if ret != 0:
                 return False, gen_version_msg
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
+            if self.init_target_branch:
+                cmd += " true"
             [ret, change_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, change_version_msg
