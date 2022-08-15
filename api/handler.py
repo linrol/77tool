@@ -91,7 +91,9 @@ class Handler:
         elif not self.is_listen_content():
             return "the msg_content [{}] not listening".format(self.msg_content)
         elif '列表方案' in self.msg_content:
-            self.git_user_id = self.crop.get_user_id(self.user_id)
+            if not self.require_git_auth():
+                return "need to gitlab authorization"
+            self.git_user_id = self.crop.get_gitlab_user_id(self.user_id)
             pre_type = "new" if "新" in self.msg_content else "old"
             return self.data_pre(pre_type)
         elif '拉分支' in self.msg_content:
