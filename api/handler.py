@@ -18,7 +18,6 @@ class Handler:
         # 可能时密文或者明文
         self.user_id = self.data['FromUserName']
         self.user_name = self.crop.get_user_name(self.user_id)
-        self.git_user_id = None
         # 消息类型
         self.msg_type = self.data.get('MsgType', '')
         self.is_text_msg = self.msg_type == 'text'
@@ -91,9 +90,6 @@ class Handler:
         elif not self.is_listen_content():
             return "the msg_content [{}] not listening".format(self.msg_content)
         elif '列表方案' in self.msg_content:
-            if not self.require_git_auth():
-                return "need to gitlab authorization"
-            self.git_user_id = self.crop.get_gitlab_user_id(self.user_id)
             pre_type = "new" if "新" in self.msg_content else "old"
             return self.data_pre(pre_type)
         elif '拉分支' in self.msg_content:
@@ -102,7 +98,7 @@ class Handler:
     # 执行脚本预制列表方案
     def data_pre(self, pre_type):
         data_pre_dirt = get_pre_dirt(self.msg_content)
-        shell = Shell(self.git_user_id, data_pre_dirt[3])
+        shell = Shell(self.user_id, data_pre_dirt[3])
         ret, result = shell.exec_data_pre(pre_type, *data_pre_dirt)
         # 发送消息通知
         self.crop.send_text_msg(self.user_id, str(result))
