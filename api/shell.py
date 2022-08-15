@@ -45,7 +45,7 @@ class Shell(utils.ProjectInfo):
             return None, temp_branch
         mr_list = self.project_init_data.getProject().mergerequests.list(state='opened', iids=mr_ids.split(","))
         if mr_list is not None and len(mr_list) > 0:
-            return mr_list[0], mr_list[0].source
+            return mr_list[0], mr_list[0].source_branch
         delete_mr(mr_key)
         return None, temp_branch
 
