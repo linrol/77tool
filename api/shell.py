@@ -60,7 +60,7 @@ class Shell(utils.ProjectInfo):
         add_mr(mr_key, mr.web_url.rsplit("/", 1)[1])
         return True, mr.web_url
 
-    def exec_data_pre(self, data_type, env, tenant_id, condition_value, mr_user):
+    def exec_data_pre(self, data_type, env, tenant_id, target_branch, condition_value, mr_user):
         mr_key = self.user_id + env + tenant_id + self.target_branch
         opened_mr, temp_branch = self.get_open_mr_branch(mr_key, self.target_branch)
         try:
@@ -72,15 +72,14 @@ class Shell(utils.ProjectInfo):
             self.project_init_data.deleteLocalBranch(temp_branch)
             #在本地将新分支拉取出来
             self.project_init_data.checkout(temp_branch)
-            condition = "name='{}'".format(condition_value)
             chdir_data_pre()
             ret = None
             msg = None
             if data_type == 'new':
-                cmd = 'cd ../dataPre;python3 multi.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, self.user_id, condition)
+                cmd = 'cd ../dataPre;python3 multi.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, self.user_id, condition_value)
                 [ret, msg] = subprocess.getstatusoutput(cmd)
             if data_type == 'old':
-                cmd = 'cd ../dataPre;python3 uiconfig.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, self.user_id, condition)
+                cmd = 'cd ../dataPre;python3 uiconfig.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, self.user_id, condition_value)
                 [ret, msg] = subprocess.getstatusoutput(cmd)
             chdir_branch()
             if ret != 0:
