@@ -3,8 +3,8 @@ menu_help = {
                   "\n>环　境：<font color=\"comment\">输入预制数据来源环境，例：temp1</font>" 
                   "\n>租　户：<font color=\"comment\">输入预制数据来源租户，例：47L0LP505840001</font>" 
                   "\n>分　支：<font color=\"comment\">输入预制的代码分支，例：feature-purchase-budget</font>" 
-                  "\n>列表组：<font color=\"comment\">输入列表方案组名称，例：Budget_Plan_Change_list</font>" 
-                  "\n>合并人：<font color=\"comment\">输入分支有权限合并者人姓名（空时无需MR，直接提交）</font>" 
+                  "\n>列表组：<font color=\"comment\">输入列表方案组名称，例：Budget_Plan_Change_list,ProjectList</font>" 
+                  "\n>合并人：<font color=\"comment\">输入分支有权限合并者人姓名</font>" 
                   "\n>" 
                   "\n>复制以上模版，修改后回复我，成功预制后将会发送消息通知" 
                   "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
@@ -13,7 +13,7 @@ menu_help = {
                   "\n>租　户：<font color=\"comment\">输入预制数据来源租户，例：47L0LP505840001</font>" 
                   "\n>分　支：<font color=\"comment\">输入预制的代码分支，例：feature-purchase-budget</font>" 
                   "\n>列表组：<font color=\"comment\">输入列表方案组名称，例：Budget_Plan_Change_list</font>" 
-                  "\n>合并人：<font color=\"comment\">输入分支有权限合并者人姓名（空时无需MR，直接提交）</font>" 
+                  "\n>合并人：<font color=\"comment\">输入分支有权限合并者人姓名</font>" 
                   "\n>" 
                   "\n>复制本模版，修改后回复我，成功后将会发送消息通知" 
                   "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
