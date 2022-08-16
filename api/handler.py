@@ -72,7 +72,7 @@ class Handler:
         self.crop.disable_task_button(self.user_id, self.event_task_code,
                                       "任务执行中...")
         task_info = self.event_task_id.split("@")
-        ret_msg = self.create_branch(task_info[0], task_info[2], task_info[3],
+        ret_msg = self.create_branch(task_info[0], task_info[1], task_info[2],
                                     task_content.split("@")[1].split(","))
         self.crop.disable_task_button(self.user_id, task_code, "任务执行完成")
         return ret_msg

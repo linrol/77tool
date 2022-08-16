@@ -52,8 +52,8 @@ class Task:
         try:
             _, _, need_projects = self.check_create_branch(source, target,
                                                            project_names)
-            task_id = "{}@{}@{}@{}@{}".format(req_user_id, duty_user_id, source,
-                                              target, int(time.time()))
+            task_id = "{}@{}@{}@{}".format(req_user_id, source, target,
+                                           int(time.time()))
             notify_duty, notify_req = build_create_branch__msg(req_user_id,
                                                                req_user_name,
                                                                duty_user_name,
