@@ -111,8 +111,13 @@ class Crop:
       return "LuoLin", "罗林"
     else:
       body = get("http://10.0.144.51:5000/api/verify/duty/users")
-      duty_info = list(filter(lambda m: m.get("duty_order") == "1", body.get("data").get(role)))[0]
-      return duty_info.get("user_id"), duty_info.get("user_name")
+      role_duty_info = body.get("data").get(role)
+      duty_user_ids = []
+      duty_user_names = []
+      for duty in role_duty_info:
+        duty_user_ids.append(duty.get("user_id"))
+        duty_user_names.append(duty.get("user_name"))
+      return "|".join(duty_user_ids), ",".join(duty_user_names)
 
   def get_gitlab_user_id(self, user_key):
     user_info = self.get("{}-q7link-gitlab".format(user_key))
