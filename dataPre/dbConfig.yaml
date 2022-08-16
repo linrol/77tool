@@ -342,7 +342,7 @@ temp22:
     reset: X0S2JU50K7W0007
 
 temp29:
-  host: postgres.nx-temp29-k8s.e7link.com
+  host: postgres.nx-temp29.e7link.com
   port: 5432
   user: postgres
   pwd: stet44{czars
