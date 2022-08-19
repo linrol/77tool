@@ -252,6 +252,7 @@ CREATE TABLE "baseapp_query_item_schema"
     "is_deleted" BOOLEAN DEFAULT false NOT NULL,
     "data_version" BIGINT DEFAULT 0 NOT NULL,
     "last_request_id" VARCHAR(128) DEFAULT '',
+    "parent_name" VARCHAR(128) DEFAULT '',
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
     "customized_fields" JSONB,
