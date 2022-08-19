@@ -107,7 +107,10 @@ class GenVersion:
     source_min_version = self.source_version.get(project_name)
     target_project_version = self.target_version.get(project_name)
     if source_min_version is None:
-      raise Exception("项目【{}】获取基础分支【{}】版本号失败".format(project_name, self.source))
+      raise Exception("工程【{}】获取来源分支【{}】版本号失败".format(project_name, self.source))
+    if "SNAPSHOT" in target_project_version:
+      raise Exception("工程【{}】目标分支【{}】已为快照版本【】".format(project_name, self.target, target_project_version))
+
 
     # 当目标分支是stage-patch开头，版本号=(branch_weight * day) + emergency.inc_version
     # 不存在emergency分支 or 不存在emergency分支的工程
@@ -115,8 +118,8 @@ class GenVersion:
       inc_min_version += emer_version.get(project_name)
     else:
       inc_min_version += source_min_version
-    replace_version = str(inc_min_version) + '-SNAPSHOT'
-    return replace_version.join(target_project_version.rsplit(str(source_min_version), 1))
+    replace_version = "." + str(inc_min_version) + '-SNAPSHOT'
+    return target_project_version.rsplit(".", 1)[0] + replace_version
 
   def execute(self):
     emergency_branch_version = None
