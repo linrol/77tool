@@ -10,6 +10,7 @@ from MethodUtil import add_method
 from log import logger
 from redisclient import redisClient
 from redislock import RedisLock
+from request import post_form
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 from branch import utils
@@ -115,6 +116,11 @@ class Shell(utils.ProjectInfo):
             if ret != 0:
                 return False, change_version_msg
             self.commit_and_push(self.target_branch)
+            try:
+                params = {"branch": self.target_branch, "byCaller": "值班助手"}
+                post_form("http://ops.q7link.com:8000/qqdeploy/projectbuild/", params)
+            except Exception as e:
+                logger.error(e)
             return True, (create_msg + change_version_msg).replace("\n", "").replace("工程", "\n工程")
         except Exception as err:
             return False, str(err)
