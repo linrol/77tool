@@ -12,8 +12,9 @@ from branch import utils
 
 
 class Task:
-    def __init__(self):
+    def __init__(self, is_test=False):
         os.chdir("../branch/")
+        self.is_test = is_test
         self.projects = utils.project_path()
 
     def get_project(self, project_name):
@@ -64,7 +65,7 @@ class Task:
             body = send_template_card(duty_user_id, notify_duty)
             # 记录任务
             task_code = body.get("response_code")
-            task_content = "{}@{}".format(task_code, need_projects)
+            task_content = "{}@{}@{}".format(task_code, need_projects, str(self.is_test))
             save_create_branch_task(task_id, task_content)
             return notify_req
         except Exception as err:

@@ -24,9 +24,10 @@ def chdir_data_pre():
     os.chdir("../dataPre/")
 
 class Shell(utils.ProjectInfo):
-    def __init__(self, user_id, source_branch=None, target_branch=None):
+    def __init__(self, user_id, is_test=False, source_branch=None, target_branch=None):
         chdir_branch()
         self.user_id = user_id
+        self.is_test = is_test
         self.projects = utils.project_path()
         self.source_branch = source_branch
         self.target_branch = target_branch
@@ -117,8 +118,9 @@ class Shell(utils.ProjectInfo):
                 return False, change_version_msg
             self.commit_and_push(self.target_branch)
             try:
-                params = {"branch": self.target_branch, "byCaller": "值班助手"}
-                post_form("http://ops.q7link.com:8000/qqdeploy/projectbuild/", params)
+                if not self.is_test:
+                    params = {"branch": self.target_branch, "byCaller": "值班助手"}
+                    post_form("http://ops.q7link.com:8000/qqdeploy/projectbuild/", params)
             except Exception as e:
                 logger.error(e)
             return True, (create_msg + change_version_msg).replace("\n", "").replace("工程", "\n工程")

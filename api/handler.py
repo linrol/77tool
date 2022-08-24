@@ -72,6 +72,7 @@ class Handler:
         # 同意任务
         self.crop.disable_task_button(self.user_id, self.event_task_code,
                                       "任务执行中...")
+        self.is_test = task_content.split("@")[2] == "True"
         task_info = self.event_task_id.split("@")
         ret_msg = self.create_branch(task_info[0], task_info[1], task_info[2],
                                     task_content.split("@")[1].split(","))
@@ -107,7 +108,7 @@ class Handler:
 
     # 拉分支
     def create_branch(self, apply_user_id, source, target, projects):
-        shell = Shell(apply_user_id, source, target)
+        shell = Shell(apply_user_id, self.is_test, source, target)
         ret, result = shell.create_branch(projects)
         # 发送消息通知
         self.crop.send_text_msg(apply_user_id, str(result))
@@ -119,7 +120,7 @@ class Handler:
         req_user = (self.user_id, self.user_name)
         duty_user = self.crop.get_duty_info("backend", self.is_test)
         task_info = req_user + duty_user + get_branch_dirt(self.msg_content)
-        ret = Task().build_create_branch_task(self.crop.send_template_card,
+        ret = Task(self.is_test).build_create_branch_task(self.crop.send_template_card,
                                               *task_info)
         self.crop.send_text_msg(self.user_id, ret)
         return "create project[{}] branch[{}] task success".format(
