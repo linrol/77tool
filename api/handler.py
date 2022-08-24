@@ -14,7 +14,8 @@ class Handler:
         self.data = xml2dirt(raw_content)
         # 消息内容
         self.msg_id = self.data.get('MsgId', '')
-        self.msg_content = self.data.get('Content')
+        self.msg_content = self.data.get('Content', '')
+        self.is_test = 'isTest=true' in self.msg_content
         # 可能时密文或者明文
         self.user_id = self.data['FromUserName']
         self.user_name = self.crop.get_user_name(self.user_id)
@@ -116,7 +117,7 @@ class Handler:
     # 创建拉分支的任务
     def create_branch_task(self):
         req_user = (self.user_id, self.user_name)
-        duty_user = self.crop.get_duty_info("backend")
+        duty_user = self.crop.get_duty_info("backend", self.is_test)
         task_info = req_user + duty_user + get_branch_dirt(self.msg_content)
         ret = Task().build_create_branch_task(self.crop.send_template_card,
                                               *task_info)

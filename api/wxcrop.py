@@ -106,8 +106,8 @@ class Crop:
     return self.send_message(to_user, 'markdown', {"content": content})
 
 
-  def get_duty_info(self, role):
-    if self.isdev:
+  def get_duty_info(self, role, is_test):
+    if self.isdev or is_test:
       return "LuoLin", "罗林"
     else:
       body = get("http://10.0.144.51:5000/api/verify/duty/users")
