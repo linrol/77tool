@@ -3,8 +3,6 @@ import sys
 import re
 import time
 from datetime import datetime
-import yaml
-
 from wxmessage import build_create_branch__msg
 from redisclient import save_create_branch_task
 
@@ -18,14 +16,11 @@ class Task:
         os.chdir("../branch/")
         self.is_test = is_test
         self.projects = utils.project_path()
-        self.project_build = self.get_project('build')
 
     def get_project(self, project_name):
         if project_name not in self.projects.keys():
             raise Exception("ERROR: 工程【{}】不存在".format(project_name))
         return self.projects.get(project_name)
-
-
 
     def check_create_branch(self, source_branch, target_branch, project_names):
         if source_branch not in ['stage', 'master']:
@@ -75,50 +70,3 @@ class Task:
             return notify_req
         except Exception as err:
             return str(err)
-
-    def compare_version(self, left_branch, right_branch):
-        ret = {}
-        left_version = self.get_branch_version(left_branch)
-        right_version = self.get_branch_version(right_branch)
-        for k, v in right_version.items():
-            if "SNAPSHOT" not in v:
-                continue
-            if k == "reimburse":
-                continue
-            left_version = left_version.get(k)
-            if left_version is None:
-                continue
-            if "SNAPSHOT" in left_version:
-                continue
-            left_version_base = left_version.rsplit(".", 1)[0]
-            left_version_min = left_version.rsplit(".", 1)[1]
-            right_version = v.replace("-SNAPSHOT", "")
-            right_version_base = right_version.rsplit(".", 1)[0]
-            right_version_min = right_version.rsplit(".", 1)[1]
-            if left_version_base != right_version_base:
-                continue
-            if int(right_version_min) - int(left_version_min) < 3:
-                ret[k] = "({},{})".format(left_version, v)
-        return ret
-
-
-    # 获取指定分支的版本号
-    def get_branch_version(self, branch):
-        config_yaml = self.get_project_build_config(branch)
-        version = {}
-        for group, item in config_yaml.items():
-            if type(item) is not dict:
-                continue
-            for k, v in item.items():
-                version[k] = v
-        if len(version) < 1:
-            raise Exception("根据分支【{}】获取工程版本号失败".format(branch))
-        return version
-
-    # 根据工程名称获取指定分支的远程文件
-    def get_project_build_config(self, branch_name):
-        file = self.project_build.getProject().files.get(file_path='config.yaml', ref=branch_name)
-        if file is None:
-            raise Exception("工程【build】分支【{}】不存在文件【config.yaml】".format(branch_name))
-        config_yaml = yaml.load(file.decode(), Loader=yaml.FullLoader)
-        return config_yaml

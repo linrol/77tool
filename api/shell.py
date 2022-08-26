@@ -96,7 +96,7 @@ class Shell(utils.ProjectInfo):
             executor.submit(self.rest_branch_env)
 
     # 创建分支
-    def create_branch(self, update_project_names, project_names):
+    def create_branch(self, project_names):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             [ret, checkout_msg] = self.checkout_branch(self.source_branch)
@@ -106,10 +106,6 @@ class Shell(utils.ProjectInfo):
             [ret, create_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, create_msg
-            cmd = 'cd ../branch;python3 genVersion.py {} {} {}'.format(self.source_branch, self.target_branch + ".force", " ".join(update_project_names))
-            [ret, update_version_msg] = subprocess.getstatusoutput(cmd)
-            if ret != 0:
-                return False, update_version_msg
             cmd = 'cd ../branch;python3 genVersion.py {} {} {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
             [ret, gen_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:

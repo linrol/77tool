@@ -77,44 +77,6 @@ msg_content = {
             }
         ]
     },
-    "change_branch_version": {
-        "card_type": "button_interaction",
-        "source": {
-            "desc": "值班助手",
-            "desc_color": 1
-        },
-        "main_title": {
-            "title": "值班助手-版本号矫正任务"
-        },
-        "sub_title_text": "监控到以下目标分支版本号异常(小于基准分支版本号)，同意后将自动矫正版本号",
-        "horizontal_content_list": [
-            {
-                "keyname": "基准分支",
-                "value": "stage",
-            },
-            {
-                "keyname": "目标分支",
-                "value": "sprint20220818"
-            },
-            {
-                "keyname": "监控信息",
-                "value": "project，budget，app-common"
-            }
-        ],
-        "task_id": "",
-        "button_list": [
-            {
-                "text": "同意",
-                "style": 2,
-                "key": "agree@"
-            },
-            {
-                "text": "拒绝",
-                "style": 3,
-                "key": "deny@"
-            }
-        ]
-    },
     "create_branch_task_response": "本次拉取分支的任务已发送到值班人：{}，请等待值班审批同意后将开始执行"
 }
 
@@ -189,19 +151,3 @@ def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id
     msg_content["create_branch_task"]["button_list"][1]["key"] = "deny@" + task_id
     return msg_content["create_branch_task"], str(msg_content["create_branch_task_response"].format(duty_user_name))
 
-def build_change_branch_version_msg(task_id, source, target, project_info):
-    task_info_list = [{
-        "keyname": "基准分支",
-        "value": source,
-    }, {
-        "keyname": "目标分支",
-        "value": target,
-    }, {
-        "keyname": "监控信息",
-        "value": project_info,
-    }]
-    msg_content["change_branch_version"]["horizontal_content_list"] = task_info_list
-    msg_content["change_branch_version"]["task_id"] = task_id
-    msg_content["change_branch_version"]["button_list"][0]["key"] = "agree@" + task_id
-    msg_content["change_branch_version"]["button_list"][1]["key"] = "deny@" + task_id
-    return msg_content["change_branch_version"]

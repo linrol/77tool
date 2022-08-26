@@ -39,14 +39,11 @@ crypt = crop.get_crypt()
 # crop.create_button()
 
 
-@app.route("/gitlab/hook", methods=["GET", "POST"])
+@app.route("/gitlab/oauth", methods=["GET", "POST"])
 def oauth():
-    body = request.data.decode('utf-8')
-    duty_user_id, _ = crop.get_duty_info("backend", True)
-
-    # Task().build_change_version_task("stage", duty_user_id,
-    #                                  crop.send_template_card)
-    return "success"
+    user_key = request.args.get('user_key')
+    auth_code = request.args.get('code')
+    return crop.save_gitlab_auth_info(auth_code, user_key)
 
 
 @app.route("/callback/<action>", methods=["GET"])
