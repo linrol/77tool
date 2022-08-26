@@ -109,6 +109,7 @@ class Handler:
     # 拉分支
     def create_branch(self, apply_user_id, source, target, projects):
         update_projects = Task(self.is_test).compare_version(source, target).keys()
+
         shell = Shell(apply_user_id, self.is_test, source, target)
         ret, result = shell.create_branch(update_projects, projects)
         # 发送消息通知

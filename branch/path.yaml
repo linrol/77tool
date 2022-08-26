@@ -33,8 +33,8 @@ apps:
   procdesign-api: ../../apps/procdesign-api
   project: ../../apps/project
   project-api: ../../apps/project-api
-#  projectcost: ../../apps/projectcost
-#  projectcost-api: ../../apps/projectcost-api
+  projectcost: ../../apps/projectcost
+  projectcost-api: ../../apps/projectcost-api
   purchase: ../../apps/purchase
   purchase-api: ../../apps/purchase-api
   reimbursement: ../../apps/reimbursement

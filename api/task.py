@@ -78,6 +78,8 @@ class Task:
 
     def compare_version(self, left_branch, right_branch):
         ret = {}
+        if self.project_build.getBranch(right_branch) is None:
+            return ret
         left_version = self.get_branch_version(left_branch)
         right_version = self.get_branch_version(right_branch)
         for k, v in right_version.items():
@@ -85,20 +87,20 @@ class Task:
                 continue
             if k == "reimburse":
                 continue
-            left_version = left_version.get(k)
-            if left_version is None:
+            left = left_version.get(k)
+            if left is None:
                 continue
-            if "SNAPSHOT" in left_version:
+            if "SNAPSHOT" in left:
                 continue
-            left_version_base = left_version.rsplit(".", 1)[0]
-            left_version_min = left_version.rsplit(".", 1)[1]
-            right_version = v.replace("-SNAPSHOT", "")
-            right_version_base = right_version.rsplit(".", 1)[0]
-            right_version_min = right_version.rsplit(".", 1)[1]
-            if left_version_base != right_version_base:
+            left_base = left.rsplit(".", 1)[0]
+            left_min = left.rsplit(".", 1)[1]
+            right = v.replace("-SNAPSHOT", "")
+            right_base = right.rsplit(".", 1)[0]
+            right_min = right.rsplit(".", 1)[1]
+            if left_base != right_base:
                 continue
-            if int(right_version_min) - int(left_version_min) < 3:
-                ret[k] = "({},{})".format(left_version, v)
+            if int(right_min) - int(left_min) < 3:
+                ret[k] = "({},{})".format(left, v)
         return ret
 
 
