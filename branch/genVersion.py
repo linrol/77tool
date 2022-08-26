@@ -17,9 +17,10 @@ branch_weight = {"emergency": 1, "stage-patch": 1, "sprint": 7}
 project_convert = ["app-build-plugins", "app-common", "baseapp-api", "common-base", "common-base-api", "graphql-api", "graphql-impl", "json-schema-plugin", "mbg-plugins", "metadata-api", "metadata-impl", "sql-parser"]
 branch_group = {}
 class GenVersion:
-  def __init__(self, source, target, project_names):
+  def __init__(self, source, target, force, project_names):
     self.source = source
     self.target = target
+    self.force = force
     self.project_names, self.projects = self.pre_process(project_names)
     self.project_build = self.projects.get('build')
 
@@ -108,9 +109,10 @@ class GenVersion:
     target_project_version = self.target_version.get(project_name)
     if source_min_version is None:
       raise Exception("工程【{}】获取来源分支【{}】版本号失败".format(project_name, self.source))
-    if "SNAPSHOT" in target_project_version:
+    if "SNAPSHOT" in target_project_version and not self.force:
       print("工程【{}】目标分支【{}】已为快照版本【{}】".format(project_name, self.target, target_project_version))
       return None
+    target_project_version = target_project_version.replace("-SNAPSHOT", "")
 
 
     # 当目标分支是stage-patch开头，版本号=(branch_weight * day) + emergency.inc_version
@@ -142,8 +144,13 @@ class GenVersion:
 #例：修改hotfix分支的版本号，并且修改工程自身版本号，清空开发脚本
 #python3 changeVersion.py hotfix true
 if __name__ == "__main__":
-  if len(sys.argv) < 4:
+  if len(sys.argv) < 3:
     print("ERROR: 输入参数错误, 正确的参数为：<source_branch> <target_branch> [project...]")
     sys.exit(1)
+  elif len(sys.argv) < 4:
+    print("ERROR: 输入参数错误, 正确的参数为：<source_branch> <target_branch> [project...]")
   else:
-    GenVersion(sys.argv[1], sys.argv[2], sys.argv[3:]).execute()
+    source_branch = sys.argv[1]
+    force = ".force" in sys.argv[2]
+    target_branch = sys.argv[2].replace(".force", "")
+    GenVersion(source_branch, target_branch, force, sys.argv[3:]).execute()
