@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 
-branch_weight = {"emergency": 1, "stage-patch": 1, "sprint": 7}
+branch_weight = {"emergency": 1, "stage-patch": 1, "sprint": 5}
 project_convert = ["app-build-plugins", "app-common", "baseapp-api",
                    "common-base", "common-base-api", "graphql-api",
                    "graphql-impl", "json-schema-plugin", "mbg-plugins",
@@ -109,8 +109,8 @@ class GenVersion:
         week_start_year = week_start.year
         week_end_num = int(datetime.strftime(week_end, "%W"))
         week_start_num = int(datetime.strftime(week_start, "%W"))
-        return (
-                   week_end_year - week_start_year) * year_week_num + week_end_num - week_start_num
+        week_sub = week_end_num - week_start_num + 1
+        return (week_end_year - week_start_year) * year_week_num + week_sub
 
     def get_emergency_branch(self):
         try:
