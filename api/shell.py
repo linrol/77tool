@@ -133,6 +133,33 @@ class Shell(utils.ProjectInfo):
         finally:
             executor.submit(self.rest_branch_env)
 
+    def build_package(self):
+        try:
+            self.lock_value = self.lock.get_lock("lock", 300)
+            [ret, checkout_msg] = self.checkout_branch(self.target_branch)
+            if ret != 0:
+                return False, checkout_msg
+            cmd = 'cd ../branch;python3 releaseVersion.py {} {}'.format(self.source_branch, self.target_branch)
+            [ret, release_version_msg] = subprocess.getstatusoutput(cmd)
+            if ret != 0:
+                return False, release_version_msg
+            cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
+            [ret, change_version_msg] = subprocess.getstatusoutput(cmd)
+            if ret != 0:
+                return False, change_version_msg
+            self.commit_and_push(self.target_branch)
+            try:
+                if not self.is_test:
+                    params = {"branch": self.target_branch, "byCaller": "值班助手"}
+                    post_form("http://ops.q7link.com:8000/qqdeploy/projectbuild/", params)
+            except Exception as e:
+                logger.error(e)
+            return True, change_version_msg.replace("\n", "").replace("工程", "\n工程")
+        except Exception as err:
+            return False, str(err)
+        finally:
+            executor.submit(self.rest_branch_env)
+
     # 切换所有模块的分支
     def checkout_branch(self, branch_name):
         cmd = 'cd ../branch;python3 checkout.py {}'.format(branch_name)

@@ -1,7 +1,7 @@
 from shell import Shell
 from task import Task
 from log import logger
-from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, xml2dirt
+from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_build_dirt, xml2dirt
 from redisclient import duplicate_msg, get_create_branch_task
 
 require_git_oauth_event = ["data_pre_new", "data_pre_old"]
@@ -96,6 +96,8 @@ class Handler:
             return self.data_pre(pre_type)
         elif '拉分支' in self.msg_content:
             return self.create_branch_task()
+        elif '构建发布包' in self.msg_content:
+            return self.build_package()
 
     # 执行脚本预制列表方案
     def data_pre(self, pre_type):
@@ -116,6 +118,23 @@ class Handler:
         self.crop.send_text_msg(apply_user_id, str(result))
         self.crop.send_text_msg(self.user_id, str(result))
         return result
+
+    def build_package(self):
+        try:
+            duty_user_id, _ = self.crop.get_duty_info("backend", self.is_test)
+            if self.user_id in duty_user_id:
+                raise "仅限当周值班人操作"
+            source, target = get_build_dirt(self.msg_content)
+            shell = Shell(self.user_id, self.is_test, source, target)
+            ret, result = shell.build_package()
+            # 发送消息通知
+            self.crop.send_text_msg(self.user_id, str(result))
+            return result
+        except Exception as err:
+            print(str(err))
+            # 发送消息通知
+            self.crop.send_text_msg(self.user_id, str(err))
+            return str(err)
 
     # 创建拉分支的任务
     def create_branch_task(self):

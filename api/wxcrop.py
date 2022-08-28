@@ -61,6 +61,11 @@ class Crop:
               "type":"click",
               "name":"拉分支",
               "key":"branch_create"
+            },
+            {
+              "type":"click",
+              "name":"构建发布包",
+              "key":"build_release_package"
             }
           ]
         },

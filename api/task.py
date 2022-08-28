@@ -25,8 +25,6 @@ class Task:
             raise Exception("ERROR: 工程【{}】不存在".format(project_name))
         return self.projects.get(project_name)
 
-
-
     def check_create_branch(self, source_branch, target_branch, project_names):
         if source_branch not in ['stage', 'master']:
             raise Exception("来源分支非值班系列【stage或master】，暂不支持")

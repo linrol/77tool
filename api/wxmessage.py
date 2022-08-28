@@ -1,3 +1,5 @@
+import re
+
 menu_help = {
   "data_pre_new": ">**新列表方案（固定值不要删除）** " 
                   "\n>环　境：<font color=\"comment\">输入预制数据来源环境，例：temp1</font>" 
@@ -22,7 +24,11 @@ menu_help = {
                    "\n>目标分支：<font color=\"comment\">输入拉取后的分支名称，例：sprint20220818</font>" 
                    "\n>工程模块：<font color=\"comment\">输入需要拉模块或工程，例：app-common,budget,project-api</font>" 
                    "\n>复制本模版，修改后回复我，拉取成功后将会消息通知" 
-                   "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
+                   "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
+  "build_release_package": ">**构建发布包（固定值不要删除）** "
+                     "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20220818</font>"
+                     "\n>复制本模版，修改后回复我，构建成功后将会消息通知"
+                     "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
 }
 
 msg = {
@@ -165,6 +171,27 @@ def get_branch_dirt(msg_content):
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     return branch_map.get('来源分支'), branch_map.get('目标分支'), branch_map.get('工程模块')
+
+def get_build_dirt(msg_content):
+    branch_map = get_map(msg_content.split('\n'))
+    require_keys = {"目标分支"}.difference(branch_map.keys())
+    if len(require_keys) > 0:
+        raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
+    target = branch_map.get('目标分支')
+    pattern = r"([a-zA-Z-]+|[20]\d{7})"
+    target_branch_info = re.findall(pattern, target)
+    if len(target_branch_info) != 2:
+        raise Exception("目标分支格式错误，请检查分支名称!")
+    target_name = target_branch_info[0]
+    target_date = target_branch_info[1]
+    if target_name + target_date != target:
+        raise Exception("目标分支上线日期解析错误，请检查分支名称")
+    if target_name not in ['emergency', 'sprint', 'stage-patch']:
+        raise Exception("目标分支非值班系列【emergency、stage-patch、sprint】")
+    source = 'stage'
+    if 'emergency' in target:
+        source = 'master'
+    return source, branch_map.get('目标分支')
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
     task_info_list = [{
