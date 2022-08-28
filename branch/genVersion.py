@@ -152,6 +152,7 @@ class GenVersion:
                                               self.target, target_min)
             print("工程【{}】来源和目标分支最小版本号非数字【{}】".format(
                 project_name, err_info))
+            return None
         source_min = int(source_min)
         target_min = int(target_min)
         # 上一班车分支版本号+weight<=sprint增量的版本号需<=下一班车分支版本号+weight
@@ -161,8 +162,8 @@ class GenVersion:
         next_target_min = self.get_adjacent_min_version(project_name,
                                                         source_prefix,
                                                         source_min, False)
+        target_min = source_min + inc_version
         if last_target_min is None and next_target_min is None:
-            target_min = str(source_min + inc_version)
             return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
         if last_target_min is not None and next_target_min is not None:
             inc_version = (next_target_min - last_target_min) // 2
@@ -171,15 +172,11 @@ class GenVersion:
             inc_version = (next_target_min - source_min) // 2
             target_min = source_min + inc_version
         if last_target_min is not None:
-            if source_min + inc_version - last_target_min < weight:
-                target_min = last_target_min + weight
-            else:
-                target_min = source_min + inc_version
+            less_weight = source_min + inc_version - last_target_min < weight
+            target_min = last_target_min + weight if less_weight else target_min
         if target_min - source_min < 2:
             target_min = source_min + weight
-            print(
-                "工程【{}】目标分支【{}】增量版本号小于2请确认下个班车版本号".format(
-                    project_name, self.target))
+            print("工程【{}】目标分支【{}】增量版本号小于2请确认下个班车版本号".format(project_name, self.target))
         return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
 
     def get_adjacent_min_version(self, project_name, prefix, min, is_last):
@@ -216,6 +213,7 @@ class GenVersion:
         except Exception as err:
             print(str(err))
             sys.exit(1)
+
 
 # 修改版本号
 # 例：修改hotfix分支的版本号，并且修改工程自身版本号，清空开发脚本
