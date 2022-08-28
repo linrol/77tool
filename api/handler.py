@@ -123,7 +123,7 @@ class Handler:
     def build_package(self):
         try:
             duty_user_id, _ = self.crop.get_duty_info("backend", self.is_test)
-            if self.user_id in duty_user_id:
+            if self.user_id not in duty_user_id:
                 raise "仅限当周值班人操作"
             source, target = get_build_dirt(self.msg_content)
             shell = Shell(self.user_id, self.is_test, source, target)
