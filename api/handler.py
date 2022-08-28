@@ -83,7 +83,8 @@ class Handler:
     def is_listen_content(self):
         return '新列表方案' in self.msg_content or \
                '老列表方案' in self.msg_content or \
-               '拉分支' in self.msg_content
+               '拉分支' in self.msg_content or \
+               '构建发布包' in self.msg_content
 
     # 消费数据回调：拉分支、修改版本号、打tag、预制列表方案
     def accept_data(self):
