@@ -31,7 +31,8 @@ class GenVersion:
         self.target_version = self.get_branch_version(target)
         pattern = r"([a-zA-Z-]+|[20]\d{7})"
         self.target_name, self.target_date = re.findall(pattern, target)
-        self.last_target_version = self.get_last_branch_version()
+        self.last_target_version = self.get_adjacent_branch_version(-7)
+        self.next_target_version = self.get_adjacent_branch_version(7)
         self.pool = ThreadPoolExecutor(max_workers=10)
 
     def pre_process(self, project_names):
@@ -48,7 +49,8 @@ class GenVersion:
         f = project.getProject().files.get(file_path=file_path, ref=branch_name)
         if f is None:
             raise Exception(
-                "工程【{}】分支【{}】不存在文件【{}】".format(project, branch_name, file_path))
+                "工程【{}】分支【{}】不存在文件【{}】".format(project, branch_name,
+                                                        file_path))
         config_yaml = yaml.load(f.decode(), Loader=yaml.FullLoader)
         return config_yaml
 
@@ -84,11 +86,11 @@ class GenVersion:
             raise Exception("根据分支【{}】获取工程版本号失败".format(branch))
         return branch_version
 
-    def get_last_branch_version(self):
+    def get_adjacent_branch_version(self, days):
         if self.target_name != "sprint":
             return {}
         target_date = datetime.strptime(self.target_date, "%Y%m%d")
-        last_week_date = target_date + timedelta(days=-7)
+        last_week_date = target_date + timedelta(days=days)
         last_branch = self.target_name + last_week_date.strftime("%Y%m%d")
         try:
             return self.get_branch_version(last_branch)
@@ -126,59 +128,94 @@ class GenVersion:
         target_version = self.target_version.get(project_name)
         if source_version is None:
             raise Exception(
-                "工程【{}】获取来源分支【{}】版本号失败".format(project_name, self.source))
+                "工程【{}】获取来源分支【{}】版本号失败".format(project_name,
+                                                            self.source))
         source_prefix = source_version[0]
         target_prefix = target_version[0]
         if source_prefix != target_prefix:
             err_info = "{}({}),{}({})".format(self.source, source_prefix,
                                               self.target, target_prefix)
-            print("工程【{}】来源和目标分支版本号前缀不一致【{}】".format(project_name, err_info))
+            print("工程【{}】来源和目标分支版本号前缀不一致【{}】".format(
+                project_name, err_info))
             return None
         source_min = source_version[1]
         target_min = target_version[1]
         if "SNAPSHOT" in target_min and not self.force:
-            print("工程【{}】目标分支【{}】已为快照版本【{}】".format(project_name, self.target,
-                                                    target_version))
+            print("工程【{}】目标分支【{}】已为快照版本【{}】".format(project_name,
+                                                                self.target,
+                                                                target_version))
             return None
         source_min = source_min.replace("-SNAPSHOT", "")
         target_min = target_min.replace("-SNAPSHOT", "")
         if not (source_min.isdigit() and target_min.isdigit()):
             err_info = "{}({}),{}({})".format(self.source, source_min,
                                               self.target, target_min)
-            print("工程【{}】来源和目标分支最小版本号非数字【{}】".format(project_name, err_info))
-        target_min = str(int(source_min) + inc_version)
-        ret_version = "{}.{}-SNAPSHOT".format(target_prefix, target_min)
-        # sprint增量的版本号需>=上一班车分支版本号+weight
-        last_target_version = self.last_target_version.get(project_name, None)
-        if last_target_version is None:
-            return ret_version
-        last_target_prefix = last_target_version[0]
-        if source_prefix != last_target_prefix:
-            return ret_version
-        last_target_min = last_target_version[1].replace("-SNAPSHOT", "")
-        if not last_target_min.isdigit():
-            return ret_version
-        if int(last_target_min) <= int(source_min):
-            return ret_version
-        if int(source_min) + int(inc_version) - int(last_target_min) >= weight:
-            return ret_version
-        target_min = int(last_target_min) + weight
+            print("工程【{}】来源和目标分支最小版本号非数字【{}】".format(
+                project_name, err_info))
+        source_min = int(source_min)
+        target_min = int(target_min)
+        # 上一班车分支版本号+weight<=sprint增量的版本号需<=下一班车分支版本号+weight
+        last_target_min = self.get_adjacent_min_version(project_name,
+                                                        source_prefix,
+                                                        source_min, True)
+        next_target_min = self.get_adjacent_min_version(project_name,
+                                                        source_prefix,
+                                                        source_min, False)
+        if last_target_min is None and next_target_min is None:
+            target_min = str(source_min + inc_version)
+            return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
+        if last_target_min is not None and next_target_min is not None:
+            inc_version = (next_target_min - last_target_min) // 2
+            target_min = last_target_min + inc_version
+        if next_target_min is not None:
+            inc_version = (next_target_min - source_min) // 2
+            target_min = source_min + inc_version
+        if last_target_min is not None:
+            if source_min + inc_version - last_target_min < weight:
+                target_min = last_target_min + weight
+            else:
+                target_min = source_min + inc_version
+        if target_min - source_min < 2:
+            target_min = source_min + weight
+            print(
+                "工程【{}】目标分支【{}】增量版本号小于2请确认下个班车版本号".format(
+                    project_name, self.target))
         return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
 
-    def execute(self):
-        if self.target_name in ['sprint']:
-            factory = self.factory_week()
+    def get_adjacent_min_version(self, project_name, prefix, min, is_last):
+        if is_last:
+            adjacent_version = self.last_target_version.get(project_name, None)
         else:
-            factory = self.factory_day()
-        replace_version = {}
-        for project_name in self.project_names:
-            version = self.get_replace_version(factory, project_name)
-            if version is None:
-                continue
-            replace_version[project_name] = version
-        self.write_build_version(self.target, replace_version)
-        return replace_version
+            adjacent_version = self.next_target_version.get(project_name, None)
+        if adjacent_version is None:
+            return None
+        adjacent_prefix = adjacent_version[0]
+        if prefix != adjacent_prefix:
+            return None
+        adjacent_min = adjacent_version[1].replace("-SNAPSHOT", "")
+        if not adjacent_min.isdigit():
+            return None
+        if int(adjacent_min) <= int(min):
+            return None
+        return int(adjacent_min)
 
+    def execute(self):
+        try:
+            if self.target_name in ['sprint']:
+                factory = self.factory_week()
+            else:
+                factory = self.factory_day()
+            replace_version = {}
+            for project_name in self.project_names:
+                version = self.get_replace_version(factory, project_name)
+                if version is None:
+                    continue
+                replace_version[project_name] = version
+            self.write_build_version(self.target, replace_version)
+            return replace_version
+        except Exception as err:
+            print(str(err))
+            sys.exit(1)
 
 # 修改版本号
 # 例：修改hotfix分支的版本号，并且修改工程自身版本号，清空开发脚本
