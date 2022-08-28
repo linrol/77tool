@@ -122,9 +122,9 @@ class Handler:
 
     def build_package(self):
         try:
-            duty_user_id, _ = self.crop.get_duty_info("backend", self.is_test)
+            duty_user_id, name = self.crop.get_duty_info("backend", self.is_test)
             if self.user_id not in duty_user_id:
-                raise Exception("仅限当周后端值班人操作")
+                raise Exception("仅限当周后端值班人：{}操作".format(name))
             source, target = get_build_dirt(self.msg_content)
             shell = Shell(self.user_id, self.is_test, source, target)
             ret, result = shell.build_package()
