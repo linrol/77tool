@@ -28,7 +28,7 @@ menu_help = {
   "build_release_package": ">**构建发布包（固定值不要删除）** "
                            "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20220818</font>"
                            "\n>模块类型：<font color=\"comment\">输入需要构建发布包的模块类型，例：global, apps(单选值)</font>"
-                           "\n>自动编译：<font color=\"comment\">输入需要构建发布包后是否自动编译，例：true，false(单选值)</font>"
+                           "\n>立即编译：<font color=\"comment\">输入需要构建发布包后是否立即编译，例：true，false(单选值)</font>"
                            "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
 }
 
@@ -199,7 +199,7 @@ def get_build_dirt(msg_content):
     group = branch_map.get('模块类型', 'all')
     if group not in build_group_mapping.keys():
         raise Exception("模块类型异常，必须是global或apps")
-    is_build = branch_map.get('自动编译') == 'true'
+    is_build = branch_map.get('立即编译') == 'true'
     return source, branch_map.get('目标分支'), build_group_mapping.get(group), is_build
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
