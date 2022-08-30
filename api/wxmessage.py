@@ -179,7 +179,7 @@ def get_branch_dirt(msg_content):
 
 def get_build_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
-    require_keys = {"目标分支", "自动编译"}.difference(branch_map.keys())
+    require_keys = {"目标分支", "立即编译"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     target = branch_map.get('目标分支')
