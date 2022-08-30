@@ -14,9 +14,10 @@ branch_group = {}
 
 
 class ReleaseVersion:
-    def __init__(self, source, target):
+    def __init__(self, source, target, group):
         self.source = source
         self.target = target
+        self.group = group
         self.project_build = utils.project_path({"build"}).get('build')
         self.source_version = self.get_branch_version(source)
         self.target_version = self.get_branch_version(target)
@@ -69,6 +70,9 @@ class ReleaseVersion:
             for k, v in self.target_version.items():
                 if k == "reimburse":
                     continue
+                project_group = branch_group.get(k)
+                if project_group not in self.group:
+                    continue
                 prefix = v[0]
                 min_version = v[1]
                 if "-SNAPSHOT" not in min_version:
@@ -90,9 +94,10 @@ class ReleaseVersion:
 # python3 changeVersion.py hotfix true
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("ERROR: 输入参数错误, 正确的参数为：<source_branch> <target_branch>")
+        print("ERROR: 输入参数错误, 正确的参数为：<source_branch> <target_branch> <group>")
         sys.exit(1)
     else:
         source_branch = sys.argv[1]
         target_branch = sys.argv[2]
-        ReleaseVersion(source_branch, target_branch).execute()
+        group = sys.argv[3:]
+        ReleaseVersion(source_branch, target_branch, group).execute()

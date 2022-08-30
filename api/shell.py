@@ -133,13 +133,13 @@ class Shell(utils.ProjectInfo):
         finally:
             executor.submit(self.rest_branch_env)
 
-    def build_package(self):
+    def build_package(self, group, is_build):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             [ret, checkout_msg] = self.checkout_branch(self.target_branch)
             if ret != 0:
                 return False, checkout_msg
-            cmd = 'cd ../branch;python3 releaseVersion.py {} {}'.format(self.source_branch, self.target_branch)
+            cmd = 'cd ../branch;python3 releaseVersion.py {} {} {}'.format(self.source_branch, self.target_branch, " ".join(group))
             [ret, release_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, release_version_msg
@@ -149,7 +149,7 @@ class Shell(utils.ProjectInfo):
                 return False, change_version_msg
             self.commit_and_push(self.target_branch)
             try:
-                if not self.is_test:
+                if is_build:
                     params = {"branch": self.target_branch, "byCaller": "值班助手"}
                     post_form("http://ops.q7link.com:8000/qqdeploy/projectbuild/", params)
             except Exception as e:

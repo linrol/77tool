@@ -26,9 +26,10 @@ menu_help = {
                    "\n>复制本模版，修改后回复我，拉取成功后将会消息通知" 
                    "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
   "build_release_package": ">**构建发布包（固定值不要删除）** "
-                     "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20220818</font>"
-                     "\n>复制本模版，修改后回复我，构建成功后将会消息通知"
-                     "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
+                           "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20220818</font>"
+                           "\n>模块类型：<font color=\"comment\">输入需要构建发布包的模块类型，例：global, apps(单选值)</font>"
+                           "\n>是否编译：<font color=\"comment\">输入需要构建发布包后是否自动编译，例：是，否(单选值)</font>"
+                           "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
 }
 
 msg = {
@@ -123,6 +124,10 @@ msg_content = {
     },
     "create_branch_task_response": "本次拉取分支的任务已发送到值班人：{}，请等待值班审批同意后将开始执行"
 }
+build_group_mapping = {"all": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api', 'global-apps', 'global-apps-api'],
+                       "global": ['framework', 'global-apps', 'global-apps-api'],
+                       "apps": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api']
+                       }
 
 import unicodedata as ucd
 from xml.etree.ElementTree import fromstring
@@ -174,7 +179,7 @@ def get_branch_dirt(msg_content):
 
 def get_build_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
-    require_keys = {"目标分支"}.difference(branch_map.keys())
+    require_keys = {"目标分支", "是否编译"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     target = branch_map.get('目标分支')
@@ -191,7 +196,11 @@ def get_build_dirt(msg_content):
     source = 'stage'
     if 'emergency' in target:
         source = 'master'
-    return source, branch_map.get('目标分支')
+    group = branch_map.get('模块类型', 'all')
+    if group not in build_group_mapping.keys():
+        raise Exception("模块类型异常，必须是global或apps")
+    is_build = branch_map.get('是否编译') == '是'
+    return source, branch_map.get('目标分支'), build_group_mapping.get(group), is_build
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
     task_info_list = [{
