@@ -160,9 +160,10 @@ class Crop:
     self.save("{}-q7link-gitlab".format(user_key), json.dumps({"user_id": auth_user.get("username"), "git_refresh_token": git_refresh_token}))
     return "授权成功，请关闭本页面回到企业微信继续操作"
 
-  def disable_task_button(self, user_id, task_code, button_text):
+  def disable_task_button(self, task_code, button_text):
     params = {
-      "userids": [user_id],
+      # "userids": [user_id],
+      "atall": 1,
       "agentid": self.get_agent_id(),
       "response_code": task_code,
       "button": {

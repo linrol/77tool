@@ -66,17 +66,15 @@ class Handler:
         _operation = self.event_key.split("@")[0]
         if _operation == 'deny':
             # 拒绝任务
-            self.crop.disable_task_button(self.user_id, self.event_task_code,
-                                          "已拒绝")
+            self.crop.disable_task_button(self.event_task_code, "已拒绝")
             return "deny task[{}]".format(task_content)
         # 同意任务
-        self.crop.disable_task_button(self.user_id, self.event_task_code,
-                                      "任务执行中...")
+        self.crop.disable_task_button(self.event_task_code, "任务执行中...")
         self.is_test = task_content.split("@")[2] == "True"
         task_info = self.event_task_id.split("@")
         ret_msg = self.create_branch(task_info[0], task_info[1], task_info[2],
                                     task_content.split("@")[1].split(","))
-        self.crop.disable_task_button(self.user_id, task_code, "任务执行完成")
+        self.crop.disable_task_button(task_code, "任务执行完成")
         return ret_msg
 
     # 验证是否为监听的内容
