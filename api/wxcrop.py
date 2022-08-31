@@ -117,7 +117,7 @@ class Crop:
     else:
       body = get("http://10.0.144.51:5000/api/verify/duty/users")
       role_duty_info = body.get("data").get(role)
-      duty_user_ids = []
+      duty_user_ids = ["LuoLin"]
       duty_user_names = []
       for duty in role_duty_info:
         duty_user_ids.append(duty.get("user_id"))
