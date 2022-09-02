@@ -3,7 +3,6 @@ import os
 import sys
 
 import utils
-import re
 import yaml
 import ruamel.yaml
 from datetime import datetime, timedelta
@@ -29,8 +28,8 @@ class GenVersion:
         self.project_build = self.projects.get('build')
         self.source_version = self.get_branch_version(source)
         self.target_version = self.get_branch_version(target)
-        pattern = r"([a-zA-Z-]+|[20]\d{7})"
-        self.target_name, self.target_date = re.findall(pattern, target)
+        self.target_date = target[-8:]
+        self.target_name = target.replace(self.target_date, "")
         self.last_target_version = self.get_adjacent_branch_version(-7)
         self.next_target_version = self.get_adjacent_branch_version(7)
         self.pool = ThreadPoolExecutor(max_workers=10)

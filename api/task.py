@@ -1,12 +1,11 @@
 import os
 import sys
-import re
 import time
 from datetime import datetime
 import yaml
 
 from wxmessage import build_create_branch__msg
-from redisclient import save_create_branch_task
+from redisclient import save_create_branch_task, get_branch_mapping
 
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
@@ -26,18 +25,19 @@ class Task:
         return self.projects.get(project_name)
 
     def check_create_branch(self, source_branch, target_branch, project_names):
-        if source_branch not in ['stage', 'master', 'master1']:
-            raise Exception("来源分支非值班系列【stage或master】，暂不支持")
-        pattern = r"([a-zA-Z-]+|[20]\d{7})"
-        target_branch_info = re.findall(pattern, target_branch)
-        if len(target_branch_info) != 2:
-            raise Exception("目标分支格式错误，请检查分支名称!")
-        target_name = target_branch_info[0]
-        target_date = target_branch_info[1]
-        if target_name + target_date != target_branch:
+        mapping = get_branch_mapping()
+        if source_branch not in mapping.values():
+            raise Exception("来源分支非值班系列【{}】，暂不支持".format(",".join(mapping.values())))
+        target_name = None
+        target_date = None
+        for k, v in mapping.items():
+            if k in target_branch:
+                target_name = k
+                target_date = target_branch.replace(k, "")
+        if target_name is None or target_date is None:
+            raise Exception("目标分支非值班系列【{}】".format(",".join(mapping.keys())))
+        if len(target_date) != 8:
             raise Exception("目标分支上线日期解析错误，请检查分支名称")
-        if target_name not in ['emergency', 'sprint', 'stage-patch']:
-            raise Exception("目标分支非值班系列【emergency、stage-patch、sprint】")
         now = datetime.now().strftime("%Y%m%d")
         if int(now) > int(target_date):
             raise Exception("目标分支的上线日期须大于等于当天，请检查分支名称日期")

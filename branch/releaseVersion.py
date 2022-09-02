@@ -1,11 +1,8 @@
 # coding:utf-8
 import os
-import re
 import sys
-
 import ruamel.yaml
 import yaml
-
 import utils
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
@@ -21,8 +18,8 @@ class ReleaseVersion:
         self.project_build = utils.project_path({"build"}).get('build')
         self.source_version = self.get_branch_version(source)
         self.target_version = self.get_branch_version(target)
-        pattern = r"([a-zA-Z-]+|[20]\d{7})"
-        self.target_name, self.target_date = re.findall(pattern, target)
+        self.target_date = target[-8:]
+        self.target_name = target.replace(self.target_date, "")
 
     def get_project_branch_file(self, project, branch_name, file_path):
         f = project.getProject().files.get(file_path=file_path, ref=branch_name)

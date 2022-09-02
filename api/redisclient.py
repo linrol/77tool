@@ -53,3 +53,6 @@ def save_create_branch_task(key, value):
 
 def get_create_branch_task(key):
     return redisClient.get_connection().hget("q7link-user-task", key)
+
+def get_branch_mapping():
+    return redisClient.get_connection().get("q7link-branch-mapping")

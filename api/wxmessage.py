@@ -1,4 +1,4 @@
-import re
+from redisclient import get_branch_mapping
 
 menu_help = {
   "data_pre_new": ">**新列表方案（固定值不要删除）** " 
@@ -182,25 +182,25 @@ def get_build_dirt(msg_content):
     require_keys = {"目标分支", "立即编译"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
-    target = branch_map.get('目标分支')
-    pattern = r"([a-zA-Z-]+|[20]\d{7})"
-    target_branch_info = re.findall(pattern, target)
-    if len(target_branch_info) != 2:
-        raise Exception("目标分支格式错误，请检查分支名称!")
-    target_name = target_branch_info[0]
-    target_date = target_branch_info[1]
-    if target_name + target_date != target:
+    target_branch = branch_map.get('目标分支')
+    mapping = get_branch_mapping()
+    source_branch = None
+    target_name = None
+    target_date = None
+    for k, v in mapping.items():
+        if k in target_branch:
+            source_branch = v
+            target_name = k
+            target_date = target_branch.replace(k, "")
+    if target_name is None or target_date is None:
+        raise Exception("目标分支非值班系列【{}】".format(",".join(mapping.keys())))
+    if len(target_date) != 8:
         raise Exception("目标分支上线日期解析错误，请检查分支名称")
-    if target_name not in ['emergency', 'sprint', 'stage-patch']:
-        raise Exception("目标分支非值班系列【emergency、stage-patch、sprint】")
-    source = 'stage'
-    if 'emergency' in target:
-        source = 'master'
     group = branch_map.get('模块类型', 'all')
     if group not in build_group_mapping.keys():
         raise Exception("模块类型异常，必须是global或apps")
     is_build = branch_map.get('立即编译') == 'true'
-    return source, branch_map.get('目标分支'), build_group_mapping.get(group), is_build
+    return source_branch, branch_map.get('目标分支'), build_group_mapping.get(group), is_build
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
     task_info_list = [{
