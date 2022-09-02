@@ -26,7 +26,7 @@ class Task:
         return self.projects.get(project_name)
 
     def check_create_branch(self, source_branch, target_branch, project_names):
-        if source_branch not in ['stage', 'master']:
+        if source_branch not in ['stage', 'master', 'master1']:
             raise Exception("来源分支非值班系列【stage或master】，暂不支持")
         pattern = r"([a-zA-Z-]+|[20]\d{7})"
         target_branch_info = re.findall(pattern, target_branch)
