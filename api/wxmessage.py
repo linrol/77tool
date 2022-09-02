@@ -111,14 +111,14 @@ msg_content = {
         "task_id": "",
         "button_list": [
             {
-                "text": "同意",
-                "style": 2,
-                "key": "agree@"
-            },
-            {
                 "text": "拒绝",
                 "style": 3,
                 "key": "deny@"
+            },
+            {
+                "text": "同意",
+                "style": 2,
+                "key": "agree@"
             }
         ]
     },
