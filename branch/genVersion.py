@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 
-branch_weight = {"emergency": 1, "stage-patch": 1, "sprint": 5}
+branch_weight = {"emergency": 1, "emergency1": 1, "stage-patch": 1, "sprint": 5}
 project_convert = ["app-build-plugins", "app-common", "baseapp-api",
                    "common-base", "common-base-api", "graphql-api",
                    "graphql-impl", "json-schema-plugin", "mbg-plugins",
@@ -122,6 +122,9 @@ class GenVersion:
 
     def get_replace_version(self, factory, project_name):
         weight = branch_weight.get(self.target_name)
+        if weight is None:
+            raise Exception("工程【{}】分支【】获取权重值失败".format(project_name,
+                                                                self.target))
         inc_version = factory * weight
         source_version = self.source_version.get(project_name)
         target_version = self.target_version.get(project_name)
