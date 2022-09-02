@@ -73,14 +73,14 @@ msg_content = {
         "task_id": "",
         "button_list": [
             {
-                "text": "同意",
-                "style": 2,
-                "key": "agree@"
-            },
-            {
                 "text": "拒绝",
                 "style": 3,
                 "key": "deny@"
+            },
+            {
+                "text": "同意",
+                "style": 2,
+                "key": "agree@"
             }
         ]
     },
@@ -221,8 +221,8 @@ def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id
     msg_content["create_branch_task"]["main_title"]["title"] = "值班助手-来自{}的拉分支请求".format(req_user_name)
     msg_content["create_branch_task"]["horizontal_content_list"] = task_info_list
     msg_content["create_branch_task"]["task_id"] = task_id
-    msg_content["create_branch_task"]["button_list"][0]["key"] = "agree@" + task_id
-    msg_content["create_branch_task"]["button_list"][1]["key"] = "deny@" + task_id
+    msg_content["create_branch_task"]["button_list"][0]["key"] = "deny@" + task_id
+    msg_content["create_branch_task"]["button_list"][1]["key"] = "agree@" + task_id
     return msg_content["create_branch_task"], str(msg_content["create_branch_task_response"].format(duty_user_name))
 
 def build_change_branch_version_msg(task_id, source, target, project_info):
@@ -238,6 +238,6 @@ def build_change_branch_version_msg(task_id, source, target, project_info):
     }]
     msg_content["change_branch_version"]["horizontal_content_list"] = task_info_list
     msg_content["change_branch_version"]["task_id"] = task_id
-    msg_content["change_branch_version"]["button_list"][0]["key"] = "agree@" + task_id
-    msg_content["change_branch_version"]["button_list"][1]["key"] = "deny@" + task_id
+    msg_content["change_branch_version"]["button_list"][0]["key"] = "deny@" + task_id
+    msg_content["change_branch_version"]["button_list"][1]["key"] = "agree@" + task_id
     return msg_content["change_branch_version"]
