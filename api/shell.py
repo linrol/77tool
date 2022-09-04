@@ -137,14 +137,12 @@ class Shell(utils.ProjectInfo):
 
     def check_version(self, branch_str):
         try:
-            self.lock_value = self.lock.get_lock("lock", 300)
+            user_id = self.user_id
             cmd = 'cd ../branch;python3 checkVersion.py -t compare -b {}'.format(branch_str)
             [ret, check_version_msg] = subprocess.getstatusoutput(cmd)
             return ret == 0, check_version_msg
         except Exception as err:
             return False, str(err)
-        finally:
-            executor.submit(self.rest_branch_env)
 
     def build_package(self, group, is_build):
         try:
