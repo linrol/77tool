@@ -139,6 +139,8 @@ class Task:
             break
         if branch_name is None:
             return True, "not check branch"
+        if not branch_date.isdigit():
+            return True, "branch data invalid"
         index = branch_check_list.index(branch_name)
         branch_list = []
         for check_branch in branch_check_list[index:]:
