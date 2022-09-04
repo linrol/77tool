@@ -33,11 +33,13 @@ class Shell(utils.ProjectInfo):
         self.target_branch = target_branch
         self.project_init_data = self.project = self.projects.get('init-data')
         self.project_build = self.projects.get('build')
-        self.init_target_branch = self.project_build.getBranch(target_branch) is None
         add_method(self.project_init_data)
         self.lock = RedisLock(redisClient.get_connection())
         self.lock_value = None
         # self.rest_branch_env()
+
+    def init_target(self):
+        return self.project_build.getBranch(self.target_branch) is None
 
     # 获取目标分支+当前人是否还存在未合并的mr分支
     def get_open_mr_branch(self, mr_key, branch):
@@ -115,7 +117,7 @@ class Shell(utils.ProjectInfo):
             if ret != 0:
                 return False, gen_version_msg
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
-            if self.init_target_branch:
+            if self.init_target():
                 cmd += " true"
             [ret, change_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
@@ -128,6 +130,17 @@ class Shell(utils.ProjectInfo):
             except Exception as e:
                 logger.error(e)
             return True, (create_msg + change_version_msg).replace("\n", "").replace("工程", "\n工程")
+        except Exception as err:
+            return False, str(err)
+        finally:
+            executor.submit(self.rest_branch_env)
+
+    def check_version(self, branch_str):
+        try:
+            self.lock_value = self.lock.get_lock("lock", 300)
+            cmd = 'cd ../branch;python3 checkVersion.py -t compare -b {}'.format(branch_str)
+            [ret, check_version_msg] = subprocess.getstatusoutput(cmd)
+            return ret == 0, check_version_msg
         except Exception as err:
             return False, str(err)
         finally:
@@ -168,10 +181,11 @@ class Shell(utils.ProjectInfo):
     # 重值值班助手环境，切换到master分支，删除本地的target分支
     def rest_branch_env(self):
         self.checkout_branch('master')
-        for project in self.projects.values():
-            project.deleteLocalBranch(self.target_branch)
+        if self.target_branch is not None:
+            for project in self.projects.values():
+                project.deleteLocalBranch(self.target_branch)
         if self.lock_value is not None:
-           self.lock.del_lock("lock", self.lock_value)
+            self.lock.del_lock("lock", self.lock_value)
 
     def commit_and_push(self, branch):
         protect_cmd = "cd ../branch;python3 protectBranch.py {} release".format(branch)

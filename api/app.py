@@ -1,9 +1,11 @@
 import argparse
+import json
 from flask import Flask, request, make_response
 from concurrent.futures import ThreadPoolExecutor
 from log import logger
 from wxcrop import Crop
 from handler import Handler
+from task import Task
 
 executor = ThreadPoolExecutor()
 app = Flask(__name__)
@@ -34,20 +36,22 @@ def parse_args():
 args = parse_args()
 crop = Crop(args)
 crypt = crop.get_crypt()
-
-
 # crop.create_button()
 
 
 @app.route("/gitlab/hook", methods=["GET", "POST"])
-def oauth():
-    body = request.data.decode('utf-8')
+def gitlab_hook():
+    body = json.loads(request.data.decode('utf-8'))
+    update_config = False
+    for commit in body.get('commits'):
+        if "config.yaml" in commit.get('modified', []):
+            update_config = True
+    if not update_config:
+        return "not update version"
+    branch = body.get('ref').rsplit("/", 1)[1]
     duty_user_id, _ = crop.get_duty_info("backend", True)
-
-    # Task().build_change_version_task("stage", duty_user_id,
-    #                                  crop.send_template_card)
-    return "success"
-
+    executor.submit(Task().check_version, 'LuoLin', branch, crop.send_text_msg)
+    return make_response("success")
 
 @app.route("/callback/<action>", methods=["GET"])
 def verify(action: str):

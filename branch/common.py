@@ -13,6 +13,73 @@ def get_project_branch_file(project, branch_name, file_path):
     return config_yaml
 
 
+class Node(object):
+    def __init__(self, data, next_node=None):
+        self.branch = data.get('branch')
+        self.version = data.get('version')
+        self.next = next_node
+
+    def before_next(self):
+        if self.next is None:
+            return False
+        prefix = self.version[0].split(".")
+        next_prefix = self.next.version[0].split(".")
+        if len(prefix) != len(next_prefix):
+            return False
+        for i, next_i in zip(prefix, next_prefix):
+            if not i.isdigit() or not next_i.isdigit():
+                return False
+            if int(i) < int(next_i):
+                return True
+        last = self.version[1].replace("-SNAPSHOT", "")
+        next_last = self.next.version[1].replace("-SNAPSHOT", "")
+        if not last.isdigit() or not next_last.isdigit():
+            return False
+        return int(last) <= int(next_last)
+
+    def __str__(self):
+        return "{}({}.{})".format(self.branch, self.version[0], self.version[1])
+
+
+class LinkedList(object):
+    def __init__(self, head=None):
+        self.head = head
+
+    def __len__(self):
+        curr_node = self.head
+        counter = 0
+        while curr_node is not None:
+            counter += 1
+            curr_node = curr_node.next
+        return counter
+
+    # 在链表前面插入节点
+    def insert(self, data):
+        if data is None:
+            return None
+        # 原来的头结点 , 是新头节点的next
+        node = Node(data, self.head)
+        self.head = node
+        return node
+
+    # 从链表后面插入节点
+    def append(self, data):
+        if data is None:
+            return None
+        node = Node(data)
+        if self.head is None:
+            self.head = node
+            return node
+        # 从头节点开始寻找当前链表尾指针
+        curr_node = self.head
+        while curr_node.next is not None:
+            curr_node = curr_node.next
+        # 链表尾指针指向新插入的node
+        curr_node.next = node
+        return node
+
+
+
 class Common:
     def __init__(self, utils):
         self.branch_group = {}

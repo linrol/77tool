@@ -1,9 +1,10 @@
 import os
 import sys
 import time
-from datetime import datetime
 import yaml
-
+from datetime import datetime
+from log import logger
+from shell import Shell
 from wxmessage import build_create_branch__msg
 from redisclient import save_create_branch_task, get_branch_mapping
 
@@ -11,6 +12,7 @@ sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 from branch import utils
 
+branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
 
 class Task:
     def __init__(self, is_test=False):
@@ -122,3 +124,33 @@ class Task:
             raise Exception("工程【build】分支【{}】不存在文件【config.yaml】".format(branch_name))
         config_yaml = yaml.load(file.decode(), Loader=yaml.FullLoader)
         return config_yaml
+
+    # 检查版本号
+    def check_version(self, user_id, branch, send_text_msg):
+        branch_name = None
+        branch_date = None
+        for name in branch_check_list:
+            if name not in branch:
+                continue
+            if len(branch.replace(name, "")) != 8:
+                continue
+            branch_name = name
+            branch_date = branch.replace(name, "")
+            break
+        if branch_name is None:
+            return True, "not check branch"
+        index = branch_check_list.index(branch_name)
+        branch_list = []
+        for check_branch in branch_check_list[index:]:
+            branch_list.append(check_branch + branch_date)
+        branch_names = ",".join(branch_list)
+        if len(branch_list) < 2:
+            return True, "branch({}) length less than one".format(branch_names)
+        ret, msg = Shell(self.is_test, user_id).check_version(branch_names)
+        logger.info(branch + ":" + msg)
+        if not ret:
+            send_text_msg(user_id, branch + ":" + msg)
+        return ret, msg
+
+
+
