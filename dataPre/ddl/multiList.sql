@@ -329,6 +329,7 @@ CREATE TABLE "baseapp_query_list_definition"
     "is_approval" BOOLEAN DEFAULT false NOT NULL,
     "is_exhibition" BOOLEAN DEFAULT false NOT NULL,
     "last_query_object" JSONB,
+    "ui_option" JSONB,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
