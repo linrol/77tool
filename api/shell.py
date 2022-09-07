@@ -38,7 +38,7 @@ class Shell(utils.ProjectInfo):
         self.lock_value = None
         # self.rest_branch_env()
 
-    def init_target(self):
+    def init_branch(self):
         return self.project_build.getBranch(self.target_branch) is None
 
     # 获取目标分支+当前人是否还存在未合并的mr分支
@@ -101,6 +101,7 @@ class Shell(utils.ProjectInfo):
     def create_branch(self, update_project_names, project_names):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
+            init_branch = self.init_branch()
             [ret, checkout_msg] = self.checkout_branch(self.source_branch)
             if ret != 0:
                 return False, checkout_msg
@@ -117,7 +118,7 @@ class Shell(utils.ProjectInfo):
             if ret != 0:
                 return False, gen_version_msg
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
-            if self.init_target():
+            if init_branch:
                 cmd += " true"
             [ret, change_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
@@ -214,6 +215,12 @@ class Shell(utils.ProjectInfo):
         if ret != 0:
             logger.info(msg)
             raise Exception(msg)
+
+if __name__ == "__main__":
+
+    shell = Shell('LuoLin', True, 'stage', 'stage-patch20220910')
+    ret, result = shell.create_branch([], ['arap'])
+    print(result)
 
 
 
