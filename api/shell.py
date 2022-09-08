@@ -123,7 +123,7 @@ class Shell(utils.ProjectInfo):
             [ret, change_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, change_version_msg
-            self.commit_and_push(self.target_branch)
+            self.commit_and_push(self.target_branch, 'hotfix')
             try:
                 if not self.is_test:
                     params = {"branch": self.target_branch, "byCaller": "值班助手"}
@@ -159,7 +159,7 @@ class Shell(utils.ProjectInfo):
             [ret, change_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, change_version_msg
-            self.commit_and_push(self.target_branch)
+            self.commit_and_push(self.target_branch, 'none')
             try:
                 if is_build:
                     params = {"branch": self.target_branch, "byCaller": "值班助手"}
@@ -186,7 +186,7 @@ class Shell(utils.ProjectInfo):
         if self.lock_value is not None:
             self.lock.del_lock("lock", self.lock_value)
 
-    def commit_and_push(self, branch):
+    def commit_and_push(self, branch, protect):
         protect_cmd = "cd ../branch;python3 protectBranch.py {} release".format(branch)
         [ret, msg] = subprocess.getstatusoutput(protect_cmd)
         if ret != 0:
@@ -210,7 +210,7 @@ class Shell(utils.ProjectInfo):
         if ret != 0:
             logger.info(msg)
             raise Exception(msg)
-        protect_cmd = "cd ../../branch-manage/branch;python3 protectBranch.py {} hotfix".format(branch)
+        protect_cmd = "cd ../../branch-manage/branch;python3 protectBranch.py {} {}".format(branch, protect)
         [ret, msg] = subprocess.getstatusoutput(protect_cmd)
         if ret != 0:
             logger.info(msg)
