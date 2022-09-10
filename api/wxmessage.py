@@ -27,7 +27,8 @@ menu_help = {
                    "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
   "build_release_package": ">**构建发布包（固定值不要删除）** "
                            "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20220818</font>"
-                           "\n>模块类型：<font color=\"comment\">输入需要构建发布包的模块类型，例：global, apps(单选值)</font>"
+                           "\n>模块类型：<font color=\"comment\">输入需要构建发布包的模块类型，例：all，global, apps(单选值)</font>"
+                           "\n>前端预制：<font color=\"comment\">输入需要替换的front-apps.reimburse版本号，前端值班提供(此参数可空)</font>"
                            "\n>立即编译：<font color=\"comment\">输入需要构建发布包后是否立即编译，例：true，false(单选值)</font>"
                            "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
 }
@@ -198,9 +199,13 @@ def get_build_dirt(msg_content):
         raise Exception("目标分支上线日期解析错误，请检查分支名称")
     group = branch_map.get('模块类型', 'all')
     if group not in build_group_mapping.keys():
-        raise Exception("模块类型异常，必须是global或apps")
+        raise Exception("模块类型异常，必须是all,global,apps其中之一")
     is_build = branch_map.get('立即编译') == 'true'
-    return source_branch, branch_map.get('目标分支'), build_group_mapping.get(group), is_build
+    front_version = branch_map.get("前端预制", '').strip()
+    group_list = build_group_mapping.get(group)
+    if len(front_version) > 0:
+        group_list.append("front-apps:reimburse={}".format(front_version))
+    return source_branch, branch_map.get('目标分支'), group_list, is_build
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
     task_info_list = [{

@@ -23,10 +23,14 @@ class ReleaseVersion(Common):
         try:
             replace_version = {}
             for k, v in self.target_version.items():
-                if k == "reimburse":
+                gn = self.branch_group.get(k)
+                if gn not in self.group.keys():
                     continue
-                group = self.branch_group.get(k)
-                if group not in self.group:
+                gkv = self.group.get(gn).get(k)
+                if gkv is not None:
+                    replace_version[k] = gkv
+                    continue
+                if k == "reimburse":
                     continue
                 prefix = v[0]
                 min_version = v[1].replace("-SNAPSHOT", "")
@@ -51,5 +55,12 @@ if __name__ == "__main__":
     else:
         source_branch = sys.argv[1]
         target_branch = sys.argv[2]
-        project_group = sys.argv[3:]
+        project_group = {}
+        for pg in sys.argv[3:]:
+            gv = pg.split(":")
+            g = gv[0]
+            if len(gv) < 2:
+                project_group[g] = {}
+                continue
+            project_group[g] = dict(i.split("=") for i in gv[1].split(";"))
         ReleaseVersion(source_branch, target_branch, project_group).execute()
