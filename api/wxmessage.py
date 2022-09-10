@@ -202,7 +202,7 @@ def get_build_dirt(msg_content):
         raise Exception("模块类型异常，必须是all,global,apps其中之一")
     is_build = branch_map.get('立即编译') == 'true'
     front_version = branch_map.get("前端预制", '').strip()
-    group_list = build_group_mapping.get(group)
+    group_list = build_group_mapping.get(group).copy()
     if len(front_version) > 0:
         group_list.append("front-apps:reimburse={}".format(front_version))
     return source_branch, branch_map.get('目标分支'), group_list, is_build
