@@ -29,8 +29,9 @@ class Node(object):
         for i, next_i in zip(prefix, next_prefix):
             if not i.isdigit() or not next_i.isdigit():
                 return False
-            if int(i) < int(next_i):
-                return True
+            if int(i) == int(next_i):
+                continue
+            return int(i) < int(next_i)
         last = self.version[1].replace("-SNAPSHOT", "")
         next_last = self.next.version[1].replace("-SNAPSHOT", "")
         if not last.isdigit() or not next_last.isdigit():
