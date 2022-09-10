@@ -22,15 +22,16 @@ class ReleaseVersion(Common):
     def execute(self):
         try:
             replace_version = {}
+            for pv in self.group.values():
+                for p, v in pv.items():
+                    replace_version[p] = v
+                    print("工程【{}】自身版本修改为【{}】".format(p, v))
+            self.group.pop("front-apps", "")
             for k, v in self.target_version.items():
-                gn = self.branch_group.get(k)
-                if gn not in self.group.keys():
+                group_name = self.branch_group.get(k)
+                if group_name not in self.group.keys():
                     continue
-                gkv = self.group.get(gn).get(k)
-                if gkv is not None:
-                    replace_version[k] = gkv
-                    continue
-                if k == "reimburse":
+                if k in replace_version:
                     continue
                 prefix = v[0]
                 min_version = v[1].replace("-SNAPSHOT", "")

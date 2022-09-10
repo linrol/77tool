@@ -166,7 +166,8 @@ class Shell(utils.ProjectInfo):
                     post_form("http://ops.q7link.com:8000/qqdeploy/projectbuild/", params)
             except Exception as e:
                 logger.error(e)
-            return True, change_version_msg.replace("\n", "").replace("工程", "\n工程")
+            msg = release_version_msg + change_version_msg
+            return True, msg.replace("\n", "").replace("工程", "\n工程")
         except Exception as err:
             return False, str(err)
         finally:
