@@ -60,7 +60,7 @@ def gitlab_hook():
     return make_response("success")
 
 
-@scheduler.task('cron', id='job_check_version', week='*', day_of_week='1-5',
+@scheduler.task('cron', id='job_check_version', week='*', day_of_week='0-6',
                 hour='8-20', minute='0', timezone='Asia/Shanghai')
 def job_check_version():
     cur_time = datetime.datetime.now()
