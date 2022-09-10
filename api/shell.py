@@ -106,20 +106,24 @@ class Shell(utils.ProjectInfo):
             if ret != 0:
                 return False, checkout_msg
             cmd = 'cd ../branch;python3 createBranch.py {} {} {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
+            logger.info("create_branch[{}]".format(cmd))
             [ret, create_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, create_msg
             cmd = 'cd ../branch;python3 genVersion.py {} {} {}'.format(self.source_branch, self.target_branch + ".force", " ".join(update_project_names))
+            logger.info("create_branch[{}]".format(cmd))
             [ret, update_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, update_version_msg
             cmd = 'cd ../branch;python3 genVersion.py {} {} {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
+            logger.info("create_branch[{}]".format(cmd))
             [ret, gen_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, gen_version_msg
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
             if init_branch:
                 cmd += " true"
+            logger.info("create_branch[{}]".format(cmd))
             [ret, change_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, change_version_msg
@@ -152,10 +156,12 @@ class Shell(utils.ProjectInfo):
             if ret != 0:
                 return False, checkout_msg
             cmd = 'cd ../branch;python3 releaseVersion.py {} {} {}'.format(self.source_branch, self.target_branch, " ".join(group))
+            logger.info("build_package[{}]".format(cmd))
             [ret, release_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, release_version_msg
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
+            logger.info("build_package[{}]".format(cmd))
             [ret, change_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, change_version_msg
