@@ -27,9 +27,9 @@ menu_help = {
                    "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
   "build_release_package": ">**构建发布包（固定值不要删除）** "
                            "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20220818</font>"
-                           "\n>模块类型：<font color=\"comment\">输入需要构建发布包的模块类型，例：all，global, apps(单选值)</font>"
+                           "\n>模块类型：<font color=\"comment\">输入需要构建发布包的模块类型，例：all,global,apps(单选值)</font>"
                            "\n>前端预制：<font color=\"comment\">输入需要替换的front-apps.reimburse版本号，前端值班提供(此参数可空)</font>"
-                           "\n>立即编译：<font color=\"comment\">输入需要构建发布包后是否立即编译，例：true，false(单选值)</font>"
+                           "\n>立即编译：<font color=\"comment\">输入需要构建发布包后是否立即编译，例：true,false(单选值)</font>"
                            "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
 }
 
