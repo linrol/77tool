@@ -1,21 +1,27 @@
 import json
-
 import redis
+
+
 class RedisClient(object):
     def __init__(self):
-        self.pool = redis.ConnectionPool(host = "linrol.cn", port = 6379,
-                                         password = 'linrol_redis',db=2,
-                                         decode_responses=True, max_connections=16)
+        self.pool = redis.ConnectionPool(host="linrol.cn", port=6379,
+                                         password='linrol_redis', db=2,
+                                         decode_responses=True,
+                                         max_connections=16)
 
     def __del__(self):
-        """析构函数"""
-        # print("__del__")
         self.get_connection().close()
 
     def get_connection(self):
-        return redis.Redis(connection_pool = self.pool)
+        return redis.Redis(connection_pool=self.pool)
+
 
 redisClient = RedisClient()
+
+
+def hget(name, key):
+    return redisClient.get_connection().hget(name, key)
+
 
 def duplicate_msg(msg):
     msg_id = msg.get('MsgId')
@@ -36,11 +42,14 @@ def add_mr(key, mr_id):
     else:
         connection.hmset("q7link-mr-log", {key: mr_ids + "," + mr_id})
 
+
 def get_mr_ids(key):
     return redisClient.get_connection().hget("q7link-mr-log", key)
 
+
 def delete_mr(key):
     redisClient.get_connection().hdel("q7link-mr-log", key)
+
 
 def get_user_id(chines_name):
     if chines_name is None or chines_name == '':
@@ -48,11 +57,14 @@ def get_user_id(chines_name):
     user_id = redisClient.get_connection().hget("q7link-git-user", chines_name)
     return chines_name if user_id is None else user_id
 
+
 def save_create_branch_task(key, value):
     redisClient.get_connection().hmset("q7link-user-task", {key: value})
 
+
 def get_create_branch_task(key):
     return redisClient.get_connection().hget("q7link-user-task", key)
+
 
 def get_branch_mapping():
     return redisClient.get_connection().hgetall("q7link-branch-mapping")

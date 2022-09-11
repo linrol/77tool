@@ -1,7 +1,9 @@
 # coding:utf-8
 import sys
+import getopt
 import utils
 from common import Common
+from checkVersion import CheckVersion
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 
@@ -10,6 +12,18 @@ project_framework = ["app-build-plugins", "app-common", "baseapp-api",
                      "common-base", "common-base-api", "graphql-api",
                      "graphql-impl", "json-schema-plugin", "mbg-plugins",
                      "metadata-api", "metadata-impl", "sql-parser"]
+
+
+def usage():
+    print('''
+    -h --help show help info
+    -f --force update version
+    -s --source update from branch version
+    -t --target update to branch version
+    -p --project gen project list
+    ''')
+    sys.exit(1)
+    pass
 
 
 def project_convert(project_names):
@@ -22,16 +36,17 @@ def project_convert(project_names):
 
 
 class GenVersion(Common):
-    def __init__(self, source, target, force, project_names):
+    def __init__(self, force, source, target, project_names):
         super().__init__(utils)
+        self.force = force
         self.source = source
         self.target = target
-        self.force = force
         self.project_names = project_convert(project_names)
         self.source_version = self.get_branch_version(source)
         self.target_version = self.get_branch_version(target)
         self.target_date = target[-8:]
         self.target_name = target.replace(self.target_date, "")
+        self.weight = self.get_branch_weight(self.target_name)
         self.last_target_version = self.get_adjacent_branch_version(-7)
         self.next_target_version = self.get_adjacent_branch_version(7)
         self.pool = ThreadPoolExecutor(max_workers=10)
@@ -65,11 +80,10 @@ class GenVersion(Common):
         return (week_end_year - week_start_year) * year_week_num + week_sub
 
     def get_replace_version(self, factory, project_name):
-        weight = branch_weight.get(self.target_name)
-        if weight is None:
-            raise Exception("工程【{}】分支【】获取权重值失败".format(project_name,
+        if self.weight is None:
+            raise Exception("工程【{}】分支【{}】获取权重值失败".format(project_name,
                                                                   self.target))
-        inc_version = factory * weight
+        inc_version = factory * self.weight
         source_version = self.source_version.get(project_name)
         target_version = self.target_version.get(project_name)
         if source_version is None:
@@ -118,10 +132,10 @@ class GenVersion(Common):
             inc_version = (next_target_min - source_min) // 2
             target_min = source_min + inc_version
         if last_target_min is not None:
-            less_weight = source_min + inc_version - last_target_min < weight
-            target_min = last_target_min + weight if less_weight else target_min
+            less_weight = source_min + inc_version - last_target_min < self.weight
+            target_min = last_target_min + self.weight if less_weight else target_min
         if target_min - source_min < 2:
-            target_min = source_min + weight
+            target_min = source_min + self.weight
             print("工程【{}】目标分支【{}】增量版本号小于2请确认下个班车版本号".
                   format(project_name, self.target))
         return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
@@ -150,6 +164,11 @@ class GenVersion(Common):
             else:
                 factory = self.factory_day()
             replace_version = {}
+            if self.force:
+                compare_dict = {self.target: True, self.source: False}
+                force_project = CheckVersion().compare_version(compare_dict)
+                if len(force_project) > 0:
+                    self.project_names.extend(force_project)
             for project_name in self.project_names:
                 version = self.get_replace_version(factory, project_name)
                 if version is None:
@@ -157,22 +176,24 @@ class GenVersion(Common):
                 replace_version[project_name] = version
             self.update_build_version(self.target, replace_version)
             return replace_version
-        except Exception as err:
-            print(str(err))
+        except Exception as e:
+            print(str(e))
             sys.exit(1)
 
 
-# 修改版本号
-# 例：修改hotfix分支的版本号，并且修改工程自身版本号，清空开发脚本
-# python3 changeVersion.py hotfix true
+# 生成版本号
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("ERROR: 输入参数错误, 正确的参数为：<source_branch> <target_branch> [project...]")
+    try:
+        arg_str = ["help", "force", "source=", "target=", "weight=", "project="]
+        opts, args = getopt.getopt(sys.argv[1:], "hfs:t:p:", arg_str)
+        opts_dict = dict(opts)
+        force_update = not opts_dict.keys().isdisjoint({"-f", "--force"})
+        source_branch = opts_dict.get("-s", opts_dict.get("-source"))
+        target_branch = opts_dict.get("-t", opts_dict.get("-target"))
+        projects = opts_dict.get("-p", opts_dict.get("-project")).split(",")
+        GenVersion(force_update, source_branch, target_branch,
+                   projects).execute()
+    except getopt.GetoptError as err:
+        print(err)
+        usage()
         sys.exit(1)
-    elif len(sys.argv) < 4:
-        print("ERROR: 输入参数错误, 正确的参数为：<source_branch> <target_branch> [project...]")
-    else:
-        source_branch = sys.argv[1]
-        force_update = ".force" in sys.argv[2]
-        target_branch = sys.argv[2].replace(".force", "")
-        GenVersion(source_branch, target_branch, force_update, sys.argv[3:]).execute()

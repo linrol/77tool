@@ -5,7 +5,7 @@ import time
 
 from concurrent.futures import ThreadPoolExecutor
 
-from redisclient import add_mr, get_mr_ids, delete_mr
+from redisclient import add_mr, get_mr_ids, delete_mr, hget
 from MethodUtil import add_method
 from log import logger
 from redisclient import redisClient
@@ -110,12 +110,7 @@ class Shell(utils.ProjectInfo):
             [ret, create_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, create_msg
-            cmd = 'cd ../branch;python3 genVersion.py {} {} {}'.format(self.source_branch, self.target_branch + ".force", " ".join(update_project_names))
-            logger.info("create_branch[{}]".format(cmd))
-            [ret, update_version_msg] = subprocess.getstatusoutput(cmd)
-            if ret != 0:
-                return False, update_version_msg
-            cmd = 'cd ../branch;python3 genVersion.py {} {} {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
+            cmd = 'cd ../branch;python3 genVersion.py -f -s {} -t {} -p {}'.format(self.source_branch, self.target_branch, ",".join(project_names))
             logger.info("create_branch[{}]".format(cmd))
             [ret, gen_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:

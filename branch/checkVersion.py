@@ -2,6 +2,7 @@
 import datetime
 import getopt
 import sys
+from itertools import zip_longest
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import utils
@@ -85,14 +86,14 @@ class CheckVersion(Common):
                     print(check_msg.format(p_name, "{}.{}".format(t_version[0], t_version[1]), check_branch))
         return is_duplicate
 
-    def compare_version(self, branch_list):
-        compare_ret = False
+    def compare_version(self, branch_dict):
+        compare_ret = []
         compare_msg = "工程【{}】分支版本号【{}】落后于分支版本号【{}】"
         project_version = {}
-        for b_name in branch_list:
+        for b_name, skip_release in branch_dict.items():
             if self.project_build.getBranch(b_name) is None:
                 continue
-            branch_version = self.get_branch_version(b_name, True)
+            branch_version = self.get_branch_version(b_name, skip_release)
             for p, p_version in branch_version.items():
                 data = {"branch": b_name, "version": p_version}
                 project_version.setdefault(p, LinkedList()).append(data)
@@ -100,7 +101,7 @@ class CheckVersion(Common):
             node = link.head
             while node is not None:
                 if node.before_next():
-                    compare_ret = True
+                    compare_ret.append(p)
                     print(compare_msg.format(p, node, node.next))
                 node = node.next
         return compare_ret
@@ -135,7 +136,8 @@ if __name__ == "__main__":
             sys.exit(1)
         print('enjoy！版本号冲突检查通过')
     elif check_type == "compare":
-        if check.compare_version(branch.split(",")):
+        compare_dict = dict(zip_longest(branch.split(","), [], fillvalue=True))
+        if len(check.compare_version(compare_dict)) > 0:
             sys.exit(1)
         print('enjoy！版本号比较检查通过')
     else:

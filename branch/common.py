@@ -1,6 +1,7 @@
 import os
 import yaml
 import ruamel.yaml
+import redis
 
 
 def get_project_branch_file(project, branch_name, file_path):
@@ -80,13 +81,29 @@ class LinkedList(object):
         return node
 
 
-
 class Common:
     def __init__(self, utils):
         self.branch_group = {}
         self.utils = utils
         self.projects = utils.project_path()
         self.project_build = self.projects.get('build')
+        self.redis_pool = redis.ConnectionPool(host="linrol.cn", port=6379,
+                                               password='linrol_redis', db=2,
+                                               decode_responses=True,
+                                               max_connections=16)
+
+    def __del__(self):
+        self.get_connection().close()
+
+    def get_connection(self):
+        return redis.Redis(connection_pool=self.redis_pool)
+
+    def hget(self, name, key):
+        return self.get_connection().hget(name, key)
+
+    def get_branch_weight(self, key):
+        name = "q7link-branch-weight"
+        return self.hget(name, key)
 
     # 获取指定分支的版本号
     def get_branch_version(self, branch, skip_release=False):
