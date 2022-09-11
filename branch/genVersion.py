@@ -7,7 +7,6 @@ from checkVersion import CheckVersion
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 
-branch_weight = {"emergency": 1, "emergency1": 1, "stage-patch": 1, "sprint": 5}
 project_framework = ["app-build-plugins", "app-common", "baseapp-api",
                      "common-base", "common-base-api", "graphql-api",
                      "graphql-impl", "json-schema-plugin", "mbg-plugins",
@@ -26,14 +25,6 @@ def usage():
     pass
 
 
-def project_convert(project_names):
-    result = set()
-    for name in project_names:
-        if name in project_framework:
-            name = "framework"
-        result.add(name)
-    return list(result)
-
 
 class GenVersion(Common):
     def __init__(self, force, source, target, project_names):
@@ -41,15 +32,28 @@ class GenVersion(Common):
         self.force = force
         self.source = source
         self.target = target
-        self.project_names = project_convert(project_names)
+        self.project_names = self.project_convert(project_names)
         self.source_version = self.get_branch_version(source)
         self.target_version = self.get_branch_version(target)
         self.target_date = target[-8:]
         self.target_name = target.replace(self.target_date, "")
-        self.weight = self.get_branch_weight(self.target_name)
+        self.weight = int(self.get_branch_weight(self.target_name))
         self.last_target_version = self.get_adjacent_branch_version(-7)
         self.next_target_version = self.get_adjacent_branch_version(7)
         self.pool = ThreadPoolExecutor(max_workers=10)
+
+    def project_convert(self, project_names):
+        result = set()
+        for name in project_names:
+            if name in project_framework:
+                name = "framework"
+            result.add(name)
+        if self.force:
+            compare_dict = {self.target: True, self.source: False}
+            force_project = CheckVersion().compare_version(compare_dict)
+            if len(force_project) > 0:
+                result.update(force_project)
+        return list(result)
 
     def get_adjacent_branch_version(self, days):
         if self.target_name != "sprint":
@@ -164,11 +168,6 @@ class GenVersion(Common):
             else:
                 factory = self.factory_day()
             replace_version = {}
-            if self.force:
-                compare_dict = {self.target: True, self.source: False}
-                force_project = CheckVersion().compare_version(compare_dict)
-                if len(force_project) > 0:
-                    self.project_names.extend(force_project)
             for project_name in self.project_names:
                 version = self.get_replace_version(factory, project_name)
                 if version is None:

@@ -87,7 +87,7 @@ class CheckVersion(Common):
         return is_duplicate
 
     def compare_version(self, branch_dict):
-        compare_ret = []
+        compare_ret = set()
         compare_msg = "工程【{}】分支版本号【{}】落后于分支版本号【{}】"
         project_version = {}
         for b_name, skip_release in branch_dict.items():
@@ -101,7 +101,7 @@ class CheckVersion(Common):
             node = link.head
             while node is not None:
                 if node.before_next():
-                    compare_ret.append(p)
+                    compare_ret.add(p)
                     print(compare_msg.format(p, node, node.next))
                 node = node.next
         return compare_ret
