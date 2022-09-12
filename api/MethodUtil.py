@@ -2,6 +2,8 @@ from types import MethodType
 
 # 获取项目成员
 def getMember(self, query):
+    if query is None:
+        return None
     members = self.getProject().members_all.list(query=query)
     if members is not None and len(members) > 0:
         return members[0]

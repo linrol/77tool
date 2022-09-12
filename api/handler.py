@@ -100,12 +100,18 @@ class Handler:
 
     # 执行脚本预制列表方案
     def data_pre(self, pre_type):
-        data_pre_dirt = get_pre_dirt(self.msg_content)
-        shell = Shell(self.user_id, target_branch=data_pre_dirt[2])
-        ret, result = shell.exec_data_pre(pre_type, *data_pre_dirt)
-        # 发送消息通知
-        self.crop.send_text_msg(self.user_id, str(result))
-        return result
+        try:
+            data_pre_dirt = get_pre_dirt(self.msg_content)
+            shell = Shell(self.user_id, target_branch=data_pre_dirt[2])
+            ret, result = shell.exec_data_pre(pre_type, *data_pre_dirt)
+            # 发送消息通知
+            self.crop.send_text_msg(self.user_id, str(result))
+            return result
+        except Exception as err:
+            print(str(err))
+            # 发送消息通知
+            self.crop.send_text_msg(self.user_id, str(err))
+            return str(err)
 
     # 拉分支
     def create_branch(self, apply_user_id, source, target, projects):
