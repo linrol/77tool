@@ -61,7 +61,7 @@ def gitlab_hook():
 
 
 @scheduler.task('cron', id='job_check_version', week='*', day_of_week='0-6',
-                hour='8-20', minute='0', timezone='Asia/Shanghai')
+                hour='8-22', minute='0', timezone='Asia/Shanghai')
 def job_check_version():
     cur_time = datetime.datetime.now()
     branch = 'sprint' + cur_time.strftime('%Y%m%d')
