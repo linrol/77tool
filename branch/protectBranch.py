@@ -1,6 +1,5 @@
 # coding=utf-8
 import sys
-import gitlab
 import utils
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 
@@ -43,22 +42,22 @@ class ProjectBranch:
   #设置分支保护
   def protectBranch(self, projectInfo):
     projectName = projectInfo.getName()
-    mergeAccessLevel = gitlab.DEVELOPER_ACCESS
-    pushAccessLevel = gitlab.DEVELOPER_ACCESS
+    mergeAccessLevel = utils.DEVELOPER_ACCESS
+    pushAccessLevel = utils.DEVELOPER_ACCESS
     #release分支设置管理员全权限，hotfix设置管理员merge权限。build和init-data设置管理员全权限
     if self.access == 'release':
-      mergeAccessLevel = gitlab.MAINTAINER_ACCESS
-      pushAccessLevel = gitlab.MAINTAINER_ACCESS
+      mergeAccessLevel = utils.MAINTAINER_ACCESS
+      pushAccessLevel = utils.MAINTAINER_ACCESS
     elif self.access == 'hotfix' or self.access == 'emergency':
       if projectName == 'build' or projectName == 'init-data':
-        mergeAccessLevel = gitlab.MAINTAINER_ACCESS
-        pushAccessLevel = gitlab.MAINTAINER_ACCESS
+        mergeAccessLevel = utils.MAINTAINER_ACCESS
+        pushAccessLevel = utils.MAINTAINER_ACCESS
       else:
-        mergeAccessLevel = gitlab.MAINTAINER_ACCESS
-        pushAccessLevel = gitlab.VISIBILITY_PRIVATE
+        mergeAccessLevel = utils.MAINTAINER_ACCESS
+        pushAccessLevel = utils.VISIBILITY_PRIVATE
     elif self.access == 'none':
-        mergeAccessLevel = gitlab.VISIBILITY_PRIVATE
-        pushAccessLevel = gitlab.VISIBILITY_PRIVATE
+        mergeAccessLevel = utils.VISIBILITY_PRIVATE
+        pushAccessLevel = utils.VISIBILITY_PRIVATE
     elif self.access == 'd' or self.access =='delete':
       projectInfo.deleteBranchProtect(self.branchName)
       print('【{}】【{}】分支保护删除成功'.format(projectName, self.branchName))

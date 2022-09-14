@@ -11,6 +11,10 @@ XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 URL='http://gitlab.q7link.com'
 TOKEN=''
 
+DEVELOPER_ACCESS = 30
+MAINTAINER_ACCESS = 40
+VISIBILITY_PRIVATE = 0
+
 class ProjectInfo():
   def __init__(self, name, path, module):
     self.__name = name
