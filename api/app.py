@@ -46,7 +46,7 @@ crypt = crop.get_crypt()
 # Task().clear_dirty_branch_notice(crop)
 
 
-@app.route("/gitlab/hook", methods=["GET", "POST"])
+@app.route("/gitlab/hook", methods=["POST"])
 def gitlab_hook():
     body = json.loads(request.data.decode('utf-8'))
     update_config = False
