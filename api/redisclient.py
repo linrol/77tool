@@ -19,6 +19,10 @@ class RedisClient(object):
 redisClient = RedisClient()
 
 
+def hmset(name, mapping):
+    redisClient.get_connection().hmset(name, mapping)
+
+
 def hget(name, key):
     return redisClient.get_connection().hget(name, key)
 

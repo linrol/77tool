@@ -144,6 +144,15 @@ class Shell(utils.ProjectInfo):
         except Exception as err:
             return False, str(err)
 
+    def clear_branch(self, branch_name):
+        try:
+            user_id = self.user_id
+            cmd = 'cd ../branch;python3 checkanddeleted.py {} none'.format(branch_name)
+            [ret, delete_branch_msg] = subprocess.getstatusoutput(cmd)
+            return ret == 0, delete_branch_msg
+        except Exception as err:
+            return False, str(err)
+
     def build_package(self, group, is_build):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)

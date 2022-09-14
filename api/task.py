@@ -2,17 +2,18 @@ import os
 import sys
 import time
 import yaml
-from datetime import datetime
+from datetime import datetime, date
 from log import logger
 from shell import Shell
 from wxmessage import build_create_branch__msg
-from redisclient import save_create_branch_task, get_branch_mapping
+from redisclient import save_create_branch_task, get_branch_mapping, hmset, hget
 
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 from branch import utils
 
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
+
 
 class Task:
     def __init__(self, is_test=False):
@@ -154,5 +155,68 @@ class Task:
             send_text_msg(user_id, msg + "\n请注意可能需要手动调整!!!")
         return ret, msg
 
+    def clear_dirty_branch(self, user_id, branch_name, send_text_msg):
+        if branch_name in ('stage', 'master', 'master1'):
+            return
+        ret, msg = Shell(self.is_test, user_id).clear_branch(branch_name)
+        send_text_msg(user_id, msg)
+
+    # 发生清理脏分支通知
+    def clear_dirty_branch_notice(self, crop):
+        # self.save_branch_created()
+        clear_branch_msg = "您创建的分支【{}】超过三个月不存在提交记录，可能为脏分支，请确认是否需要删除？\n<a href=\"https://branch.linrol.cn/branch/clear?user_id={}&branch={}\">点击删除</a>\n无需删除请忽略"
+        dirty_branches = self.get_dirty_branches()
+        for branch, author in dirty_branches.items():
+            username = hget("q7link-git-user", author)
+            if username is None:
+                continue
+            user_id = crop.get_user_id(username)
+            if user_id == "LuoLin":
+                crop.send_text_msg(user_id, clear_branch_msg.format(branch, user_id, branch))
+            print(clear_branch_msg.format(branch, user_id, branch))
+
+    # 获取可能的脏分支（三个月以上不存在提交记录）
+    def get_dirty_branches(self):
+        git_branches = self.project_build.getProject().branches.list(all=True)
+        dirty_branches = {}
+        for branch in git_branches:
+            # 过滤特定分支
+            branch_name = branch.name
+            if branch_name in ['stage', 'master', 'master1']:
+                continue
+            # 过滤三个月以上未提交的分支
+            today = date.today()
+            date1 = datetime.strptime(today.strftime("%Y-%m-%d"),
+                                      "%Y-%m-%d")
+            date2 = datetime.strptime(branch.commit.get("created_at")[0:10],
+                                      "%Y-%m-%d")
+            dirty_branch = (date1 - date2).days < 90
+            if dirty_branch:
+                continue
+            author = hget("q7link-branch-created", branch_name)
+            if author is None:
+                continue
+            dirty_branches[branch_name] = author
+        return dirty_branches
+
+    def save_branch_created(self):
+        for i in range(1, 150):
+            branch_created = {}
+            events = self.project_build.getProject().events.list(
+                action='pushed', page=i, per_page=100, sort='asc')
+            for e in events:
+                if e.action_name != 'pushed new':
+                    continue
+                branch = e.push_data.get('ref')
+                if branch is None:
+                    continue
+                username = e.author_username
+                if username is None:
+                    continue
+                branch_created[branch] = username
+            print("保存分支创建信息第{}页面".format(i))
+            if len(branch_created) < 1:
+                continue
+            hmset("q7link-branch-created", branch_created)
 
 

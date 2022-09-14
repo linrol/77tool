@@ -144,6 +144,9 @@ class Crop:
     self.save("{}-userinfo".format(user_id), body.get("name"))
     return body.get("name")
 
+  def get_user_id(self, user_name):
+    body = get("http://10.0.144.51:5000/api/verify/duty/user_id?user_name={}".format(user_name))
+    return body.get("data")[0].get("user_id")
 
   def save_gitlab_auth_info(self, user_auth_code, user_key):
     params = {

@@ -43,6 +43,7 @@ args = parse_args()
 crop = Crop(args)
 crypt = crop.get_crypt()
 # crop.create_button()
+# Task().clear_dirty_branch_notice(crop)
 
 
 @app.route("/gitlab/hook", methods=["GET", "POST"])
@@ -57,6 +58,14 @@ def gitlab_hook():
     branch = body.get('ref').rsplit("/", 1)[1]
     duty_user_id, _ = crop.get_duty_info("backend", True)
     executor.submit(Task().check_version, 'LuoLin', branch, crop.send_text_msg)
+    return make_response("success")
+
+
+@app.route("/branch/clear", methods=["GET"])
+def branch_clear():
+    user_id = request.args.get('user_id')
+    branch = request.args.get('branch')
+    executor.submit(Task().clear_dirty_branch, user_id, branch, crop.send_text_msg)
     return make_response("success")
 
 
