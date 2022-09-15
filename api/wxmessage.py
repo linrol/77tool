@@ -146,7 +146,7 @@ def is_chinese(k, word):
             return True
     return False
 
-def get_map(lines):
+def get_map(lines, filter_chinese=True):
     map = {}
     for line in lines:
         line = ucd.normalize('NFKC', line)
@@ -156,9 +156,9 @@ def get_map(lines):
             continue
         k = kv[0]
         v = kv[1]
-        if '人' in k:
-          v = get_user_id(v)
-        if k == '' or v == '' or is_chinese(k, v):
+        if k == '' or v == '':
+            continue
+        if filter_chinese and is_chinese(k, v):
             continue
         map[k] = v
     return map
@@ -179,7 +179,7 @@ def get_branch_dirt(msg_content):
     return branch_map.get('来源分支'), branch_map.get('目标分支'), branch_map.get('工程模块')
 
 def get_init_feature_dirt(msg_content):
-    init_feature = get_map(msg_content.split('\n'))
+    init_feature = get_map(msg_content.split('\n'), False)
     require_keys = {"来源分支", "目标分支", "分支版本", "分支管理"}.difference(init_feature.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
