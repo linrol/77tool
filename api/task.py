@@ -48,7 +48,7 @@ class Task:
         return ",".join(need_project_list)
 
     def check_new_branch(self, source_branch, target_branch):
-        tips = "您是否需要拉特性分支，如需要请按以下格式初始化特性分支后重新拉取" + \
+        tips = "\n您是否需要拉特性分支，如需请按以下格式初始化特性分支：" + \
                "\n初始化特性分支" + \
                "\n来源分支：输入基于哪个分支拉取" + \
                "\n目标分支：输入拉取的特性分支名称" + \
