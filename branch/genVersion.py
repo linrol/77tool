@@ -34,8 +34,8 @@ class GenVersion(Common):
         self.source = source
         self.target = target
         self.project_names = self.project_convert(project_names)
+        self.source_version = self.get_branch_version(source)
         if self.fixed_version is None:
-            self.source_version = self.get_branch_version(source)
             self.target_version = self.get_branch_version(target)
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
