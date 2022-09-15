@@ -98,7 +98,7 @@ class Shell(utils.ProjectInfo):
             executor.submit(self.rest_branch_env)
 
     # 创建分支
-    def create_branch(self, update_project_names, project_names):
+    def create_branch(self, fixed_version, project_names):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             init_branch = self.init_branch()
@@ -111,6 +111,8 @@ class Shell(utils.ProjectInfo):
             if ret != 0:
                 return False, create_msg
             cmd = 'cd ../branch;python3 genVersion.py -f -s {} -t {} -p {}'.format(self.source_branch, self.target_branch, ",".join(project_names))
+            if fixed_version is not None:
+                cmd = 'cd ../branch;python3 genVersion.py -v {} -s {} -t {} -p {}'.format(fixed_version, self.source_branch, self.target_branch, ",".join(project_names))
             logger.info("create_branch[{}]".format(cmd))
             [ret, gen_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
@@ -230,7 +232,7 @@ class Shell(utils.ProjectInfo):
 if __name__ == "__main__":
 
     shell = Shell('LuoLin', True, 'stage', 'stage-patch20220910')
-    ret, result = shell.create_branch([], ['arap'])
+    ret, result = shell.create_branch(None, ['arap'])
     print(result)
 
 

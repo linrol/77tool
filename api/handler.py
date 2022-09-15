@@ -1,8 +1,8 @@
 from shell import Shell
 from task import Task
 from log import logger
-from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_build_dirt, xml2dirt
-from redisclient import duplicate_msg, get_create_branch_task
+from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, xml2dirt
+from redisclient import duplicate_msg, get_create_branch_task, hmset
 
 require_git_oauth_event = ["data_pre_new", "data_pre_old"]
 
@@ -70,10 +70,14 @@ class Handler:
             return "deny task[{}]".format(task_content)
         # 同意任务
         self.crop.disable_task_button(self.event_task_code, "任务执行中...")
+        projects = task_content.split("@")[1].split(",")
         self.is_test = task_content.split("@")[2] == "True"
+        fixed_version = None
+        if len(task_content.split("@")) > 3:
+            fixed_version = task_content.split("@")[3]
         task_info = self.event_task_id.split("@")
         ret_msg = self.create_branch(task_info[0], task_info[1], task_info[2],
-                                    task_content.split("@")[1].split(","))
+                                     projects, fixed_version)
         self.crop.disable_task_button(task_code, "任务执行完成")
         return ret_msg
 
@@ -82,7 +86,8 @@ class Handler:
         return '新列表方案' in self.msg_content or \
                '老列表方案' in self.msg_content or \
                '拉分支' in self.msg_content or \
-               '构建发布包' in self.msg_content
+               '构建发布包' in self.msg_content or \
+               '初始化特性分支' in self.msg_content
 
     # 消费数据回调：拉分支、修改版本号、打tag、预制列表方案
     def accept_data(self):
@@ -94,9 +99,11 @@ class Handler:
             pre_type = "new" if "新" in self.msg_content else "old"
             return self.data_pre(pre_type)
         elif '拉分支' in self.msg_content:
-            return self.create_branch_task()
+            return self.new_branch_task()
         elif '构建发布包' in self.msg_content:
             return self.build_package()
+        elif '初始化特性分支' in self.msg_content:
+            return self.init_feature_branch()
 
     # 执行脚本预制列表方案
     def data_pre(self, pre_type):
@@ -114,11 +121,10 @@ class Handler:
             return str(err)
 
     # 拉分支
-    def create_branch(self, apply_user_id, source, target, projects):
-        update_projects = Task(self.is_test).compare_version(source, target).keys()
-
+    def create_branch(self, apply_user_id, source, target, projects,
+        fixed_version):
         shell = Shell(apply_user_id, self.is_test, source, target)
-        ret, result = shell.create_branch(update_projects, projects)
+        ret, result = shell.create_branch(fixed_version, projects)
         # 发送消息通知
         self.crop.send_text_msg(apply_user_id, str(result))
         self.crop.send_text_msg(self.user_id, str(result))
@@ -142,12 +148,36 @@ class Handler:
             return str(err)
 
     # 创建拉分支的任务
-    def create_branch_task(self):
-        req_user = (self.user_id, self.user_name)
-        duty_user = self.crop.get_duty_info("backend", self.is_test)
-        task_info = req_user + duty_user + get_branch_dirt(self.msg_content)
-        ret = Task(self.is_test).build_create_branch_task(self.crop.send_template_card,
-                                              *task_info)
-        self.crop.send_text_msg(self.user_id, ret)
-        return "create project[{}] branch[{}] task success".format(
-            task_info[-1], task_info[-2])
+    def new_branch_task(self):
+        try:
+            req_user = (self.user_id, self.user_name)
+            duty_user = self.crop.get_duty_info("backend", self.is_test)
+            task_info = req_user + duty_user + get_branch_dirt(self.msg_content)
+            ret = Task(self.is_test).new_branch_task(self.crop, *task_info)
+            self.crop.send_text_msg(self.user_id, ret)
+            return "create project[{}] branch[{}] task success".format(
+                task_info[-1], task_info[-2])
+        except Exception as err:
+            print(str(err))
+            # 发送消息通知
+            self.crop.send_text_msg(self.user_id, str(err))
+            return str(err)
+
+    def init_feature_branch(self):
+        try:
+            init_feature = get_init_feature_dirt(self.msg_content)
+            target = init_feature.get("目标分支")
+            source = init_feature.get("来源分支")
+            prefix = Task().get_branch_version(source).get("framework")
+            version = "{}.{}-SNAPSHOT".format(prefix.replace("-SNAPSHOT", ""),
+                                              init_feature.get("分支版本"))
+            approve_user = init_feature.get("分支管理")
+            value = "{}@{}@{}".format(source, version, approve_user)
+            hmset("q7link-branch-feature", {target: value})
+            self.crop.send_text_msg(self.user_id, "特性分支初始化成功，现在您发起拉分支请求了")
+        except Exception as err:
+            print(str(err))
+            # 发送消息通知
+            self.crop.send_text_msg(self.user_id, str(err))
+            return str(err)
+

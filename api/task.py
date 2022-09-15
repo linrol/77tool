@@ -27,10 +27,36 @@ class Task:
             raise Exception("ERROR: 工程【{}】不存在".format(project_name))
         return self.projects.get(project_name)
 
-    def check_create_branch(self, source_branch, target_branch, project_names):
+    def get_feature_branch(self, source_branch, target_branch, crop):
+        feature_info = hget("q7link-branch-feature", target_branch)
+        if feature_info is None:
+            return None
+        source = feature_info.split("@")[0]
+        if source != source_branch:
+            raise Exception("ERROR: 特性分支初始化的来源分支必须为【{}】".format(source))
+        version = feature_info.split("@")[1]
+        approve = feature_info.split("@")[2]
+        return version, crop.get_user_id(approve), approve
+
+    def get_new_project(self, target, project_names):
+        need_project_list = list(filter(
+            lambda name: self.get_project(name).getBranch(target) is None,
+            project_names.split(",")))
+        if len(need_project_list) < 1:
+            raise Exception("ERROR: \n" + "工程【{}】目标分支【{}】已存在!!!".format(
+                project_names, target))
+        return ",".join(need_project_list)
+
+    def check_new_branch(self, source_branch, target_branch):
+        tips = "您是否需要拉特性分支，如需要请按以下格式初始化特性分支后重新拉取" + \
+               "\n初始化特性分支" + \
+               "\n来源分支：输入基于哪个分支拉取" + \
+               "\n目标分支：输入拉取的特性分支名称" + \
+               "\n分支版本：请为特性分支定义唯一字符作为第四位版本号(建议纯字符串)" + \
+               "\n分支管理：输入特性分支负责人(中文)，用于审批拉分支请求"
         mapping = get_branch_mapping()
         if source_branch not in mapping.values():
-            raise Exception("来源分支非值班系列【{}】，暂不支持".format(",".join(mapping.values())))
+            raise Exception("来源分支非值班系列【{}】，{}".format(",".join(mapping.values()), tips))
         target_name = None
         target_date = None
         for k, v in mapping.items():
@@ -38,27 +64,26 @@ class Task:
                 target_name = k
                 target_date = target_branch.replace(k, "")
         if target_name is None or target_date is None:
-            raise Exception("目标分支非值班系列【{}】".format(",".join(mapping.keys())))
+            raise Exception("目标分支非值班系列【{}】，{}".format(",".join(mapping.keys()), tips))
         if len(target_date) != 8:
             raise Exception("目标分支上线日期解析错误，请检查分支名称")
         now = datetime.now().strftime("%Y%m%d")
         if int(now) > int(target_date):
             raise Exception("目标分支的上线日期须大于等于当天，请检查分支名称日期")
-        need_project_list = list(filter(
-            lambda name: self.get_project(name).getBranch(
-                target_branch) is None, project_names.split(",")))
-        if len(need_project_list) < 1:
-            raise Exception("ERROR: \n" + "工程【{}】目标分支【{}】已存在!!!".format(
-                project_names, target_branch))
-        return target_name, target_date, ",".join(need_project_list)
 
-    # 创建拉分支的任务
-    def build_create_branch_task(self, send_template_card, req_user_id,
-        req_user_name, duty_user_id, duty_user_name, source, target,
-        project_names):
+    # 创建拉值班分支的任务
+    def new_branch_task(self, crop, req_user_id, req_user_name, duty_user_id,
+        duty_user_name, source, target, project_names):
         try:
-            _, _, need_projects = self.check_create_branch(source, target,
-                                                           project_names)
+            feature_info = self.get_feature_branch(source, target, crop)
+            if feature_info is not None:
+                return self.new_feature_branch_task(crop, req_user_id,
+                                                    req_user_name,
+                                                    source, target,
+                                                    project_names,
+                                                    *feature_info)
+            need_projects = self.get_new_project(target, project_names)
+            self.check_new_branch(source, target)
             task_id = "{}@{}@{}@{}".format(req_user_id, source, target,
                                            int(time.time()))
             notify_duty, notify_req = build_create_branch__msg(req_user_id,
@@ -68,14 +93,37 @@ class Task:
                                                                target,
                                                                need_projects)
             # 发送值班人审核通知
-            body = send_template_card(duty_user_id, notify_duty)
+            body = crop.send_template_card(duty_user_id, notify_duty)
             # 记录任务
             task_code = body.get("response_code")
-            task_content = "{}@{}@{}".format(task_code, need_projects, str(self.is_test))
+            task_content = "{}@{}@{}".format(task_code, need_projects,
+                                             str(self.is_test))
             save_create_branch_task(task_id, task_content)
             return notify_req
         except Exception as err:
             return str(err)
+
+    # 创建拉特性分支的任务
+    def new_feature_branch_task(self, crop, req_user_id, req_user_name,
+        source, target, project_names, version, approve_id, approve_name):
+        need_projects = self.get_new_project(target, project_names)
+        task_id = "{}@{}@{}@{}".format(req_user_id, source, target,
+                                       int(time.time()))
+        notify_approve, notify_req = build_create_branch__msg(req_user_id,
+                                                              req_user_name,
+                                                              approve_name,
+                                                              task_id,
+                                                              source,
+                                                              target,
+                                                              need_projects)
+        # 发送分支负责人审核通知
+        body = crop.send_template_card(approve_id, notify_approve)
+        # 记录任务
+        task_code = body.get("response_code")
+        task_content = "{}@{}@{}@{}".format(task_code, need_projects,
+                                            str(self.is_test), version)
+        save_create_branch_task(task_id, task_content)
+        return notify_req
 
     def compare_version(self, left_branch, right_branch):
         ret = {}
@@ -103,7 +151,6 @@ class Task:
             if int(right_min) - int(left_min) < 3:
                 ret[k] = "({},{})".format(left, v)
         return ret
-
 
     # 获取指定分支的版本号
     def get_branch_version(self, branch):

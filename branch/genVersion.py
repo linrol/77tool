@@ -27,20 +27,21 @@ def usage():
 
 
 class GenVersion(Common):
-    def __init__(self, force, source, target, project_names):
+    def __init__(self, force, version, source, target, project_names):
         super().__init__(utils)
         self.force = force
+        self.fixed_version = version
         self.source = source
         self.target = target
         self.project_names = self.project_convert(project_names)
-        self.source_version = self.get_branch_version(source)
-        self.target_version = self.get_branch_version(target)
-        self.target_date = target[-8:]
-        self.target_name = target.replace(self.target_date, "")
-        self.weight = int(self.get_branch_weight(self.target_name))
-        self.last_target_version = self.get_adjacent_branch_version(-7)
-        self.next_target_version = self.get_adjacent_branch_version(7)
-        self.pool = ThreadPoolExecutor(max_workers=10)
+        if self.fixed_version is None:
+            self.source_version = self.get_branch_version(source)
+            self.target_version = self.get_branch_version(target)
+            self.target_date = target[-8:]
+            self.target_name = target.replace(self.target_date, "")
+            self.weight = int(self.get_branch_weight(self.target_name))
+            self.last_target_version = self.get_adjacent_branch_version(-7)
+            self.next_target_version = self.get_adjacent_branch_version(7)
 
     def project_convert(self, project_names):
         result = set()
@@ -83,7 +84,11 @@ class GenVersion(Common):
         week_sub = week_end_num - week_start_num + 1
         return (week_end_year - week_start_year) * year_week_num + week_sub
 
-    def get_replace_version(self, factory, project_name):
+    def get_replace_version(self, project_name):
+        if self.target_name in ['sprint']:
+            factory = self.factory_week()
+        else:
+            factory = self.factory_day()
         if self.weight is None:
             raise Exception("工程【{}】分支【{}】获取权重值失败".format(project_name,
                                                                   self.target))
@@ -163,13 +168,12 @@ class GenVersion(Common):
 
     def execute(self):
         try:
-            if self.target_name in ['sprint']:
-                factory = self.factory_week()
-            else:
-                factory = self.factory_day()
             replace_version = {}
             for project_name in self.project_names:
-                version = self.get_replace_version(factory, project_name)
+                if self.fixed_version is not None:
+                    replace_version[project_name] = self.fixed_version
+                    continue
+                version = self.get_replace_version(project_name)
                 if version is None:
                     continue
                 replace_version[project_name] = version
@@ -184,13 +188,15 @@ class GenVersion(Common):
 if __name__ == "__main__":
     try:
         arg_str = ["help", "force", "source=", "target=", "weight=", "project="]
-        opts, args = getopt.getopt(sys.argv[1:], "hfs:t:p:", arg_str)
+        opts, args = getopt.getopt(sys.argv[1:], "hfv:s:t:p:", arg_str)
         opts_dict = dict(opts)
         force_update = not opts_dict.keys().isdisjoint({"-f", "--force"})
         source_branch = opts_dict.get("-s", opts_dict.get("-source"))
         target_branch = opts_dict.get("-t", opts_dict.get("-target"))
+        fixed_version = opts_dict.get("-v", opts_dict.get("-fixed_version",
+                                                          None))
         projects = opts_dict.get("-p", opts_dict.get("-project")).split(",")
-        GenVersion(force_update, source_branch, target_branch,
+        GenVersion(force_update, fixed_version, source_branch, target_branch,
                    projects).execute()
     except getopt.GetoptError as err:
         print(err)

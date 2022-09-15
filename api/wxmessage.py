@@ -178,6 +178,13 @@ def get_branch_dirt(msg_content):
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     return branch_map.get('来源分支'), branch_map.get('目标分支'), branch_map.get('工程模块')
 
+def get_init_feature_dirt(msg_content):
+    init_feature = get_map(msg_content.split('\n'))
+    require_keys = {"来源分支", "目标分支", "分支版本", "分支管理"}.difference(init_feature.keys())
+    if len(require_keys) > 0:
+        raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
+    return init_feature
+
 def get_build_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
     require_keys = {"目标分支", "立即编译"}.difference(branch_map.keys())
