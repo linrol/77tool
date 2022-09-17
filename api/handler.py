@@ -169,8 +169,10 @@ class Handler:
             target = init_feature.get("目标分支")
             source = init_feature.get("来源分支")
             prefix = Task().get_branch_version(source).get("framework")
-            version = "{}.{}-SNAPSHOT".format(prefix.replace("-SNAPSHOT", ""),
-                                              init_feature.get("分支版本"))
+            version = "{}.{}".format(prefix.replace("-SNAPSHOT", ""),
+                                     init_feature.get("分支版本"))
+            if "SNAPSHOT" not in version:
+                version += '-SNAPSHOT'
             approve_user = init_feature.get("分支管理")
             value = "{}@{}@{}".format(source, version, approve_user)
             hmset("q7link-branch-feature", {target: value})
