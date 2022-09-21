@@ -172,7 +172,7 @@ class Shell(utils.ProjectInfo):
             if ret != 0:
                 return False, change_version_msg
             if path is not None:
-                protect = "none." + path
+                protect = "none" + path
             else:
                 protect = "none"
             self.commit_and_push(self.target_branch, protect)

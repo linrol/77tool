@@ -213,7 +213,7 @@ def get_build_dirt(msg_content):
     if len(front_version) > 0:
         group_list.append("front-apps:reimburse={}".format(front_version))
     if group != 'all':
-        path = "{}@{}".format(group, "platform")
+        path = ".{}@{}".format(group, "platform")
     else:
         path = None
     return source_branch, branch_map.get('目标分支'), group_list, path, is_build
