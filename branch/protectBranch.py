@@ -5,8 +5,9 @@ import utils
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 
 class ProjectBranch:
-  def __init__(self, branchName, access, projectNames=None):
+  def __init__(self, branchName, access, group, projectNames=None):
     self.branchName = branchName
+    self.group = group
     self.projectNames = projectNames
     self.access = access
     # 检查入参
@@ -33,12 +34,14 @@ class ProjectBranch:
   #检查参数是否正确（返回：工程信息）
   def checkAndProtect(self, projectInfo):
     branch = projectInfo.getBranch(self.branchName)
+    project_path = projectInfo.getProject().namespace.get("path")
     #分支存在的才进行权限修改
     if (branch is None):
       return None
-    else:
-      self.protectBranch(projectInfo)
-      return projectInfo
+    if len(self.group) > 0 and project_path not in self.group:
+      return None
+    self.protectBranch(projectInfo)
+    return projectInfo
 
   #设置分支保护
   def protectBranch(self, projectInfo):
@@ -81,7 +84,12 @@ if __name__ == "__main__":
     if len(sys.argv) > 3:
       projectNames = sys.argv[3:]
     branchName = sys.argv[1]
-    access = sys.argv[2]
+    if "." in sys.argv[2]:
+      access = sys.argv[2].split(".")[0]
+      group = sys.argv[2].split(".")[1].split("@")
+    else:
+      access = sys.argv[2]
+      group = []
 
-  executor = ProjectBranch(branchName, access, projectNames)
+  executor = ProjectBranch(branchName, access, group, projectNames)
   executor.execute()
