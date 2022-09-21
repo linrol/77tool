@@ -155,7 +155,7 @@ class Shell(utils.ProjectInfo):
         except Exception as err:
             return False, str(err)
 
-    def build_package(self, group, is_build):
+    def build_package(self, group, path, is_build):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             [ret, checkout_msg] = self.checkout_branch(self.target_branch)
@@ -171,7 +171,11 @@ class Shell(utils.ProjectInfo):
             [ret, change_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, change_version_msg
-            self.commit_and_push(self.target_branch, 'none')
+            if path is not None:
+                protect = "none." + path
+            else:
+                protect = "none"
+            self.commit_and_push(self.target_branch, protect)
             try:
                 if is_build:
                     params = {"branch": self.target_branch, "byCaller": "值班助手"}

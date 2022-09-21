@@ -212,7 +212,11 @@ def get_build_dirt(msg_content):
     group_list = build_group_mapping.get(group).copy()
     if len(front_version) > 0:
         group_list.append("front-apps:reimburse={}".format(front_version))
-    return source_branch, branch_map.get('目标分支'), group_list, is_build
+    if group != 'all':
+        path = "{}@{}".format(group, "platform")
+    else:
+        path = None
+    return source_branch, branch_map.get('目标分支'), group_list, path, is_build
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
     task_info_list = [{
