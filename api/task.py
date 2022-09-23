@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import yaml
-import re
 from datetime import datetime, date
 from log import logger
 from shell import Shell
@@ -14,7 +13,6 @@ sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 from branch import utils
 
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
-target_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
 
 
 class Task:
@@ -57,23 +55,18 @@ class Task:
                "\n分支版本：请为特性分支定义唯一字符作为第四位版本号(建议纯字符串)" + \
                "\n分支管理：输入特性分支负责人(中文)，用于审批拉分支请求"
         mapping = get_branch_mapping()
-        match_source = None
-        match_target = []
-        for k, v in mapping.items():
-            match = re.match("^{}$".format(k), source_branch)
-            if not match:
-                continue
-            match_source = match.group()
-            match_target = v.split(",")
-        if match_source is None:
-            raise Exception("来源分支非值班系列【{}】，{}".format(",".join(mapping.keys()), tips))
+        if source_branch not in mapping.values():
+            raise Exception("来源分支非值班系列【{}】，{}".format(",".join(mapping.values()), tips))
         target_name = None
         target_date = None
-        if re.search(target_branch, target_regex):
-            target_date = re.search(target_branch, target_regex).group()
-            target_name = target_branch.replace(target_date, "")
-        if target_date is None or target_name not in match_target:
-            raise Exception("目标分支非值班系列【{}】，{}".format(",".join(mapping.values()), tips))
+        for k, v in mapping.items():
+            if k in target_branch:
+                target_name = k
+                target_date = target_branch.replace(k, "")
+        if target_name is None or target_date is None:
+            raise Exception("目标分支非值班系列【{}】，{}".format(",".join(mapping.keys()), tips))
+        if len(target_date) != 8:
+            raise Exception("目标分支上线日期解析错误，请检查分支名称")
         now = datetime.now().strftime("%Y%m%d")
         if int(now) > int(target_date):
             raise Exception("目标分支的上线日期须大于等于当天，请检查分支名称日期")
@@ -272,18 +265,5 @@ class Task:
             if len(branch_created) < 1:
                 continue
             hmset("q7link-branch-created", branch_created)
-
-if __name__ == "__main__":
-    ret = re.search("20[2-9][0-9][0-1][0-9][0-3][0-9]$", "sprintadasd20220923")
-    if ret:
-        print(ret.group())
-    else:
-        print("匹配失败")
-
-    ret = re.search("^stage$", "stage1")
-    if ret:
-        print(ret.group())
-    else:
-        print("匹配失败")
 
 

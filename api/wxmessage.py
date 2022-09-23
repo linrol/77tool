@@ -1,4 +1,3 @@
-import re
 from redisclient import get_branch_mapping
 
 menu_help = {
@@ -131,10 +130,9 @@ build_group_mapping = {"all": ['framework', 'enterprise', 'enterprise-apps', 'en
                        "apps": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api']
                        }
 
-target_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
-
 import unicodedata as ucd
 from xml.etree.ElementTree import fromstring
+from redisclient import get_user_id
 
 def xml2dirt(raw_xml):
     data = {}
@@ -193,14 +191,19 @@ def get_build_dirt(msg_content):
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     target_branch = branch_map.get('目标分支')
+    mapping = get_branch_mapping()
+    source_branch = None
     target_name = None
     target_date = None
-    mapping = get_branch_mapping()
-    if re.search(target_branch, target_regex):
-        target_date = re.search(target_branch, target_regex).group()
-        target_name = target_branch.replace(target_date, "")
-    if target_date is None or target_name not in ",".join(mapping.values()):
-        raise Exception("目标分支非值班系列【{}】".format(",".join(mapping.values())))
+    for k, v in mapping.items():
+        if k in target_branch:
+            source_branch = v
+            target_name = k
+            target_date = target_branch.replace(k, "")
+    if target_name is None or target_date is None:
+        raise Exception("目标分支非值班系列【{}】".format(",".join(mapping.keys())))
+    if len(target_date) != 8:
+        raise Exception("目标分支上线日期解析错误，请检查分支名称")
     group = branch_map.get('模块类型', 'all')
     if group not in build_group_mapping.keys():
         raise Exception("模块类型异常，必须是all,global,apps其中之一")
@@ -213,7 +216,7 @@ def get_build_dirt(msg_content):
         path = ".{}@{}".format(group, "platform")
     else:
         path = None
-    return branch_map.get('目标分支'), group_list, path, is_build
+    return source_branch, branch_map.get('目标分支'), group_list, path, is_build
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
     task_info_list = [{
