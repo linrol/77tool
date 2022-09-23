@@ -49,13 +49,13 @@ class Task:
                 project_names, target))
         return ",".join(need_project_list)
 
-    def check_new_branch(self, source_branch, target_branch):
-        tips = "\n您是否需要拉特性分支，如需请按以下格式初始化特性分支：" + \
+    def check_new_branch(self, source_branch, target_branch, user_name):
+        tips = "\n是否需要拉特性分支，如需请按以下格式初始化：" + \
+               "\n===================================" + \
                "\n初始化特性分支" + \
-               "\n来源分支：输入基于哪个分支拉取" + \
-               "\n目标分支：输入拉取的特性分支名称" + \
-               "\n分支版本：请为特性分支定义唯一字符作为第四位版本号(建议纯字符串)" + \
-               "\n分支管理：输入特性分支负责人(中文)，用于审批拉分支请求"
+               "\n来源分支：" + source_branch + \
+               "\n目标分支：" + target_branch + \
+               "\n分支负责人：" + user_name
         mapping = get_branch_mapping()
         match_source = None
         match_target = []
@@ -66,14 +66,14 @@ class Task:
             match_source = match.group()
             match_target = v.split(",")
         if match_source is None:
-            raise Exception("来源分支非值班系列【{}】，{}".format(",".join(mapping.keys()), tips))
+            raise Exception("来源分支非值班系列【{}】{}".format(",".join(mapping.keys()), tips))
         target_name = None
         target_date = None
-        if re.search(target_branch, target_regex):
-            target_date = re.search(target_branch, target_regex).group()
+        if re.search(target_regex, target_branch):
+            target_date = re.search(target_regex, target_branch).group()
             target_name = target_branch.replace(target_date, "")
         if target_date is None or target_name not in match_target:
-            raise Exception("目标分支非值班系列【{}】，{}".format(",".join(mapping.values()), tips))
+            raise Exception("目标分支非值班系列【{}】{}".format(",".join(match_target), tips))
         now = datetime.now().strftime("%Y%m%d")
         if int(now) > int(target_date):
             raise Exception("目标分支的上线日期须大于等于当天，请检查分支名称日期")
@@ -90,7 +90,7 @@ class Task:
                                                     project_names,
                                                     *feature_info)
             need_projects = self.get_new_project(target, project_names)
-            self.check_new_branch(source, target)
+            self.check_new_branch(source, target, req_user_name)
             task_id = "{}@{}@{}@{}".format(req_user_id, source, target,
                                            int(time.time()))
             notify_duty, notify_req = build_create_branch__msg(req_user_id,

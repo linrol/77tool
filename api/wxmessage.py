@@ -182,7 +182,7 @@ def get_branch_dirt(msg_content):
 
 def get_init_feature_dirt(msg_content):
     init_feature = get_map(msg_content.split('\n'), False)
-    require_keys = {"来源分支", "目标分支", "分支版本", "分支管理"}.difference(init_feature.keys())
+    require_keys = {"来源分支", "目标分支", "分支负责人"}.difference(init_feature.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     return init_feature
@@ -196,8 +196,8 @@ def get_build_dirt(msg_content):
     target_name = None
     target_date = None
     mapping = get_branch_mapping()
-    if re.search(target_branch, target_regex):
-        target_date = re.search(target_branch, target_regex).group()
+    if re.search(target_regex, target_branch):
+        target_date = re.search(target_regex, target_branch).group()
         target_name = target_branch.replace(target_date, "")
     if target_date is None or target_name not in ",".join(mapping.values()):
         raise Exception("目标分支非值班系列【{}】".format(",".join(mapping.values())))

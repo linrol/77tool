@@ -1,3 +1,6 @@
+import random
+import string
+
 from shell import Shell
 from task import Task
 from log import logger
@@ -169,11 +172,11 @@ class Handler:
             target = init_feature.get("目标分支")
             source = init_feature.get("来源分支")
             prefix = Task().get_branch_version(source).get("framework")
-            version = "{}.{}".format(prefix.replace("-SNAPSHOT", ""),
-                                     init_feature.get("分支版本"))
-            if "SNAPSHOT" not in version:
-                version += '-SNAPSHOT'
-            approve_user = init_feature.get("分支管理")
+            str_range = string.ascii_letters + string.digits
+            last_version = ''.join(random.sample(str_range, 6))
+            version = "{}.{}-SNAPSHOT".format(prefix.replace("-SNAPSHOT", ""),
+                                              last_version)
+            approve_user = init_feature.get("分支负责人")
             value = "{}@{}@{}".format(source, version, approve_user)
             hmset("q7link-branch-feature", {target: value})
             self.crop.send_text_msg(self.user_id, "特性分支初始化成功，现在您发起拉分支请求了")
