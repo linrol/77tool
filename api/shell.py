@@ -5,7 +5,7 @@ import time
 
 from concurrent.futures import ThreadPoolExecutor
 
-from redisclient import add_mr, get_mr_ids, delete_mr, hget
+from redisclient import add_mr, get_mr_ids, delete_mr
 from MethodUtil import add_method
 from log import logger
 from redisclient import redisClient
@@ -102,6 +102,11 @@ class Shell(utils.ProjectInfo):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             init_branch = self.init_branch()
+            is_feature_branch = fixed_version is not None
+            if is_feature_branch:
+                gen_params = "-v {}".format(fixed_version)
+            else:
+                gen_params = "-f"
             [ret, checkout_msg] = self.checkout_branch(self.source_branch)
             if ret != 0:
                 return False, checkout_msg
@@ -110,9 +115,7 @@ class Shell(utils.ProjectInfo):
             [ret, create_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, create_msg
-            cmd = 'cd ../branch;python3 genVersion.py -f -s {} -t {} -p {}'.format(self.source_branch, self.target_branch, ",".join(project_names))
-            if fixed_version is not None:
-                cmd = 'cd ../branch;python3 genVersion.py -v {} -s {} -t {} -p {}'.format(fixed_version, self.source_branch, self.target_branch, ",".join(project_names))
+            cmd = 'cd ../branch;python3 genVersion.py {} -s {} -t {} -p {}'.format(gen_params, self.source_branch, self.target_branch, ",".join(project_names))
             logger.info("create_branch[{}]".format(cmd))
             [ret, gen_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
@@ -124,7 +127,7 @@ class Shell(utils.ProjectInfo):
             [ret, change_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, change_version_msg
-            self.commit_and_push(self.target_branch, 'hotfix')
+            self.commit_and_push(self.target_branch, 'dev' if is_feature_branch else 'hotfix')
             try:
                 if not self.is_test:
                     params = {"branch": self.target_branch, "byCaller": "值班助手"}
