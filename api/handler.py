@@ -172,8 +172,7 @@ class Handler:
             target = init_feature.get("目标分支")
             source = init_feature.get("来源分支")
             prefix = Task().get_branch_version(source).get("framework")
-            str_range = string.ascii_letters + string.digits
-            last_version = ''.join(random.sample(str_range, 6))
+            last_version = ''.join(random.sample(string.ascii_letters, 6))
             version = "{}.{}-SNAPSHOT".format(prefix.replace("-SNAPSHOT", ""),
                                               last_version)
             approve_user = init_feature.get("分支负责人")
