@@ -52,7 +52,7 @@ class Task:
     def check_new_branch(self, source_branch, target_branch, user_name):
         tips = "\n是否需要拉特性分支，如需请按以下格式初始化：" + \
                "\n===================================" + \
-               "\n初始化特性分支" + \
+               "\n操　　作：初始化特性分支" + \
                "\n来源分支：" + source_branch + \
                "\n目标分支：" + target_branch + \
                "\n分支负责人：" + user_name

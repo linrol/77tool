@@ -178,7 +178,7 @@ class Handler:
             approve_user = init_feature.get("分支负责人")
             value = "{}@{}@{}".format(source, version, approve_user)
             hmset("q7link-branch-feature", {target: value})
-            self.crop.send_text_msg(self.user_id, "特性分支初始化成功，现在您发起拉分支请求了")
+            self.crop.send_text_msg(self.user_id, "分支初始化成功，请重新发起拉分支请求")
         except Exception as err:
             print(str(err))
             # 发送消息通知
