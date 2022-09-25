@@ -109,7 +109,7 @@ class CheckVersion(Common):
                 if not is_correct:
                     node = node.next
                     continue
-                correct_p_v = p + ":" + node.inc_next_version
+                correct_p_v = p + ":" + node.inc_next_version(1)
                 correct.setdefault(node.branch, []).append(correct_p_v)
                 node = node.next
 
