@@ -206,7 +206,7 @@ class Task:
         ret, msg = Shell(self.is_test, user_id).check_version(branch_names)
         logger.info(branch + ":" + msg)
         if not ret:
-            send_text_msg(user_id, msg + "\n请注意可能需要手动调整!!!")
+            send_text_msg(user_id, msg)
         return ret, msg
 
     def clear_dirty_branch(self, user_id, branch_name, send_text_msg):
