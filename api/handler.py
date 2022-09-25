@@ -135,7 +135,7 @@ class Handler:
 
     def build_package(self):
         try:
-            duty_user_id, name = self.crop.get_duty_info("backend", self.is_test)
+            duty_user_id, name = self.crop.get_duty_info(self.is_test, [])
             if self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
             target, params, protect, is_build = get_build_dirt(self.msg_content)
@@ -154,7 +154,9 @@ class Handler:
     def new_branch_task(self):
         try:
             req_user = (self.user_id, self.user_name)
-            duty_user = self.crop.get_duty_info("backend", self.is_test)
+            fixed_ids = ["LuoLin", "XieXiaNiDeGuanYu",
+                              "yunpeng.liu@q7link.com"]
+            duty_user = self.crop.get_duty_info(self.is_test, fixed_ids)
             task_info = req_user + duty_user + get_branch_dirt(self.msg_content)
             ret = Task(self.is_test).new_branch_task(self.crop, *task_info)
             self.crop.send_text_msg(self.user_id, ret)

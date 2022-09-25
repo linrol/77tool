@@ -111,17 +111,19 @@ class Crop:
     return self.send_message(to_user, 'markdown', {"content": content})
 
 
-  def get_duty_info(self, role, is_test):
+  def get_duty_info(self, is_test, fixed_user_ids):
     if self.isdev or is_test:
       return "LuoLin", "罗林"
     else:
       body = get("http://10.0.144.51:5000/api/verify/duty/users")
-      role_duty_info = body.get("data").get(role)
-      duty_user_ids = ["LuoLin", "XieXiaNiDeGuanYu", "yunpeng.liu@q7link.com"]
+      role_duty_info = body.get("data").get("backend")
+      duty_user_ids = []
       duty_user_names = []
       for duty in role_duty_info:
         duty_user_ids.append(duty.get("user_id"))
         duty_user_names.append(duty.get("user_name"))
+      if len(fixed_user_ids) > 0:
+        duty_user_ids.extend(fixed_user_ids)
       return "|".join(duty_user_ids), ",".join(duty_user_names)
 
   def get_gitlab_user_id(self, user_key):
