@@ -68,6 +68,25 @@ class GenVersion(Common):
             print(str(err))
             return {}
 
+    def get_branch_offset(self, project_name, target_prefix, target_min):
+        if self.target_name != "stage-patch":
+            return 0
+        try:
+            offset_branch = "emergency" + self.target_date
+            offset_version = self.get_branch_version(offset_branch, True)
+            if project_name not in offset_version.keys():
+                return 0
+            opv = offset_version.get(project_name)
+            if target_prefix != opv[0]:
+                return 0
+            opv_min = int(opv[1].replace("-SNAPSHOT", ""))
+            if target_min > opv_min:
+                return 0
+            return opv_min - target_min + 1
+        except Exception as e:
+            print(str(e))
+            return 0
+
     def factory_day(self):
         target_date_full = self.target_date + "235959"
         date_target = datetime.strptime(target_date_full, "%Y%m%d%H%M%S")
@@ -132,6 +151,8 @@ class GenVersion(Common):
                                                         source_prefix,
                                                         source_min, False)
         target_min = source_min + inc_version
+        offset = self.get_branch_offset(project_name, target_prefix, target_min)
+        target_min = target_min + offset
         if last_target_min is None and next_target_min is None:
             return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
         if last_target_min is not None and next_target_min is not None:
