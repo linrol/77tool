@@ -8,6 +8,7 @@ from log import logger
 from wxcrop import Crop
 from handler import Handler
 from task import Task
+from redisclient import duplicate_correct_id
 executor = ThreadPoolExecutor()
 app = Flask(__name__)
 scheduler = APScheduler()
@@ -56,8 +57,8 @@ def gitlab_hook():
     if not update_config:
         return "not update version"
     branch = body.get('ref').rsplit("/", 1)[1]
-    duty_user_id, _ = crop.get_duty_info("backend", True)
-    executor.submit(Task().check_version, 'LuoLin', branch, crop.send_text_msg)
+    user_ids, _ = crop.get_duty_info("backend", True)
+    executor.submit(Task().check_version, user_ids, branch, crop)
     return make_response("success")
 
 
@@ -65,20 +66,23 @@ def gitlab_hook():
 def branch_clear():
     user_id = request.args.get('user_id')
     branch = request.args.get('branch')
-    executor.submit(Task().clear_dirty_branch, user_id, branch, crop.send_text_msg)
+    executor.submit(Task().clear_dirty_branch, user_id, branch, crop)
     return make_response("success")
 
 
 @app.route("/branch/correct", methods=["GET"])
 def branch_correct():
     try:
+        correct_id = request.args.get('correct_id')
+        user_id = request.args.get('user_id')
         branch = request.args.get('branch')
         project = request.args.get('project')
-        ret = Task().branch_correct(branch, project)
-        return make_response(ret)
+        if duplicate_correct_id(correct_id, branch, project):
+            raise Exception("请不要重复校正版本号")
+        executor.submit(Task().branch_correct, user_id, branch, project, crop)
+        return make_response("success")
     except Exception as err:
         print(str(err))
-        # 发送消息通知
         return make_response(str(err))
 
 
@@ -87,7 +91,8 @@ def branch_correct():
 def job_check_version():
     cur_time = datetime.datetime.now()
     branch = 'sprint' + cur_time.strftime('%Y%m%d')
-    Task().check_version('LuoLin', branch, crop.send_text_msg)
+    user_ids, _ = crop.get_duty_info("backend", True)
+    Task().check_version(user_ids, branch, crop)
 
 
 @app.route("/callback/<action>", methods=["GET"])
@@ -97,10 +102,7 @@ def verify(action: str):
     nonce = request.args.get('nonce')
     echo_str = request.args.get('echostr')
     ret, echo_str = crypt.VerifyURL(msg_signature, timestamp, nonce, echo_str)
-    if ret == 0:
-        return echo_str.decode('utf-8')
-    else:
-        return "error"
+    return echo_str.decode('utf-8') if ret == 0 else "error"
 
 
 @app.route("/callback/data", methods=["POST"])

@@ -2,6 +2,7 @@
 import datetime
 import getopt
 import sys
+import uuid
 from itertools import zip_longest
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -112,13 +113,14 @@ class CheckVersion(Common):
                 correct_p_v = p + ":" + node.inc_next_version(1)
                 correct.setdefault(node.branch, []).append(correct_p_v)
                 node = node.next
-
-        correct_url = "https://branch.linrol.cn/branch/correct?"
+        host = "https://branch.linrol.cn/branch/correct?correct_id={}&user_id=&branch={}&project={}"
         correct_msg = "======================================" + \
                       "\n是否自动校正【{}】分支版本号\n" + \
-                      "<a href=\"{}branch={}&project={}\">点击校正</a>"
+                      "<a href=\"{}\">点击校正</a>"
         for b, pv in correct.items():
-            print(correct_msg.format(b, correct_url, b, ",".join(pv)))
+            correct_id = ''.join(str(uuid.uuid4()).split('-'))
+            correct_url = host.format(correct_id, b, ",".join(pv))
+            print(correct_msg.format(b, correct_url))
         return compare_ret
 
 

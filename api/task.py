@@ -181,7 +181,7 @@ class Task:
         return config_yaml
 
     # 检查版本号
-    def check_version(self, user_id, branch, send_text_msg):
+    def check_version(self, user_ids, branch, crop):
         branch_name = None
         branch_date = None
         for name in branch_check_list:
@@ -203,17 +203,19 @@ class Task:
         branch_names = ",".join(branch_list)
         if len(branch_list) < 2:
             return True, "branch({}) length less than one".format(branch_names)
-        ret, msg = Shell(self.is_test, user_id).check_version(branch_names)
+        ret, msg = Shell(self.is_test, user_ids).check_version(branch_names)
         logger.info(branch + ":" + msg)
         if not ret:
-            send_text_msg(user_id, msg)
+            for user_id in user_ids.split("|"):
+                user_msg = msg.replace("user_id=", "user_id={}".format(user_id))
+                crop.send_text_msg(user_id, user_msg)
         return ret, msg
 
-    def clear_dirty_branch(self, user_id, branch_name, send_text_msg):
+    def clear_dirty_branch(self, user_id, branch_name, crop):
         if branch_name in ('stage', 'master', 'master1'):
             return
         ret, msg = Shell(self.is_test, user_id).clear_branch(branch_name)
-        send_text_msg(user_id, msg)
+        crop.send_text_msg(user_id, msg)
 
     # 发生清理脏分支通知
     def clear_dirty_branch_notice(self, crop):
@@ -274,26 +276,13 @@ class Task:
             hmset("q7link-branch-created", branch_created)
 
     # 校正分支版本号
-    def branch_correct(self, branch, project):
-        shell = Shell(self.is_test, 'backend-ci', "master", branch)
-        _, msg = shell.build_package("correct={}".format(project),
-                                          "hotfix", True)
+    def branch_correct(self, user_id, branch, project, crop):
+        shell = Shell(self.is_test, user_id, "master", branch)
+        _, msg = shell.build_package("correct={}".format(project), "hotfix",
+                                     True)
         logger.info("branch correct [{}] [{}] ret[{}]".format(branch, project,
                                                               msg))
+        crop.send_text_msg(user_id, msg)
         return msg
-
-
-if __name__ == "__main__":
-    ret = re.search("20[2-9][0-9][0-1][0-9][0-3][0-9]$", "sprint20220923")
-    if ret:
-        print(ret.group())
-    else:
-        print("匹配失败")
-
-    ret = re.search("^stage$", "stage1")
-    if ret:
-        print(ret.group())
-    else:
-        print("匹配失败")
 
 

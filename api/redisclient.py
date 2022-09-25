@@ -38,6 +38,17 @@ def duplicate_msg(msg):
     return is_accept
 
 
+def duplicate_correct_id(correct_id, branch, project):
+    if correct_id is None:
+        return False
+    connection = redisClient.get_connection()
+    is_accept = connection.hexists("q7link-branch-correct-log", correct_id)
+    if not is_accept:
+        content = branch + project
+        connection.hmset("q7link-branch-correct-log", {correct_id: content})
+    return is_accept
+
+
 def add_mr(key, mr_id):
     connection = redisClient.get_connection()
     mr_ids = get_mr_ids(key)
