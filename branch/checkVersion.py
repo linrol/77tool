@@ -114,8 +114,9 @@ class CheckVersion(Common):
                 node = node.next
 
         correct_url = "https://branch.linrol.cn/branch/correct?"
-        correct_msg = "\n是否自动校正【{}】分支版本号\n" + \
-                  "<a href=\"{}branch={}&project={}\">点击校正</a>"
+        correct_msg = "======================================" + \
+                      "\n是否自动校正【{}】分支版本号\n" + \
+                      "<a href=\"{}branch={}&project={}\">点击校正</a>"
         for b, pv in correct.items():
             print(correct_msg.format(b, correct_url, b, ",".join(pv)))
         return compare_ret
