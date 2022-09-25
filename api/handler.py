@@ -129,8 +129,8 @@ class Handler:
         shell = Shell(apply_user_id, self.is_test, source, target)
         ret, result = shell.create_branch(fixed_version, projects)
         # 发送消息通知
-        self.crop.send_text_msg(apply_user_id, str(result))
-        self.crop.send_text_msg(self.user_id, str(result))
+        notify_user_ids = "|".join({self.user_id, apply_user_id})
+        self.crop.send_text_msg(notify_user_ids, str(result))
         return result
 
     def build_package(self):
