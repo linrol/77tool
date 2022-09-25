@@ -208,7 +208,7 @@ def get_build_dirt(msg_content):
     front_version = branch_map.get("前端预制", '').strip()
     group_list = build_group_mapping.get(group).copy()
     if len(front_version) > 0:
-        group_list.append("front-apps:reimburse={}".format(front_version))
+        group_list.append("front-apps=reimburse:{}".format(front_version))
     if group != 'all':
         protect = "none.{}@{}".format(group, "platform")
     else:

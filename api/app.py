@@ -69,6 +69,19 @@ def branch_clear():
     return make_response("success")
 
 
+@app.route("/branch/correct", methods=["GET"])
+def branch_correct():
+    try:
+        branch = request.args.get('branch')
+        project = request.args.get('project')
+        ret = Task().branch_correct(branch, project)
+        return make_response(ret)
+    except Exception as err:
+        print(str(err))
+        # 发送消息通知
+        return make_response(str(err))
+
+
 @scheduler.task('cron', id='job_check_version', week='*', day_of_week='0-6',
                 hour='8-22', minute='0', timezone='Asia/Shanghai')
 def job_check_version():

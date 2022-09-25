@@ -273,8 +273,18 @@ class Task:
                 continue
             hmset("q7link-branch-created", branch_created)
 
+    # 校正分支版本号
+    def branch_correct(self, branch, project):
+        shell = Shell(self.is_test, 'backend-ci', "master", branch)
+        _, msg = shell.build_package("correct={}".format(project),
+                                          "hotfix", True)
+        logger.info("branch correct [{}] [{}] ret[{}]".format(branch, project,
+                                                              msg))
+        return msg
+
+
 if __name__ == "__main__":
-    ret = re.search("20[2-9][0-9][0-1][0-9][0-3][0-9]$", "sprintadasd20220923")
+    ret = re.search("20[2-9][0-9][0-1][0-9][0-3][0-9]$", "sprint20220923")
     if ret:
         print(ret.group())
     else:
