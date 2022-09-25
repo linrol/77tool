@@ -213,7 +213,7 @@ def get_build_dirt(msg_content):
         protect = "none.{}@{}".format(group, "platform")
     else:
         protect = "none"
-    return branch_map.get('目标分支'), group_list, protect, is_build
+    return branch_map.get('目标分支'), " ".join(group_list), protect, is_build
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
     task_info_list = [{

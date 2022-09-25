@@ -158,13 +158,13 @@ class Shell(utils.ProjectInfo):
         except Exception as err:
             return False, str(err)
 
-    def build_package(self, group, protect, is_build):
+    def build_package(self, params, protect, is_build):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             [ret, checkout_msg] = self.checkout_branch(self.target_branch)
             if ret != 0:
                 return False, checkout_msg
-            cmd = 'cd ../branch;python3 releaseVersion.py {} {} {}'.format(self.source_branch, self.target_branch, " ".join(group))
+            cmd = 'cd ../branch;python3 releaseVersion.py {} {} {}'.format(self.source_branch, self.target_branch, params)
             logger.info("build_package[{}]".format(cmd))
             [ret, release_version_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
