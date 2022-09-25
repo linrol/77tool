@@ -86,7 +86,8 @@ class CheckVersion(Common):
                     print(check_msg.format(p_name, "{}.{}".format(t_version[0], t_version[1]), check_branch))
         return is_duplicate
 
-    def compare_version(self, branch_dict):
+    def compare_version(self, branch_dict, is_correct=False):
+        correct = {}
         compare_ret = set()
         compare_msg = "工程【{}】分支版本号【{}】落后于分支版本号【{}】"
         project_version = {}
@@ -100,10 +101,23 @@ class CheckVersion(Common):
         for p, link in project_version.items():
             node = link.head
             while node is not None:
-                if node.before_next():
-                    compare_ret.add(p)
-                    print(compare_msg.format(p, node, node.next))
+                if not node.before_next():
+                    node = node.next
+                    continue
+                compare_ret.add(p)
+                print(compare_msg.format(p, node, node.next))
+                if not is_correct:
+                    node = node.next
+                    continue
+                correct_p_v = p + ":" + node.inc_next_version
+                correct.setdefault(node.branch, []).append(correct_p_v)
                 node = node.next
+
+        correct_url = "https://branch.linrol.cn/branch/correct?"
+        correct_msg = "\n是否自动校正分支【{}】版本号\n" + \
+                  "<a href=\"{}branch={}&project={}\">点击校正</a>"
+        for b, p in correct:
+            print(correct_msg.format(b, b, correct_url, ",".join(p)))
         return compare_ret
 
 
@@ -137,7 +151,7 @@ if __name__ == "__main__":
         print('enjoy！版本号冲突检查通过')
     elif check_type == "compare":
         compare_dict = dict(zip_longest(branch.split(","), [], fillvalue=True))
-        if len(check.compare_version(compare_dict)) > 0:
+        if len(check.compare_version(compare_dict, True)) > 0:
             sys.exit(1)
         print('enjoy！版本号比较检查通过')
     else:

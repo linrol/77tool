@@ -138,9 +138,9 @@ class Handler:
             duty_user_id, name = self.crop.get_duty_info("backend", self.is_test)
             if self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
-            target, group, path, is_build = get_build_dirt(self.msg_content)
+            target, group, protect, is_build = get_build_dirt(self.msg_content)
             shell = Shell(self.user_id, self.is_test, 'master', target)
-            ret, result = shell.build_package(group, path, is_build)
+            ret, result = shell.build_package(group, protect, is_build)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(result))
             return result

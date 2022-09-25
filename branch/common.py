@@ -42,6 +42,13 @@ class Node(object):
     def __str__(self):
         return "{}({}.{})".format(self.branch, self.version[0], self.version[1])
 
+    def inc_next_version(self, inc):
+        next_prefix = self.next.version[0].split(".")
+        next_last = self.next.version[1].replace("-SNAPSHOT", "")
+        inc_next_last = int(next_last) + inc
+        return next_prefix + self.next.version[1].replace(next_last,
+                                                          inc_next_last)
+
 
 class LinkedList(object):
     def __init__(self, head=None):

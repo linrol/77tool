@@ -51,7 +51,7 @@ class GenVersion(Common):
             result.add(name)
         if self.force:
             compare_dict = {self.target: True, self.source: False}
-            force_project = CheckVersion().compare_version(compare_dict)
+            force_project = CheckVersion().compare_version(compare_dict, False)
             if len(force_project) > 0:
                 result.update(force_project)
         return list(result)

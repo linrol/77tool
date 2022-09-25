@@ -22,11 +22,14 @@ class ReleaseVersion(Common):
     def execute(self):
         try:
             replace_version = {}
-            for pv in self.group.values():
+            for gp in list(self.group.keys()):
+                if len(self.group.get(gp)) < 1:
+                    continue
+                pv = self.group.pop(gp, {})
                 for p, v in pv.items():
                     replace_version[p] = v
                     print("工程【{}】自身版本修改为【{}】".format(p, v))
-            self.group.pop("front-apps", "")
+
             for k, v in self.target_version.items():
                 group_name = self.branch_group.get(k)
                 if group_name not in self.group.keys():
