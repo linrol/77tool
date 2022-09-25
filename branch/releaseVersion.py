@@ -66,5 +66,5 @@ if __name__ == "__main__":
             if len(gv) < 2:
                 project_group[g] = {}
                 continue
-            project_group[g] = dict(i.split(":") for i in gv[1].split(";"))
+            project_group[g] = dict(i.split(":") for i in gv[1].split(","))
         ReleaseVersion(source_branch, target_branch, project_group).execute()
