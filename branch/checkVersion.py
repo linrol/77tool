@@ -116,8 +116,8 @@ class CheckVersion(Common):
         correct_url = "https://branch.linrol.cn/branch/correct?"
         correct_msg = "\n是否自动校正分支【{}】版本号\n" + \
                   "<a href=\"{}branch={}&project={}\">点击校正</a>"
-        for b, p in correct:
-            print(correct_msg.format(b, b, correct_url, ",".join(p)))
+        for b, pv in correct:
+            print(correct_msg.format(b, b, correct_url, ",".join(pv)))
         return compare_ret
 
 
