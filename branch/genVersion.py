@@ -120,14 +120,15 @@ class GenVersion(Common):
                                                             self.source))
         source_prefix = source_version[0]
         target_prefix = target_version[0]
+        source_min = source_version[1]
+        target_min = target_version[1]
         if source_prefix != target_prefix:
             err_info = "{}({}),{}({})".format(self.source, source_prefix,
                                               self.target, target_prefix)
             print("工程【{}】来源和目标分支版本号前缀不一致【{}】".format(
                 project_name, err_info))
-            return None
-        source_min = source_version[1]
-        target_min = target_version[1]
+            source_inc = int(source_min.replace("-SNAPSHOT", "")) + inc_version
+            return "{}.{}-SNAPSHOT".format(source_prefix, source_inc)
         if "SNAPSHOT" in target_min and not self.force:
             print("工程【{}】目标分支【{}】已为快照版本【{}】".format(project_name,
                                                                 self.target,
