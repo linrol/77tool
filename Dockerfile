@@ -1,11 +1,13 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 MAINTAINER jhao104 "linrolgmail@gmail.com"
+
+RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list
 
 RUN apt-get update -y && \
     apt-get install -y software-properties-common &&  \
     add-apt-repository ppa:deadsnakes/ppa &&  \
-    apt-get install -y python3.8
+    apt-get install -y python3.7
 
 COPY ./requirements.txt /requirements.txt
 
