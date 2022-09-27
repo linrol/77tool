@@ -9,8 +9,7 @@ COPY ./requirements.txt /requirements.txt
 
 WORKDIR /
 
-RUN pip3 install -r requirements.txt
-RUN pip3 install -r requirements.txt -i http://mirrors.cloud.tencent.com/pypi/simple --trusted-host mirrors.cloud.tencent.com
+RUN pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn
 
 COPY . /
 
