@@ -3,7 +3,9 @@ FROM ubuntu:16.04
 MAINTAINER jhao104 "linrolgmail@gmail.com"
 
 RUN apt-get update -y && \
-apt-get install -y python3-pip python3-dev
+    apt-get install software-properties-common &&  \
+    add-apt-repository ppa:deadsnakes/ppa &&  \
+    apt-get install python3.8
 
 COPY ./requirements.txt /requirements.txt
 
