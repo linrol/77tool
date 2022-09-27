@@ -13,6 +13,6 @@ RUN pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 COPY . /
 
-# ENTRYPOINT [ "python3" ]
+ENTRYPOINT [ "python3" ]
 
-# CMD [ "api/app.py" ]
+CMD [ "api/app.py" ]
