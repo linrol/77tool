@@ -3,7 +3,7 @@ FROM ubuntu:16.04
 MAINTAINER jhao104 "linrolgmail@gmail.com"
 
 RUN apt-get update -y && \
-    apt-get install software-properties-common &&  \
+    apt-get install -y software-properties-common &&  \
     add-apt-repository ppa:deadsnakes/ppa &&  \
     apt-get install -y python3.8
 
