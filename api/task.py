@@ -11,6 +11,7 @@ from redisclient import save_create_branch_task, get_branch_mapping, hmset, hget
 
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
+sys.path.append(r"../../branch-manage")
 from branch import utils
 
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]

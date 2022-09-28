@@ -13,6 +13,7 @@ from redislock import RedisLock
 from request import post_form
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
+sys.path.append(r"../../branch-manage")
 from branch import utils
 
 executor = ThreadPoolExecutor()
