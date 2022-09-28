@@ -1,2 +1,6 @@
 flask
+flask-apscheduler
 requests
+redis
+pyyaml
+python-gitlab==2.10.0
