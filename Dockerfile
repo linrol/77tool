@@ -4,14 +4,6 @@ MAINTAINER jhao104 "linrolgmail@gmail.com"
 
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.cloud.tencent.com/@g /etc/apt/sources.list
 
-# set utf-8
-RUN apt install language-pack-zh-hans -y
-RUN echo "export LC_ALL=zh_CN.utf8" > /etc/locale.conf
-RUN echo "export LANG=zh_CN.utf8" > /etc/locale.conf
-RUN echo "export LANGUAGE=zh_CN.utf8" > /etc/locale.conf
-ENV LANG zh_CN.UTF-8
-ENV LC_ALL zh_CN.UTF-8
-
 # Update apt packages
 RUN apt update
 RUN apt upgrade -y
@@ -45,6 +37,14 @@ USER root
 WORKDIR /data/backend/branch-manage/
 COPY . ./
 RUN pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn
+
+# set utf-8
+RUN apt install language-pack-zh-hans -y
+RUN echo "export LC_ALL=zh_CN.utf8" > /etc/locale.conf
+RUN echo "export LANG=zh_CN.utf8" > /etc/locale.conf
+RUN echo "export LANGUAGE=zh_CN.utf8" > /etc/locale.conf
+ENV LANG zh_CN.UTF-8
+ENV LC_ALL zh_CN.UTF-8
 
 # run
 WORKDIR /data/backend/branch-manage/api/
