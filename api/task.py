@@ -48,7 +48,7 @@ class Task:
         if len(need_project_list) < 1:
             raise Exception("ERROR: \n" + "工程【{}】目标分支【{}】已存在!!!".format(
                 project_names, target))
-        return ",".join(need_project_list)
+        return need_project_list
 
     def check_new_branch(self, source_branch, target_branch, user_name):
         tips = "\n是否需要拉特性分支，如需请按以下格式初始化：" + \
@@ -80,33 +80,37 @@ class Task:
             raise Exception("目标分支的上线日期须大于等于当天，请检查分支名称日期")
 
     # 创建拉值班分支的任务
-    def new_branch_task(self, crop, req_user_id, req_user_name, duty_user_id,
-        duty_user_name, source, target, project_names):
+    def new_branch_task(self, crop, req_id, req_name, duty_id, duty_name,
+        source, target, project_names):
         try:
             feature_info = self.get_feature_branch(source, target, crop)
             if feature_info is not None:
-                return self.new_feature_branch_task(crop, req_user_id,
-                                                    req_user_name,
+                return self.new_feature_branch_task(crop, req_id, req_name,
                                                     source, target,
                                                     project_names,
                                                     *feature_info)
+            self.check_new_branch(source, target, req_name)
             need_projects = self.get_new_project(target, project_names)
-            self.check_new_branch(source, target, req_user_name)
-            task_id = "{}@{}@{}@{}".format(req_user_id, source, target,
-                                           int(time.time()))
-            notify_duty, notify_req = build_create_branch__msg(req_user_id,
-                                                               req_user_name,
-                                                               duty_user_name,
-                                                               task_id, source,
-                                                               target,
-                                                               need_projects)
-            # 发送值班人审核通知
-            body = crop.send_template_card(duty_user_id, notify_duty)
-            # 记录任务
-            task_code = body.get("response_code")
-            task_content = "{}@{}@{}".format(task_code, need_projects,
-                                             str(self.is_test))
-            save_create_branch_task(task_id, task_content)
+            split = self.split_by_priority(source, target, need_projects)
+            notify_req = None
+            for priority, projects in split.items():
+                task_id = "{}@{}@{}@{}".format(req_id, priority, target,
+                                               int(time.time()))
+                project_str = ",".join(projects)
+                notify_duty, notify_req = build_create_branch__msg(req_id,
+                                                                   req_name,
+                                                                   duty_name,
+                                                                   task_id,
+                                                                   priority,
+                                                                   target,
+                                                                   project_str)
+                # 发送值班人审核通知
+                body = crop.send_template_card(duty_id, notify_duty)
+                # 记录任务
+                task_code = body.get("response_code")
+                task_content = "{}@{}@{}".format(task_code, project_str,
+                                                 str(self.is_test))
+                save_create_branch_task(task_id, task_content)
             return notify_req
         except Exception as err:
             return str(err)
@@ -114,7 +118,7 @@ class Task:
     # 创建拉特性分支的任务
     def new_feature_branch_task(self, crop, req_user_id, req_user_name,
         source, target, project_names, version, approve_id, approve_name):
-        need_projects = self.get_new_project(target, project_names)
+        project_str = ",".join(self.get_new_project(target, project_names))
         task_id = "{}@{}@{}@{}".format(req_user_id, source, target,
                                        int(time.time()))
         notify_approve, notify_req = build_create_branch__msg(req_user_id,
@@ -123,12 +127,12 @@ class Task:
                                                               task_id,
                                                               source,
                                                               target,
-                                                              need_projects)
+                                                              project_str)
         # 发送分支负责人审核通知
         body = crop.send_template_card(approve_id, notify_approve)
         # 记录任务
         task_code = body.get("response_code")
-        task_content = "{}@{}@{}@{}".format(task_code, need_projects,
+        task_content = "{}@{}@{}@{}".format(task_code, project_str,
                                             str(self.is_test), version)
         save_create_branch_task(task_id, task_content)
         return notify_req
@@ -285,5 +289,20 @@ class Task:
                                                               msg))
         crop.send_text_msg(user_id, msg)
         return msg
+
+    # 拆分项目的来源分支
+    def split_by_priority(self, source, target, projects):
+        priority = hget("q7link-branch-split", "{}@{}".format(source, target))
+        if priority is None:
+            return {source: projects}
+        ret = {}
+        for p in projects:
+            priority_branch = self.projects.get(p).getBranch(priority)
+            if priority_branch is not None:
+                ret.setdefault(priority, []).append(p)
+            else:
+                ret.setdefault(source, []).append(p)
+        return ret
+
 
 
