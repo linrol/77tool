@@ -292,7 +292,9 @@ class Task:
 
     # 拆分项目的来源分支
     def split_by_priority(self, source, target, projects):
-        priority = hget("q7link-branch-split", "{}@{}".format(source, target))
+        target_name = target[:-8]
+        priority = hget("q7link-branch-priority", "{}@{}".format(source,
+                                                                 target_name))
         if priority is None:
             return {source: projects}
         ret = {}
@@ -303,6 +305,5 @@ class Task:
             else:
                 ret.setdefault(source, []).append(p)
         return ret
-
 
 
