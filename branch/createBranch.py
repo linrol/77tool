@@ -56,6 +56,7 @@ class CreateBranch:
 
   #创建分支
   def create_branch(self, projectInfo):
+    source_branch = self.sourceBranchName
     try:
       source_branch = projectInfo.createBranch(self.sourceBranchName, self.newBranchName)
       #设置分支保护
