@@ -5,32 +5,33 @@ MAINTAINER jhao104 "linrolgmail@gmail.com"
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.cloud.tencent.com/@g /etc/apt/sources.list
 
 # Update apt packages
-RUN apt update
-RUN apt upgrade -y
+RUN apt update && apt upgrade -y
 
 # Install python 3.7
-RUN apt install software-properties-common -y
-RUN add-apt-repository ppa:deadsnakes/ppa
-RUN apt install python3.9 -y
+RUN apt install software-properties-common -y && \
+    add-apt-repository ppa:deadsnakes/ppa &&  \
+    apt install python3.9 -y
 
 # Install pip
-RUN apt install python3-pip -y
-RUN python3 -m pip install --upgrade pip
+RUN apt install python3-pip -y &&  \
+    python3 -m pip install --upgrade pip
 
 # Install git
-RUN add-apt-repository ppa:git-core/ppa
-RUN apt update
-RUN apt install git -y
+RUN add-apt-repository ppa:git-core/ppa && \
+    apt update &&  \
+    apt install git -y
 
 # git clone sourcecode
 WORKDIR /data/
 COPY ./download.sh ./download.sh
 RUN ./download.sh
 
-# Install pg
-RUN apt install postgresql -y && apt install libpq-dev -y
+# Install pg and conifg pg
+RUN apt install postgresql -y &&  \
+    apt install libpq-dev -y
 USER postgres
-RUN /etc/init.d/postgresql start && psql --command "alter user postgres with password '123';"
+RUN /etc/init.d/postgresql start &&  \
+    psql --command "alter user postgres with password '123';"
 
 # Install pip packages
 USER root
@@ -39,10 +40,10 @@ COPY . ./
 RUN pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn
 
 # set utf-8
-RUN apt install language-pack-zh-hans -y
-RUN echo "export LC_ALL=zh_CN.utf8" > /etc/locale.conf
-RUN echo "export LANG=zh_CN.utf8" > /etc/locale.conf
-RUN echo "export LANGUAGE=zh_CN.utf8" > /etc/locale.conf
+RUN apt install language-pack-zh-hans -y &&  \
+    echo "export LC_ALL=zh_CN.utf8" > /etc/locale.conf &&  \
+    echo "export LANG=zh_CN.utf8" > /etc/locale.conf &&  \
+    echo "export LANGUAGE=zh_CN.utf8" > /etc/locale.conf
 ENV LANG zh_CN.UTF-8
 ENV LC_ALL zh_CN.UTF-8
 
