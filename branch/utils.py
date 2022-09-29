@@ -56,12 +56,14 @@ class ProjectInfo():
     return self.__project
 
   # 获取远端git仓库的分支信息
-  def getBranch(self, branchName):
-    try:
-      project = self.getProject()
-      return project.branches.get(branchName)
-    except gitlab.exceptions.GitlabGetError:
-      return None
+  def getBranch(self, branchNames):
+    for branch in branchNames.split("."):
+      try:
+        project = self.getProject()
+        return project.branches.get(branch)
+      except gitlab.exceptions.GitlabGetError:
+        pass
+    return None
 
   # 删除分支保护
   def deleteBranchProtect(self, branchName):
@@ -114,8 +116,14 @@ class ProjectInfo():
     })
 
   #创建分支
-  def createBranch(self, sourceBranchName, newBranchName):
-    self.getProject().branches.create({'branch': newBranchName,'ref': sourceBranchName})
+  def createBranch(self, sourceBranchNames, newBranchName):
+    for branch in sourceBranchNames.split("."):
+      try:
+        self.getProject().branches.create({'branch': newBranchName,'ref': branch})
+        return branch
+      except gitlab.exceptions.GitlabCreateError:
+        pass
+    return None
 
   #检查分支合并
   def checkMerge(self, sourceBranchName, targetBranchName):

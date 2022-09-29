@@ -58,7 +58,7 @@ class CreateBranch:
   #创建分支
   def create_branch(self, projectInfo):
     try:
-      projectInfo.createBranch(self.sourceBranchName, self.newBranchName)
+      source_branch = projectInfo.createBranch(self.sourceBranchName, self.newBranchName)
       #设置分支保护
       self.protect_branch(projectInfo)
       #删除本地分支
@@ -68,7 +68,7 @@ class CreateBranch:
     except Exception as e:
       print("ERROR: 项目：{}".format(projectInfo.getName()))
       traceback.print_exc()
-    print('工程【{}】基于分支【{}】创建分支【{}】成功'.format(projectInfo.getName(), self.sourceBranchName, self.newBranchName))
+    print('工程【{}】基于分支【{}】创建分支【{}】成功'.format(projectInfo.getName(), source_branch, self.newBranchName))
 
   #获取需要创建的工程（返回：ProjectInfo对象数组）
   def get_add_project(self, projectInfoMap):
