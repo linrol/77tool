@@ -65,7 +65,10 @@ class Handler:
         task_content = get_create_branch_task(self.event_task_id)
         if task_content is None:
             return "event task {} not found".format(self.event_task_id)
-        task_code = task_content.split("@")[0]
+        task_contents = task_content.split("#")
+        req_user_id = task_contents[0]
+        task_code = task_contents[1]
+        projects = task_contents[2]
         _operation = self.event_key.split("@")[0]
         if _operation == 'deny':
             # 拒绝任务
@@ -73,14 +76,14 @@ class Handler:
             return "deny task[{}]".format(task_content)
         # 同意任务
         self.crop.disable_task_button(self.event_task_code, "任务执行中...")
-        projects = task_content.split("@")[1].split(",")
-        self.is_test = task_content.split("@")[2] == "True"
+        project_list = projects.split(",")
+        self.is_test = task_contents[3] == "True"
         fixed_version = None
-        if len(task_content.split("@")) > 3:
-            fixed_version = task_content.split("@")[3]
+        if len(task_contents) > 4:
+            fixed_version = task_contents[4]
         task_info = self.event_task_id.split("@")
-        ret_msg = self.create_branch(task_info[0], task_info[1], task_info[2],
-                                     projects, fixed_version)
+        ret_msg = self.create_branch(req_user_id, task_info[1], task_info[2],
+                                     project_list, fixed_version)
         self.crop.disable_task_button(task_code, "任务执行完成")
         return ret_msg
 

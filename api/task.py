@@ -110,8 +110,9 @@ class Task:
                 body = crop.send_template_card(duty_id, notify_duty)
                 # 记录任务
                 task_code = body.get("response_code")
-                task_content = "{}@{}@{}".format(task_code, project_str,
-                                                 str(self.is_test))
+                task_content = "{}#{}#{}#{}".format(req_id, task_code,
+                                                    project_str,
+                                                    str(self.is_test))
                 save_create_branch_task(task_id, task_content)
             return notify_req
         except Exception as err:
@@ -134,8 +135,9 @@ class Task:
         body = crop.send_template_card(approve_id, notify_approve)
         # 记录任务
         task_code = body.get("response_code")
-        task_content = "{}@{}@{}@{}".format(task_code, project_str,
-                                            str(self.is_test), version)
+        task_content = "{}#{}#{}#{}#{}".format(req_user_id, task_code,
+                                               project_str, str(self.is_test),
+                                               version)
         save_create_branch_task(task_id, task_content)
         return notify_req
 
