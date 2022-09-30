@@ -97,6 +97,7 @@ class Task:
                 task_id = "{}@{}@{}@{}".format(req_id, priority, target,
                                                int(time.time()))
                 project_str = ",".join(projects)
+                logger.info("task_id" + task_id)
                 notify_duty, notify_req = build_create_branch__msg(req_id,
                                                                    req_name,
                                                                    duty_name,
