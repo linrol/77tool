@@ -34,11 +34,11 @@ class Task:
         feature_info = hget("q7link-branch-feature", target_branch)
         if feature_info is None:
             return None
-        source = feature_info.split("^")[0]
+        source = feature_info.split("@")[0]
         if source != source_branch:
             raise Exception("ERROR: 特性分支初始化的来源分支必须为【{}】".format(source))
-        version = feature_info.split("^")[1]
-        approve = feature_info.split("^")[2]
+        version = feature_info.split("@")[1]
+        approve = feature_info.split("@")[2]
         return version, crop.get_user_id(approve), approve
 
     def get_new_project(self, target, project_names):
@@ -94,7 +94,7 @@ class Task:
             split = self.split_by_priority(source, target, need_projects)
             notify_req = None
             for priority, projects in split.items():
-                task_id = "{}^{}^{}^{}".format(req_id, priority, target,
+                task_id = "{}@{}@{}@{}".format(req_id, priority, target,
                                                int(1))
                 project_str = ",".join(projects)
                 logger.info("task_id" + task_id)
@@ -109,7 +109,7 @@ class Task:
                 body = crop.send_template_card(duty_id, notify_duty)
                 # 记录任务
                 task_code = body.get("response_code")
-                task_content = "{}^{}^{}".format(task_code, project_str,
+                task_content = "{}@{}@{}".format(task_code, project_str,
                                                  str(self.is_test))
                 save_create_branch_task(task_id, task_content)
             return notify_req
@@ -120,7 +120,7 @@ class Task:
     def new_feature_branch_task(self, crop, req_user_id, req_user_name,
         source, target, project_names, version, approve_id, approve_name):
         project_str = ",".join(self.get_new_project(target, project_names))
-        task_id = "{}^{}^{}^{}".format(req_user_id, source, target,
+        task_id = "{}@{}@{}@{}".format(req_user_id, source, target,
                                        int(time.time()))
         notify_approve, notify_req = build_create_branch__msg(req_user_id,
                                                               req_user_name,
@@ -133,7 +133,7 @@ class Task:
         body = crop.send_template_card(approve_id, notify_approve)
         # 记录任务
         task_code = body.get("response_code")
-        task_content = "{}^{}^{}^{}".format(task_code, project_str,
+        task_content = "{}@{}@{}@{}".format(task_code, project_str,
                                             str(self.is_test), version)
         save_create_branch_task(task_id, task_content)
         return notify_req
@@ -294,7 +294,7 @@ class Task:
     # 拆分项目的来源分支
     def split_by_priority(self, source, target, projects):
         target_name = target[:-8]
-        priority = hget("q7link-branch-priority", "{}^{}".format(source,
+        priority = hget("q7link-branch-priority", "{}@{}".format(source,
                                                                  target_name))
         if priority is None:
             return {source: projects}
