@@ -65,20 +65,20 @@ class Handler:
         task_content = get_create_branch_task(self.event_task_id)
         if task_content is None:
             return "event task {} not found".format(self.event_task_id)
-        task_code = task_content.split("@")[0]
-        _operation = self.event_key.split("@")[0]
+        task_code = task_content.split("^")[0]
+        _operation = self.event_key.split("^")[0]
         if _operation == 'deny':
             # 拒绝任务
             self.crop.disable_task_button(self.event_task_code, "已拒绝")
             return "deny task[{}]".format(task_content)
         # 同意任务
         self.crop.disable_task_button(self.event_task_code, "任务执行中...")
-        projects = task_content.split("@")[1].split(",")
-        self.is_test = task_content.split("@")[2] == "True"
+        projects = task_content.split("^")[1].split(",")
+        self.is_test = task_content.split("^")[2] == "True"
         fixed_version = None
-        if len(task_content.split("@")) > 3:
-            fixed_version = task_content.split("@")[3]
-        task_info = self.event_task_id.split("@")
+        if len(task_content.split("^")) > 3:
+            fixed_version = task_content.split("^")[3]
+        task_info = self.event_task_id.split("^")
         ret_msg = self.create_branch(task_info[0], task_info[1], task_info[2],
                                      projects, fixed_version)
         self.crop.disable_task_button(task_code, "任务执行完成")
@@ -178,7 +178,7 @@ class Handler:
             version = "{}.{}-SNAPSHOT".format(prefix.replace("-SNAPSHOT", ""),
                                               last_version)
             approve_user = init_feature.get("分支负责人")
-            value = "{}@{}@{}".format(source, version, approve_user)
+            value = "{}^{}^{}".format(source, version, approve_user)
             hmset("q7link-branch-feature", {target: value})
             self.crop.send_text_msg(self.user_id, "分支初始化成功，请重新发起拉分支请求")
         except Exception as err:
