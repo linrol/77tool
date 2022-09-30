@@ -52,18 +52,22 @@ python3 checkanddeleted.py hotfix master finance basebi
 ####功能
 根据来源分支创建目标分支，创建出来的分支，如果分支是hotfix/release/emergency/stage-emergency/hotfix-inte/dev，则会自动创建分支保护，所有工程只有管理员有全权限（mr、push）
 ####命令
-python3 createBranch.py 来源分支 目标分支[.检查目标分支是否存在] [工程名称...]
+python3 createBranch.py 来源分支1.来源分支2.来源分支3 目标分支[.检查目标分支是否存在] [工程名称...]
 以来源分支为模板创建目标分支，只创建来源分支存在的工程，如果工程不存在来源分支，则不创建目标分支
+来源分支支持.作为分隔符多个，优先匹配工程存在的首个来源分支为基准创建目标分支
 检查目标分支是否存在：默认true。true:目标分支存在则报错，所有工程不创建分支;false:目标分支存在则不创建，不存在则创建
 ########例：
 python3 createBranch.py master hotfix
-由master分支创建hotfix分支，并将hotfix进行分支保护，如果有工程存在hotfix分支则报错，并且所有工程均不创建目标分支
+基于master分支创建hotfix分支，并将hotfix进行分支保护，如果有工程存在hotfix分支则报错，并且所有工程均不创建目标分支
 
 python3 createBranch.py master feature-xxx build finance
 将build和finance工程，由master分支创建feature-xxx分支，如果build或finance存在hotfix分支则报错，并且不做创建操作
 
 python3 createBranch.py master hotfix.false
-由master分支创建hotfix分支，并将hotfix进行分支保护，如果工程存在hotfix分支则忽略，工程不存在hotfix分支则创建hotfix分支
+基于master分支创建hotfix分支，并将hotfix进行分支保护，如果工程存在hotfix分支则忽略，工程不存在hotfix分支则创建hotfix分支
+
+python3 createBranch.py stage-global.stage sprint20220929 app-common init-data
+基于stage-global或stage分支创建sprint20220929分支，并将sprint20220929进行分支保护，如果工程不存在来源分支stage则基于stage-global创建
 
 ##4.protectBranch.py
 ####功能
@@ -106,7 +110,8 @@ python3 checkcommit.py hotfix dev 3
 ####功能
 检出指定分支代码
 ####命令
-python3 checkout.py 分支 [是否关闭IDEA的git管理]
+python3 checkout.py 分支1.分支2.分支3... [是否关闭IDEA的git管理]
+分支：支持.作为分隔符多个，当工程不存在分支1时切换到分支2进行循环，直至找到工程存在的首个分支
 是否关闭IDEA的git管理：默认false。false：不处理IDEA的git管理；true：将没有该分支的工程关闭IDEA git管理
 注：由于idea的特性，在关闭前请将输入符焦点聚焦到有此分支的工程文件上。否则关闭git管理之后会有问题
 ########例：
@@ -115,6 +120,9 @@ python3 checkout.py hotfix
 
 python3 checkout.py hotfix true
 检出hotfix分支到本地，并关闭没有hotfix分支工程的idea git管理
+
+python3 checkout.py sprint20220929.stage
+检出sprint20220929分支到本地，当工程不存在sprint20220929分支时，检出工程的stage分支
 
 ##7.closeGit.py
 ####功能
