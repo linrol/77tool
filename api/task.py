@@ -95,7 +95,7 @@ class Task:
             notify_req = None
             for priority, projects in split.items():
                 task_id = "{}@{}@{}@{}".format(req_id, priority, target,
-                                               int(time.time()))
+                                               int(1))
                 project_str = ",".join(projects)
                 logger.info("task_id" + task_id)
                 notify_duty, notify_req = build_create_branch__msg(req_id,
