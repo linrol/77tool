@@ -62,6 +62,11 @@ def gitlab_hook():
     return make_response("success")
 
 
+@app.route("/listener/deploy", methods=["POST"])
+def listener_deploy():
+    return make_response("success")
+
+
 @app.route("/branch/clear", methods=["GET"])
 def branch_clear():
     user_id = request.args.get('user_id')
