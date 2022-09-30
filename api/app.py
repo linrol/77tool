@@ -21,7 +21,7 @@ class Config(object):
 def parse_args():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--env', '-e', default="prod", type=str,
-                            help='your host')
+                            help='your env')
     arg_parser.add_argument('--domain', '-d', type=str, help='your host')
     arg_parser.add_argument('--port', '-p', default=8075, type=int,
                             help="port to build web server")
