@@ -94,7 +94,7 @@ class Task:
             split = self.split_by_priority(source, target, need_projects)
             notify_req = None
             for priority, projects in split.items():
-                task_id = "{}@{}@{}@{}".format(req_id.replace("@", ""),
+                task_id = "{}@{}@{}@{}".format(req_id.replace("@", "").replace(".", ""),
                                                priority, target,
                                                int(time.time()))
                 project_str = ",".join(projects)
