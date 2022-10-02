@@ -146,3 +146,12 @@ class Common:
             config[group][project] = version
         with open(config_path, 'w') as f:
             ruamel_yaml.dump(config, f)
+
+    # 检查分支是否存在
+    def branch_is_presence(self, branch_name):
+        for p_info in self.projects.values():
+            branch = p_info.getBranch(branch_name)
+            if branch is None:
+                continue
+            return True
+        return False
