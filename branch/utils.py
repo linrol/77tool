@@ -25,8 +25,6 @@ class ProjectInfo():
     return self.__name
   def getPath(self):
     return self.__path
-  def getNameSpace(self):
-    return self.__path.split("/")[-2]
   def getModule(self):
     return self.__module
 
