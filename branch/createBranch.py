@@ -51,6 +51,7 @@ class CreateBranch:
       if len(adds) > 0 :
         tasks = [self.pool.submit(self.create_branch, projectInfo) for projectInfo in adds]
         wait(tasks, return_when=ALL_COMPLETED)
+      return ",".join(list(map(lambda add: add.getName(), adds)))
     else:
       print('ERROR: 请在path.yaml文件配置各工程路径！！！')
       sys.exit(1)
