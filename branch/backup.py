@@ -26,7 +26,7 @@ class Backup(Common):
             print("分支【{}】已存在，请删除后重试".format(self.target))
             sys.exit(1)
         for p, p_info in self.projects.items():
-            if p_info.getNameSpace() in self.namespaces:
+            if p_info.getModule() in self.namespaces:
                 backup_projects.append(p)
             if p in self.namespaces:
                 backup_projects.append(p)
@@ -34,7 +34,11 @@ class Backup(Common):
             print("分支【{}】不存在需要备份的工程组【{}】".format(self.source, ",".join(self.namespaces)))
             sys.exit(1)
         executor = CreateBranch(self.target, self.source, backup_projects, True)
-        executor.execute()
+        created_projects = executor.execute()
+        gl_user_name = self.get_gl_user_name()
+        created_value = "{}#{}#{}".format(self.source, gl_user_name,
+                                          created_projects)
+        self.hset('q7link-branch-created', self.target, created_value)
         if not self.clear:
             return
         executor = DeleteBranch(self.source, self.target, backup_projects, True)
@@ -42,11 +46,11 @@ class Backup(Common):
 
 
 # 备份分支
-# 例：备份sprint20220922分支的工程组【global,framework】至stage-global
+# 例：备份sprint20220922分支的工程【global,framework,init-data】至stage-global
 # python3 backup.py sprint20220922 stage-global global,framework
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("ERROR: 输入参数错误, 正确的参数为：<source_branch> <target_branch> <module_namespaces>")
+        print("ERROR: 输入参数错误, 正确的参数为：<source_branch>[.clear] <target_branch> <module_namespaces>")
         sys.exit(1)
     else:
         clear_source = ".clear" in sys.argv[1]
