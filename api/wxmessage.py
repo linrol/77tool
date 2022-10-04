@@ -27,8 +27,8 @@ menu_help = {
                    "\n>复制本模版，修改后回复我，拉取成功后将会消息通知" 
                    "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
   "branch_move": ">**分支迁移（固定值不要删除）** "
-                 "\n>迁移分支：<font color=\"comment\">输入需要迁移的分支名称，例：stage</font>"
-                 "\n>目标分支：<font color=\"comment\">输入需要迁出的分支名称，例：sprint20220818</font>"
+                 "\n>迁移分支：<font color=\"comment\">输入需要迁移的分支名称，例：sprint20220818</font>"
+                 "\n>迁出分支：<font color=\"comment\">输入需要迁出的分支名称，例：stage-global</font>"
                  "\n>迁移模块：<font color=\"comment\">输入需要迁移的工程模块，例：global</font>"
                  "\n>复制本模版，修改后回复我，拉取成功后将会消息通知"
                  "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
@@ -195,10 +195,10 @@ def get_init_feature_dirt(msg_content):
 
 def get_move_branch_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
-    require_keys = {"迁移分支", "目标分支", "迁移模块"}.difference(branch_map.keys())
+    require_keys = {"迁移分支", "迁出分支", "迁移模块"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
-    return branch_map.get("迁移分支"), branch_map.get("目标分支"), branch_map.get("迁移模块")
+    return branch_map.get("迁移分支"), branch_map.get("迁出分支"), branch_map.get("迁移模块")
 
 def get_build_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
