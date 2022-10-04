@@ -28,6 +28,11 @@ class ProjectInfo():
   def getModule(self):
     return self.__module
 
+  def getGLUserName(self):
+    gl = gitlab.Gitlab(URL, TOKEN)
+    gl.auth()
+    return gl.user.username
+
   def __checkPath(self):
     [result, msg] = subprocess.getstatusoutput('cd ' + self.__path)
     if result != 0:
