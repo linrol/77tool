@@ -4,7 +4,7 @@ import string
 from shell import Shell
 from task import Task
 from log import logger
-from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, xml2dirt
+from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_move_branch_dirt, xml2dirt
 from redisclient import duplicate_msg, get_create_branch_task, hmset
 
 require_git_oauth_event = ["data_pre_new", "data_pre_old"]
@@ -92,6 +92,7 @@ class Handler:
         return '新列表方案' in self.msg_content or \
                '老列表方案' in self.msg_content or \
                '拉分支' in self.msg_content or \
+               '分支迁移' in self.msg_content or \
                '构建发布包' in self.msg_content or \
                '初始化特性分支' in self.msg_content
 
@@ -106,6 +107,8 @@ class Handler:
             return self.data_pre(pre_type)
         elif '拉分支' in self.msg_content:
             return self.new_branch_task()
+        elif '分支迁移' in self.msg_content:
+            return self.move_branch()
         elif '构建发布包' in self.msg_content:
             return self.build_package()
         elif '初始化特性分支' in self.msg_content:
@@ -135,6 +138,23 @@ class Handler:
         notify_user_ids = "|".join({self.user_id, apply_user_id})
         self.crop.send_text_msg(notify_user_ids, str(result))
         return result
+
+    def move_branch(self):
+        try:
+            duty_user_id, name = self.crop.get_duty_info(self.is_test, ["LuoLin"])
+            if self.user_id not in duty_user_id:
+                raise Exception("仅限当周后端值班人：{}操作".format(name))
+            source, target, namespaces = get_move_branch_dirt(self.msg_content)
+            shell = Shell(self.user_id, self.is_test, source, target)
+            ret, result = shell.move_branch(namespaces)
+            # 发送消息通知
+            self.crop.send_text_msg(self.user_id, str(result))
+            return result
+        except Exception as err:
+            print(str(err))
+            # 发送消息通知
+            self.crop.send_text_msg(self.user_id, str(err))
+            return str(err)
 
     def build_package(self):
         try:

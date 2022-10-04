@@ -26,9 +26,15 @@ menu_help = {
                    "\n>工程模块：<font color=\"comment\">输入需要拉模块或工程，例：app-common,budget,project-api</font>" 
                    "\n>复制本模版，修改后回复我，拉取成功后将会消息通知" 
                    "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
+  "branch_move": ">**分支迁移（固定值不要删除）** "
+                 "\n>迁移分支：<font color=\"comment\">输入需要迁移的分支名称，例：stage</font>"
+                 "\n>目标分支：<font color=\"comment\">输入需要迁出的分支名称，例：sprint20220818</font>"
+                 "\n>迁移模块：<font color=\"comment\">输入需要迁移的工程模块，例：global</font>"
+                 "\n>复制本模版，修改后回复我，拉取成功后将会消息通知"
+                 "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
   "build_release_package": ">**构建发布包（固定值不要删除）** "
                            "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20220818</font>"
-                           "\n>模块类型：<font color=\"comment\">输入需要构建发布包的模块类型，例：all,global,apps(单选值)</font>"
+                           "\n>构建模块：<font color=\"comment\">输入需要构建发布包的模块，例：all,global,apps(单选值)</font>"
                            "\n>前端预制：<font color=\"comment\">输入需要替换的front-apps.reimburse版本号，前端值班提供(此参数可空)</font>"
                            "\n>立即编译：<font color=\"comment\">输入需要构建发布包后是否立即编译，例：true,false(单选值)</font>"
                            "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
@@ -187,6 +193,13 @@ def get_init_feature_dirt(msg_content):
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     return init_feature
 
+def get_move_branch_dirt(msg_content):
+    branch_map = get_map(msg_content.split('\n'))
+    require_keys = {"迁移分支", "目标分支", "迁移模块"}.difference(branch_map.keys())
+    if len(require_keys) > 0:
+        raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
+    return branch_map.get("迁移分支"), branch_map.get("目标分支"), branch_map.get("迁移模块")
+
 def get_build_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
     require_keys = {"目标分支", "立即编译"}.difference(branch_map.keys())
@@ -201,9 +214,9 @@ def get_build_dirt(msg_content):
         target_name = target_branch.replace(target_date, "")
     if target_date is None or target_name not in ",".join(mapping.values()):
         raise Exception("目标分支非值班系列【{}】".format(",".join(mapping.values())))
-    group = branch_map.get('模块类型', 'all')
+    group = branch_map.get('构建模块', 'all')
     if group not in build_group_mapping.keys():
-        raise Exception("模块类型异常，必须是all,global,apps其中之一")
+        raise Exception("构建模块输入错误，必须是all,global,apps其中之一")
     is_build = branch_map.get('立即编译') == 'true'
     front_version = branch_map.get("前端预制", '').strip()
     group_list = build_group_mapping.get(group).copy()
