@@ -64,6 +64,11 @@ class Crop:
             },
             {
               "type":"click",
+              "name":"分支迁移",
+              "key":"branch_move"
+            },
+            {
+              "type":"click",
               "name":"构建发布包",
               "key":"build_release_package"
             }
