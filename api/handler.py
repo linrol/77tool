@@ -145,6 +145,8 @@ class Handler:
             if self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
             source, target, namespaces = get_move_branch_dirt(self.msg_content)
+            if "sprint" not in source:
+                raise Exception("迁移分支输入错误，当前仅支持班车sprint分支")
             shell = Shell(self.user_id, self.is_test, source, target)
             ret, result = shell.move_branch(namespaces)
             # 发送消息通知
