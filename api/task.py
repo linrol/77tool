@@ -296,7 +296,7 @@ class Task:
 
     # 拆分项目的来源分支
     def split_multi_source(self, source, target, projects):
-        ret = {source: projects}
+        ret = {source: projects.copy()}
         over_source = "stage-global-test"
         if source != 'stage':
             return ret
