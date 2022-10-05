@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import subprocess
 import time
@@ -170,6 +171,8 @@ class Shell(utils.ProjectInfo):
             [ret, backup_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, backup_msg
+            backup_msg = re.compile('工程.*\n').sub('', backup_msg)
+            backup_msg = re.compile('WARNNING：.*\n').sub('', backup_msg)
             return True, backup_msg
         except Exception as err:
             return False, str(err)
@@ -251,7 +254,6 @@ class Shell(utils.ProjectInfo):
             raise Exception(msg)
 
 if __name__ == "__main__":
-
     shell = Shell('LuoLin', True, 'stage', 'stage-patch20220910')
     ret, result = shell.create_branch(None, ['arap'])
     print(result)

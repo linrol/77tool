@@ -39,13 +39,13 @@ class Backup(Common):
         created_value = "{}#{}#{}".format(self.source, gl_user_name,
                                           created_projects)
         self.hset('q7link-branch-created', self.target, created_value)
-        print("基于【{}】创建分支【{}】工程【{}】成功", self.source, self.target,
-              created_projects)
+        print("基于【{}】创建分支【{}】工程【{}】成功".format(self.source, self.target,
+                                                        created_projects))
         if not self.clear:
             return
         executor = DeleteBranch(self.source, self.target, backup_projects, True)
         executor.execute()
-        print("删除【{}】分支的工程【{}】成功", self.source, created_projects)
+        print("删除【{}】分支的工程【{}】成功，该分支已合并至分支【{}】".format(self.source, created_projects, self.target))
 
 
 # 备份分支
