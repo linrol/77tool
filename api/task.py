@@ -298,7 +298,7 @@ class Task:
     def split_multi_source(self, source, target, projects):
         ret = {source: projects}
         over_source = "stage-global-test"
-        if source != 'stage' or 'sprint' in target:
+        if source != 'stage':
             return ret
         info = hget("q7link-branch-created", over_source)
         if info is None:
