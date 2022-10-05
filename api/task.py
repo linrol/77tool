@@ -91,7 +91,7 @@ class Task:
                                                     *feature_info)
             self.check_new_branch(source, target, req_name)
             need_projects = self.get_new_project(target, project_names)
-            split = self.split_by_priority(source, target, need_projects)
+            split = self.split_multi_source(source, target, need_projects)
             notify_req = None
             for priority, projects in split.items():
                 task_id = "{}@{}@{}@{}".format(req_id.replace("@", "").replace(".", ""),
