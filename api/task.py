@@ -295,19 +295,22 @@ class Task:
         return msg
 
     # 拆分项目的来源分支
-    def split_by_priority(self, source, target, projects):
-        target_name = target[:-8]
-        priority = hget("q7link-branch-priority", "{}@{}".format(source,
-                                                                 target_name))
-        if priority is None:
-            return {source: projects}
-        ret = {}
+    def split_multi_source(self, source, target, projects):
+        ret = {source: projects}
+        over_source = "stage-global-test"
+        if source != 'stage' or 'sprint' in target:
+            return ret
+        info = hget("q7link-branch-created", over_source)
+        if info is None:
+            return ret
+        branch = info.split("#")[0]
+        if target != branch:
+            return ret
         for p in projects:
-            priority_branch = self.projects.get(p).getBranch(priority)
-            if priority_branch is not None:
-                ret.setdefault(priority, []).append(p)
-            else:
-                ret.setdefault(source, []).append(p)
+            if self.projects.get(p).getBranch(over_source) is None:
+                continue
+            ret.setdefault(over_source, []).append(p)
+            ret.get(source).remove(p)
         return ret
 
 
