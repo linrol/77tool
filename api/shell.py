@@ -171,8 +171,9 @@ class Shell(utils.ProjectInfo):
             [ret, backup_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, backup_msg
-            backup_msg = re.compile('工程.*\n').sub('', backup_msg)
             backup_msg = re.compile('WARNNING：.*\n').sub('', backup_msg)
+            backup_msg = re.compile('工程.*创建分支.*\n').sub('', backup_msg)
+            backup_msg = re.compile('工程.*删除分支.*\n').sub('', backup_msg)
             return True, backup_msg
         except Exception as err:
             return False, str(err)
@@ -254,6 +255,7 @@ class Shell(utils.ProjectInfo):
             raise Exception(msg)
 
 if __name__ == "__main__":
+    backup_msg = re.compile('工程.*删除分支.*\n').sub('', "工程【init-data】删除分支【sprint20221002】成功，该分支已合并至分支【stage-global】\n工程【metadata-impl】删除分支【sprint20221002】成功，该分支已合并至分支【stage-global】\n工程【metadata-api】删除分支【sprint20221002】成功，该分支已合并至分支【stage-global】\n工程【mbg-plugins】删除分支【sprint20221002】成功，该分支已合并至分支【stage-global】")
     shell = Shell('LuoLin', True, 'stage', 'stage-patch20220910')
     ret, result = shell.create_branch(None, ['arap'])
     print(result)
