@@ -44,7 +44,6 @@ class Merge(Common):
         return conflict_project
 
     def merge(self):
-        self.checkout_branch(self.target)
         wait_created = []
         wait_push = {}
         for name, project in self.projects.items():
@@ -85,17 +84,20 @@ class Merge(Common):
     def created(self, projects):
         if len(projects) < 1:
             return
-        project_str = " ".join(projects)
-        executor = CreateBranch(self.target, self.source, project_str, True)
+        executor = CreateBranch(self.target, self.source, projects, True)
         executor.execute()
 
     def execute(self):
         try:
+            self.checkout_branch(self.source)
+            self.checkout_branch(self.target)
             conflict_projects = self.check_conflict()
             if len(conflict_projects) > 0:
                 print("工程【{}】尝试合并请求发现冲突，需手动合并".format(",".join(conflict_projects)))
                 sys.exit(1)
             self.merge()
+            for project in self.projects.values():
+                project.deleteLocalBranch(self.source)
         except Exception as err:
             print(str(err))
             sys.exit(1)
