@@ -180,6 +180,24 @@ class Shell(utils.ProjectInfo):
         finally:
             executor.submit(self.rest_branch_env)
 
+    def merge_branch(self, clear):
+        try:
+            self.lock_value = self.lock.get_lock("lock", 300)
+            [ret, checkout_msg] = self.checkout_branch(self.source_branch)
+            if ret != 0:
+                return False, checkout_msg
+            source = self.source_branch + ".clear" if clear else self.source_branch
+            cmd = 'cd ../branch;python3 merge.py {} {}'.format(source, self.target_branch)
+            logger.info("merget_branch[{}]".format(cmd))
+            [ret, merge_msg] = subprocess.getstatusoutput(cmd)
+            if ret != 0:
+                return False, merge_msg
+            return True, merge_msg
+        except Exception as err:
+            return False, str(err)
+        finally:
+            executor.submit(self.rest_branch_env)
+
     def build_package(self, params, protect, is_build):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)

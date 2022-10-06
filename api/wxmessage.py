@@ -9,7 +9,7 @@ menu_help = {
                   "\n>列表组：<font color=\"comment\">输入列表方案组名称，例：Budget_Plan_Change_list,ProjectList</font>" 
                   "\n>合并人：<font color=\"comment\">输入分支有权限合并者人姓名，例：罗林</font>" 
                   "\n>" 
-                  "\n>复制本模版，修改后回复我，预制成功后将会消息通知" 
+                  "\n>修改本模版后发送，预制成功后将会消息通知" 
                   "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
   "data_pre_old": ">**老列表方案（固定值不要删除）** " 
                   "\n>环　境：<font color=\"comment\">输入预制数据来源环境，例：temp1</font>" 
@@ -18,20 +18,24 @@ menu_help = {
                   "\n>列表组：<font color=\"comment\">输入列表方案组名称，例：Budget_Plan_Change_list</font>" 
                   "\n>合并人：<font color=\"comment\">输入分支有权限合并者人姓名，例：罗林</font>" 
                   "\n>" 
-                  "\n>复制本模版，修改后回复我，预制成功后将会消息通知" 
+                  "\n>修改本模版后发送，预制成功后将会消息通知" 
                   "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
   "branch_create": ">**拉分支（固定值不要删除）** " 
                    "\n>来源分支：<font color=\"comment\">输入基于哪个分支拉取，例：stage</font>" 
                    "\n>目标分支：<font color=\"comment\">输入拉取后的分支名称，例：sprint20220818</font>" 
                    "\n>工程模块：<font color=\"comment\">输入需要拉模块或工程，例：app-common,budget,project-api</font>" 
-                   "\n>复制本模版，修改后回复我，拉取成功后将会消息通知" 
+                   "\n>修改本模版后发送，分支拉成功后会消息通知" 
                    "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
   "branch_move": ">**分支迁移（固定值不要删除）** "
                  "\n>迁移分支：<font color=\"comment\">输入需要迁移的分支名称，例：sprint20220818</font>"
                  "\n>迁出分支：<font color=\"comment\">输入需要迁出的分支名称，例：stage-global</font>"
                  "\n>迁移模块：<font color=\"comment\">输入需要迁移的工程模块，例：global</font>"
-                 "\n>复制本模版，修改后回复我，拉取成功后将会消息通知"
-                 "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
+                 "\n>功能说明（将迁移分支备份至迁出分支，并删除迁移分支的工程模块）",
+  "branch_merge": ">**分支合并（固定值不要删除）** "
+                   "\n>来源分支：<font color=\"comment\">输入将被合并的分支名称，例：sprint20220818</font>"
+                   "\n>目标分支：<font color=\"comment\">输入需要合并至的分支名称，例：stage</font>"
+                   "\n>删除来源：<font color=\"comment\">输入分支合并成功后是否删除来源分支，例：true,false(单选值)</font>"
+                   "\n>功能说明（将来源分支合并至目标分支）",
   "build_release_package": ">**构建发布包（固定值不要删除）** "
                            "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20220818</font>"
                            "\n>构建模块：<font color=\"comment\">输入需要构建发布包的模块，例：all,global,apps(单选值)</font>"
@@ -199,6 +203,14 @@ def get_move_branch_dirt(msg_content):
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     return branch_map.get("迁移分支"), branch_map.get("迁出分支"), branch_map.get("迁移模块")
+
+def get_merge_branch_dirt(msg_content):
+    branch_map = get_map(msg_content.split('\n'))
+    require_keys = {"来源分支", "目标分支", "删除来源"}.difference(branch_map.keys())
+    if len(require_keys) > 0:
+        raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
+    clear_source = branch_map.get('删除来源') == 'true'
+    return branch_map.get("来源分支"), branch_map.get("目标分支"), clear_source
 
 def get_build_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))

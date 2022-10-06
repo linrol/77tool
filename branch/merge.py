@@ -4,6 +4,7 @@ import utils
 import subprocess
 from common import Common
 from createBranch import CreateBranch
+from checkanddeleted import DeleteBranch
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
@@ -11,10 +12,11 @@ branch_group = {}
 
 
 class Merge(Common):
-    def __init__(self, source, target):
+    def __init__(self, source, target, clear):
         super().__init__(utils)
         self.source = source
         self.target = target
+        self.clear = clear
 
     def check_conflict(self):
         conflict_project = []
@@ -59,6 +61,10 @@ class Merge(Common):
             wait_push[name] = path
         self.push(wait_push)
         self.created(wait_created)
+        if not self.clear or self.source in ['stage', 'master']:
+            return
+        executor = DeleteBranch(self.source, self.target, None, True)
+        executor.execute()
 
     def push(self, paths):
         cmd = ''
@@ -100,6 +106,7 @@ if __name__ == "__main__":
         print("ERROR: 输入参数错误, 正确的参数为：<source_branch> <target_branch>")
         sys.exit(1)
     else:
-        source_branch = sys.argv[1]
+        clear_source = ".clear" in sys.argv[1]
+        source_branch = sys.argv[1].replace(".clear", "")
         target_branch = sys.argv[2]
-        Merge(source_branch, target_branch).execute()
+        Merge(source_branch, target_branch, clear_source).execute()
