@@ -87,7 +87,6 @@ class Merge(Common):
                 print("工程【{}】尝试合并请求发现冲突，需手动合并".format(",".join(conflict_projects)))
                 sys.exit(1)
             self.merge()
-            print("enjoy, no conflict")
         except Exception as err:
             print(str(err))
             sys.exit(1)
