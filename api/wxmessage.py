@@ -23,9 +23,8 @@ menu_help = {
   "branch_create": ">**拉分支（固定值不要删除）** " 
                    "\n>来源分支：<font color=\"comment\">输入基于哪个分支拉取，例：stage</font>" 
                    "\n>目标分支：<font color=\"comment\">输入拉取后的分支名称，例：sprint20220818</font>" 
-                   "\n>工程模块：<font color=\"comment\">输入需要拉模块或工程，例：app-common,budget,project-api</font>" 
-                   "\n>修改本模版后发送，分支拉成功后会消息通知" 
-                   "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
+                   "\n>工程模块：<font color=\"comment\">输入需要拉模块或工程，例：app-common,budget,project-api</font>"
+                   "\n>功能说明（基于来源分支创建目标分支的工程模块，根据权重、系数和偏移量更新目标分支版本号）",
   "branch_move": ">**分支迁移（固定值不要删除）** "
                  "\n>迁移分支：<font color=\"comment\">输入需要迁移的分支名称，例：sprint20220818</font>"
                  "\n>迁出分支：<font color=\"comment\">输入需要迁出的分支名称，例：stage-global</font>"
