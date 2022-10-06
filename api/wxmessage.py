@@ -33,13 +33,13 @@ menu_help = {
   "branch_merge": ">**<font color=\"info\">分支合并（固定值不要删除）</font>** "
                    "\n>来源分支：<font color=\"comment\">输入将被合并的分支名称，例：sprint20220818</font>"
                    "\n>目标分支：<font color=\"comment\">输入需要合并至的分支名称，例：stage</font>"
-                   "\n>删除来源：<font color=\"comment\">输入分支合并成功后是否删除来源分支，例：true,false(单选值)</font>"
+                   "\n>删除来源：<font color=\"comment\">分支合并成功后是否删除来源分支，例：true,false(单选值)</font>"
                    "\n><font color=\"warning\">功能说明，将来源分支合并至目标分支，预检测存在冲突将放弃合并</font>",
   "build_release_package": ">**<font color=\"info\">构建发布包（固定值不要删除）</font>** "
                            "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20220818</font>"
                            "\n>构建模块：<font color=\"comment\">输入需要构建发布包的模块，例：all,global,apps(单选值)</font>"
                            "\n>前端预制：<font color=\"comment\">输入需要替换的front-apps.reimburse版本号，前端值班提供(此参数可空)</font>"
-                           "\n>立即编译：<font color=\"comment\">输入需要构建发布包后是否立即编译，例：true,false(单选值)</font>"
+                           "\n>立即编译：<font color=\"comment\">构建发布包后是否立即编译，例：true,false(单选值)</font>"
                            "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
 }
 
