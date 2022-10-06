@@ -21,16 +21,19 @@ class Merge(Common):
     def check_conflict(self):
         conflict_project = []
         for p, p_info in self.projects.items():
-            branch = p_info.getBranch(self.source)
-            if branch is None:
+            branch_source = p_info.getBranch(self.source)
+            if branch_source is None:
+                continue
+            branch_target = p_info.getBranch(self.target)
+            if branch_target is None:
                 continue
             path = p_info.getPath()
-            cmd = "cd {};git merge-base {} {}".format(path, self.source, self.target)
+            cmd = "cd {};git merge-base origin/{} origin/{}".format(path, self.source, self.target)
             [ret, base_sha] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 conflict_project.append(p)
                 continue
-            cmd = "cd {};git merge-tree {} {} {}".format(path, base_sha, self.source, self.target)
+            cmd = "cd {};git merge-tree {} origin/{} origin/{}".format(path, base_sha, self.source, self.target)
             [ret, merge_ret] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 conflict_project.append(p)
