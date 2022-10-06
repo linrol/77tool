@@ -94,6 +94,8 @@ class Task:
             split = self.split_multi_source(source, target, need_projects)
             notify_req = None
             for priority, projects in split.items():
+                if len(projects) < 1:
+                    continue
                 task_id = "{}@{}@{}@{}".format(req_id.replace("@", "").replace(".", ""),
                                                priority, target,
                                                int(time.time()))
