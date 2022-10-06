@@ -2,6 +2,7 @@ import os
 import yaml
 import ruamel.yaml
 import redis
+import subprocess
 
 
 def get_project_branch_file(project, branch_name, file_path):
@@ -161,3 +162,8 @@ class Common:
                 continue
             return True
         return False
+
+    # 切换本地分支
+    def checkout_branch(self, branch_name):
+        cmd = 'cd ../branch;python3 checkout.py {}'.format(branch_name)
+        return subprocess.getstatusoutput(cmd)
