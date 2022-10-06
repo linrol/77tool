@@ -192,6 +192,7 @@ class Shell(utils.ProjectInfo):
             [ret, merge_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, merge_msg
+            merge_msg = re.compile('WARNNING：.*目标分支.*已存在.*\n').sub('', merge_msg)
             merge_msg = re.compile('工程.*保护成功.*\n').sub('', merge_msg)
             return True, merge_msg
         except Exception as err:
