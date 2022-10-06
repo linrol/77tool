@@ -86,7 +86,7 @@ class Merge(Common):
         if len(projects) < 1:
             return
         project_str = " ".join(projects)
-        executor = CreateBranch(self.source, self.target, project_str, True)
+        executor = CreateBranch(self.target, self.source, project_str, True)
         executor.execute()
 
     def execute(self):
