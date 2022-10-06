@@ -69,6 +69,11 @@ class Crop:
             },
             {
               "type":"click",
+              "name":"分支合并",
+              "key":"branch_merge"
+            },
+            {
+              "type":"click",
               "name":"构建发布包",
               "key":"build_release_package"
             }
