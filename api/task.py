@@ -297,7 +297,7 @@ class Task:
     # 拆分项目的来源分支
     def split_multi_source(self, source, target, projects):
         ret = {source: projects.copy()}
-        over_source = "stage-global-test"
+        over_source = "stage-global"
         if source != 'stage':
             return ret
         info = hget("q7link-branch-created", over_source)
