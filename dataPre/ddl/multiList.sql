@@ -326,6 +326,7 @@ CREATE TABLE "baseapp_query_list_definition"
     "group_id" VARCHAR(64),
     "object_type" VARCHAR(64),
     "device_type_id" VARCHAR(64) DEFAULT 'DeviceType.pc',
+    "is_my_bill" BOOLEAN DEFAULT false NOT NULL,
     "is_approval" BOOLEAN DEFAULT false NOT NULL,
     "is_exhibition" BOOLEAN DEFAULT false NOT NULL,
     "last_query_object" JSONB,
