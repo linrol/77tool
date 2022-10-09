@@ -17,6 +17,7 @@ class ProjectInfo():
     self.__name = name
     self.__path = path
     self.__module = module
+    self.__group = None
     self.__project = None
     self.__checkPath()
     # self.fetch()# TODO 是否fetch
@@ -59,6 +60,26 @@ class ProjectInfo():
       print("ERROR: 工程【{}】不存在!!!".format(self.__name))
       sys.exit(1)
     return self.__project
+
+  def getGroup(self):
+    if self.__group is None:
+      gl = gitlab.Gitlab(URL, TOKEN)
+      try:
+        gl.auth()
+        groups = gl.groups.list(search=self.__module) # 此处是模糊查询
+        if len(groups) > 0:
+          for group in groups:
+            if group.full_path.startswith("backend") and group.name == self.__module:
+              self.__group = group
+              break
+      except Exception:
+        print("群组：{}".format(self.__group))
+        raise
+
+    if self.__group is None:
+      print("ERROR: 群组【{}】不存在!!!".format(self.__module))
+      sys.exit(1)
+    return self.__group
 
   # 获取远端git仓库的分支信息
   def getBranch(self, branchNames):
