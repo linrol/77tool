@@ -318,8 +318,13 @@ class Task:
     # 发送mr提醒通知
     def send_mr_notify(self, crop):
         before_five_min = (datetime.now() - timedelta(minutes=500)).isoformat()
-        mr_list = self.project_build.getGroup().mergerequests.list(
+        mr_list = self.get_project('parent').getGroup().mergerequests.list(
             state='opened', created_after=before_five_min)
+        apps_mr_list = self.project_build.getGroup().mergerequests.list(
+            state='opened', created_after=before_five_min)
+        global_mr_list = self.get_project('identity').getGroup().mergerequests.list(
+            state='opened', created_after=before_five_min)
+        mr_list.extend(apps_mr_list).extend(global_mr_list)
         for mr in mr_list:
             if mr.assignee is None:
                 continue
