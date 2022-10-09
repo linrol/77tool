@@ -317,9 +317,9 @@ class Task:
 
     # 发送mr提醒通知
     def send_mr_notify(self, crop):
-        _created_after = datetime.now() - timedelta(minutes=5)
+        before_five_min = (datetime.now() - timedelta(minutes=500)).isoformat()
         mr_list = self.project_build.getGroup().mergerequests.list(
-            state='opened', created_after=_created_after.isoformat())
+            state='opened', created_after=before_five_min)
         for mr in mr_list:
             if mr.assignee is None:
                 continue
@@ -335,4 +335,3 @@ class Task:
                                                          mr.web_url)
             crop.send_text_msg(crop.user_name2id(assignee_name), mr_msg)
             hmset("q7link-branch-weight", {mr.web_url: auth_name})
-
