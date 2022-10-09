@@ -133,7 +133,8 @@ msg_content = {
             }
         ]
     },
-    "create_branch_task_response": "本次拉取分支的任务已发送到值班人：{}，请等待值班审批同意后将开始执行"
+    "create_branch_task_response": "本次拉取分支的任务已发送到值班人：{}，请等待值班审批同意后将开始执行",
+    "merge_request": "您收到来自{}的MR，请及时合并！\ntitle：{}\n{}：{} into {}\nurl：{}"
 }
 build_group_mapping = {"all": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api', 'global-apps', 'global-apps-api'],
                        "global": ['framework', 'global-apps', 'global-apps-api'],

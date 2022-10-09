@@ -3,10 +3,10 @@ import sys
 import time
 import yaml
 import re
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
-from wxmessage import build_create_branch__msg
+from wxmessage import build_create_branch__msg, msg_content
 from redisclient import save_create_branch_task, get_branch_mapping, hmset, hget
 
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
@@ -315,4 +315,24 @@ class Task:
             ret.get(source).remove(p)
         return ret
 
+    # 发送mr提醒通知
+    def send_mr_notify(self, crop):
+        _created_after = datetime.now() - timedelta(minutes=5)
+        mr_list = self.project_build.getGroup().mergerequests.list(
+            state='opened', created_after=_created_after.isoformat())
+        for mr in mr_list:
+            if mr.assignee is None:
+                continue
+            if hget("q7link-branch-weight", mr.web_url) is not None:
+                continue
+            auth_name = hget("q7link-git-user", mr.author.get("username"))
+            assignee_name = hget("q7link-git-user", mr.assignee.get("username"))
+            project = mr.references.get("relative").split("!")[0]
+            mr_msg = msg_content["merge_request"].format(auth_name, mr.title,
+                                                         project,
+                                                         mr.source_branch,
+                                                         mr.target_branch,
+                                                         mr.web_url)
+            crop.send_text_msg(crop.user_name2id(assignee_name), mr_msg)
+            hmset("q7link-branch-weight", {mr.web_url: auth_name})
 
