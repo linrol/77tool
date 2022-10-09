@@ -125,6 +125,9 @@ class Handler:
             ret, result = shell.exec_data_pre(pre_type, *data_pre_dirt)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(result))
+            if data_pre_dirt[3] is not None:
+                merge_user_id = self.crop.get_user_id(data_pre_dirt[3])
+                self.crop.send_text_msg(merge_user_id, str(result))
             return result
         except Exception as err:
             print(str(err))
