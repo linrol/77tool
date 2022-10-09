@@ -21,7 +21,7 @@ class Handler:
         self.is_test = 'isTest=true' in self.msg_content
         # 可能时密文或者明文
         self.user_id = self.data['FromUserName']
-        self.user_name = self.crop.get_user_name(self.user_id)
+        self.user_name = self.crop.user_id2name(self.user_id)
         # 消息类型
         self.msg_type = self.data.get('MsgType', '')
         self.is_text_msg = self.msg_type == 'text'
@@ -43,12 +43,6 @@ class Handler:
         logger.info("* {}_{} accept ret: {}".format(self.user_name, self.msg_id,
                                                     accept_ret))
         return accept_ret
-
-    # 验证是否需要gitlab授权
-    def require_git_auth(self):
-        if self.event_key not in require_git_oauth_event:
-            return True
-        return self.crop.get_gitlab_user_id(self.user_id) is not None
 
     # 消费事件消息
     def accept_event(self):
@@ -126,7 +120,7 @@ class Handler:
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(result))
             if data_pre_dirt[3] is not None:
-                merge_user_id = self.crop.get_user_id(data_pre_dirt[3])
+                merge_user_id = self.crop.user_name2id(data_pre_dirt[3])
                 self.crop.send_text_msg(merge_user_id, str(result))
             return result
         except Exception as err:

@@ -120,7 +120,6 @@ class Crop:
   def send_markdown_msg(self, to_user, content):
     return self.send_message(to_user, 'markdown', {"content": content})
 
-
   def get_duty_info(self, is_test, fixed_user_ids):
     if self.isdev or is_test:
       return "LuoLin", "罗林"
@@ -136,18 +135,7 @@ class Crop:
         duty_user_ids.extend(fixed_user_ids)
       return "|".join(duty_user_ids), ",".join(duty_user_names)
 
-  def get_gitlab_user_id(self, user_key):
-    user_info = self.get("{}-q7link-gitlab".format(user_key))
-    if user_info is None:
-      redirect_uri = "https://branch.{}/gitlab/oauth?user_key={}".format(self.domain, user_key)
-      auth_url = "http://{}/oauth/authorize?client_id={}&response_type=code&redirect_uri={}".format(self.gitlab_domain, self.gitlab_app_id, redirect_uri)
-      short_body = post("https://durl-openapi.{}/url".format(self.domain), {"fullUrl": auth_url, "expirationTime": 0, "isFrozen": 0})
-      short_url = "https://durl.{}/{}".format(self.domain, short_body.get("data").get("shortKey"))
-      self.send_text_msg(user_key, msg_content.get("oauth_text_msg").format(short_url, short_url))
-      raise Exception("需用户授权同意后操作")
-    return json.loads(user_info).get("user_id", None)
-
-  def get_user_name(self, user_id):
+  def user_id2name(self, user_id):
     user_name = self.get("{}-userinfo".format(user_id))
     if user_name is not None:
       return user_name
@@ -156,7 +144,7 @@ class Crop:
     self.save("{}-userinfo".format(user_id), body.get("name"))
     return body.get("name")
 
-  def get_user_id(self, user_name):
+  def user_name2id(self, user_name):
     body = get("http://10.0.144.51:5000/api/verify/duty/user_id?user_name={}".format(user_name))
     return body.get("data")[0].get("user_id")
 

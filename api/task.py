@@ -39,7 +39,7 @@ class Task:
             raise Exception("ERROR: 特性分支初始化的来源分支必须为【{}】".format(source))
         version = feature_info.split("@")[1]
         approve = feature_info.split("@")[2]
-        return version, crop.get_user_id(approve), approve
+        return version, crop.user_name2id(approve), approve
 
     def get_new_project(self, target, project_names):
         need_project_list = list(filter(
@@ -237,7 +237,7 @@ class Task:
             username = hget("q7link-git-user", author)
             if username is None:
                 continue
-            user_id = crop.get_user_id(username)
+            user_id = crop.user_name2id(username)
             if user_id == "LuoLin":
                 crop.send_text_msg(user_id, clear_branch_msg.format(branch, user_id, branch))
             print(clear_branch_msg.format(branch, user_id, branch))
