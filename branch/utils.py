@@ -229,6 +229,27 @@ class ProjectInfo():
       print('ERROR: 工程【{}】无法获取远程信息!!!'.format(self.__name))
       return branchs
 
+  # 创建合并
+  def createMrRequest(self, source, target, title, assignee):
+    data = {
+    'source_branch': source,
+    'target_branch': target,
+    'title': title,
+    'remove_source_branch': True
+    }
+    member = self.getProjectMember(assignee)
+    if member is not None:
+      data['assignee_id'] = member.id
+    return self.getProject().mergerequests.create(data)
+
+  # 获取项目成员
+  def getProjectMember(self, query):
+    if query is None:
+      return None
+    members = self.getProject().members_all.list(query=query)
+    if members is not None and len(members) > 0:
+      return members[0]
+    return None
 
 class LocalBranch():
   def __init__(self, name, current, originBranchName, originDeleted, hasCommit, hasPull):
