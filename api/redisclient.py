@@ -66,13 +66,6 @@ def delete_mr(key):
     redisClient.get_connection().hdel("q7link-mr-log", key)
 
 
-def get_user_id(chines_name):
-    if chines_name is None or chines_name == '':
-        return chines_name
-    user_id = redisClient.get_connection().hget("q7link-git-user", chines_name)
-    return chines_name if user_id is None else user_id
-
-
 def save_create_branch_task(key, value):
     redisClient.get_connection().hmset("q7link-user-task", {key: value})
 

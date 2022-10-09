@@ -148,21 +148,6 @@ class Crop:
     body = get("http://10.0.144.51:5000/api/verify/duty/user_id?user_name={}".format(user_name))
     return body.get("data")[0].get("user_id")
 
-  def save_gitlab_auth_info(self, user_auth_code, user_key):
-    params = {
-      "client_id": self.gitlab_app_id,
-      "client_secret": self.gitlab_secret,
-      "code": user_auth_code,
-      "grant_type": "authorization_code",
-      "redirect_uri": "https://branch.{}/gitlab/oauth?crop_user_key={}".format(self.domain, user_key)
-    }
-    body = post_form("http://{}/oauth/token".format(self.gitlab_domain), params)
-    git_access_token = body.get("access_token")
-    git_refresh_token = body.get("refresh_token")
-    auth_user = get("http://{}/api/v4/user?access_token={}".format(self.gitlab_domain, git_access_token))
-    self.save("{}-q7link-gitlab".format(user_key), json.dumps({"user_id": auth_user.get("username"), "git_refresh_token": git_refresh_token}))
-    return "授权成功，请关闭本页面回到企业微信继续操作"
-
   def disable_task_button(self, task_code, button_text):
     params = {
       # "userids": [user_id],

@@ -7,7 +7,6 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 from redisclient import add_mr, get_mr_ids, delete_mr
-from MethodUtil import add_method
 from log import logger
 from redisclient import redisClient
 from redislock import RedisLock
@@ -35,7 +34,6 @@ class Shell(utils.ProjectInfo):
         self.target_branch = target_branch
         self.project_init_data = self.project = self.projects.get('init-data')
         self.project_build = self.projects.get('build')
-        add_method(self.project_init_data)
         self.lock = RedisLock(redisClient.get_connection())
         self.lock_value = None
         # self.rest_branch_env()
