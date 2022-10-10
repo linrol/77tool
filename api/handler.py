@@ -120,7 +120,7 @@ class Handler:
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(result))
             if data_pre_dirt[4] is not None:
-                merge_user_id = self.crop.user_name2id(data_pre_dirt[3])
+                merge_user_id = self.crop.user_name2id(data_pre_dirt[4])
                 self.crop.send_text_msg(merge_user_id, str(result))
             return result
         except Exception as err:
