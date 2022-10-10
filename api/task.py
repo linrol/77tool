@@ -317,7 +317,7 @@ class Task:
 
     # 发送mr提醒通知
     def send_mr_notify(self, crop):
-        before_five_min = (datetime.now() - timedelta(minutes=500)).isoformat()
+        before_five_min = (datetime.now() - timedelta(minutes=600)).isoformat()
         platform_list = self.get_project('parent').getGroup().mergerequests.list(
             state='opened', created_after=before_five_min)
         apps_mr_list = self.project_build.getGroup().mergerequests.list(

@@ -176,7 +176,7 @@ def get_map(lines, filter_chinese=True):
     return map
 
 def get_pre_dirt(msg_content):
-    pre_data_map = get_map(msg_content.split('\n'))
+    pre_data_map = get_map(msg_content.split('\n'), False)
     require_keys = {"环境", "租户", "分支", "列表组"}.difference(pre_data_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
