@@ -119,9 +119,9 @@ class Handler:
             ret, result = shell.exec_data_pre(pre_type, *data_pre_dirt)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(result))
-            merge_user_id = self.crop.user_name2id(data_pre_dirt[4])
-            if merge_user_id is not None:
-                self.crop.send_text_msg(merge_user_id, str(result))
+            assignee_userid = self.crop.user_name2id(data_pre_dirt[4])
+            if assignee_userid is not None:
+                self.crop.send_text_msg(assignee_userid, str(result))
             return result
         except Exception as err:
             print(str(err))
