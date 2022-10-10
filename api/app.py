@@ -64,6 +64,8 @@ def gitlab_hook():
 
 @app.route("/listener/deploy", methods=["POST"])
 def listener_deploy():
+    body = json.loads(request.data.decode('utf-8'))
+    print("listener_deploy:" + str(body))
     return make_response("success")
 
 
