@@ -145,8 +145,15 @@ class Crop:
     return body.get("name")
 
   def user_name2id(self, user_name):
-    body = get("http://10.0.144.51:5000/api/verify/duty/user_id?user_name={}".format(user_name))
-    return body.get("data")[0].get("user_id")
+    try:
+      if user_name is None:
+        return None
+      body = get("http://10.0.144.51:5000/api/verify/duty/user_id?user_name={}".format(user_name))
+      return body.get("data")[0].get("user_id")
+    except Exception as err:
+      print(str(err))
+      return None
+
 
   def disable_task_button(self, task_code, button_text):
     params = {
