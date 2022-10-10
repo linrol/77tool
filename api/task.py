@@ -328,7 +328,7 @@ class Task:
         for mr in all_mr_list:
             if mr.assignee is None:
                 continue
-            if hget("q7link-branch-weight", mr.web_url) is not None:
+            if hget("q7link-branch-merge", mr.web_url) is not None:
                 continue
             auth_name = hget("q7link-git-user", mr.author.get("username"))
             assignee_name = hget("q7link-git-user", mr.assignee.get("username"))
@@ -339,7 +339,7 @@ class Task:
                                                          mr.target_branch,
                                                          mr.web_url)
             crop.send_text_msg(crop.user_name2id(assignee_name), mr_msg)
-            hmset("q7link-branch-weight", {mr.web_url: auth_name})
+            hmset("q7link-branch-merge", {mr.web_url: auth_name})
 
 if __name__ == '__main__':
     Task().send_mr_notify(None)
