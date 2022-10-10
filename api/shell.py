@@ -239,6 +239,9 @@ class Shell(utils.ProjectInfo):
         if self.target_branch is not None:
             for project in self.projects.values():
                 project.deleteLocalBranch(self.target_branch)
+        if self.source_branch is not None and self.source_branch not in ['stage', 'master']:
+            for project in self.projects.values():
+                project.deleteLocalBranch(self.source_branch)
         if self.lock_value is not None:
             self.lock.del_lock("lock", self.lock_value)
 
