@@ -61,15 +61,17 @@ class ProjectInfo():
       sys.exit(1)
     return self.__project
 
-  def getGroup(self):
+  def getGroup(self, group_name=None):
+    if group_name is None:
+      group_name = self.__module
     if self.__group is None:
       gl = gitlab.Gitlab(URL, TOKEN)
       try:
         gl.auth()
-        groups = gl.groups.list(search=self.__module) # 此处是模糊查询
+        groups = gl.groups.list(search=group_name) # 此处是模糊查询
         if len(groups) > 0:
           for group in groups:
-            if group.full_path.startswith("backend") and group.name == self.__module:
+            if group.full_path.startswith("backend") and group.name == group_name:
               self.__group = group
               break
       except Exception:
@@ -77,7 +79,7 @@ class ProjectInfo():
         raise
 
     if self.__group is None:
-      print("ERROR: 群组【{}】不存在!!!".format(self.__module))
+      print("ERROR: 群组【{}】不存在!!!".format(group_name))
       sys.exit(1)
     return self.__group
 
