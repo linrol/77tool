@@ -49,4 +49,4 @@ ENV LC_ALL zh_CN.UTF-8
 
 # run
 WORKDIR /data/backend/branch-manage/api/
-CMD git config --global user.email backend-ci@77hub.com && git config --global user.name backend-ci && service postgresql start && python3 app.py -p=8076 -i="wwcba5faed367cdeee" -s="d8x9pOUynLxggWIrxWecj9oupX59EwFH9teCkC9J1H4" -t="UNn2blWtjouEPUSeMsVS5A9eTjy5Z" -k="VpPjRfzYsddGOlSVJRVvUQeOaS6hjrAVYb3bobmWapw" -gd="gitlab.q7link.com" -gi="cdd8afbfd433d3b15a06f0b313fdf6060a5a04d63d9871ac0f366a3bffa44214" -gs="b6960421995e1272d286258a06df48021f0c37761907e59c62798a75d0631b11"
+CMD git config --global user.email "backend-ci@77hub.com" && git config --global user.name "backend-ci" && service postgresql start && python3 app.py -p=8076 -i="wwcba5faed367cdeee" -s="d8x9pOUynLxggWIrxWecj9oupX59EwFH9teCkC9J1H4" -t="UNn2blWtjouEPUSeMsVS5A9eTjy5Z" -k="VpPjRfzYsddGOlSVJRVvUQeOaS6hjrAVYb3bobmWapw" -gd="gitlab.q7link.com" -gi="cdd8afbfd433d3b15a06f0b313fdf6060a5a04d63d9871ac0f366a3bffa44214" -gs="b6960421995e1272d286258a06df48021f0c37761907e59c62798a75d0631b11"
