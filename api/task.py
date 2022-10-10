@@ -331,6 +331,8 @@ class Task:
             if hget("q7link-branch-merge", mr.web_url) is not None:
                 continue
             auth_name = hget("q7link-git-user", mr.author.get("username"))
+            if auth_name is None:
+                auth_name = mr.author.get("username")
             assignee_name = hget("q7link-git-user", mr.assignee.get("username"))
             project = mr.references.get("relative").split("!")[0]
             mr_msg = msg_content["merge_request"].format(auth_name, mr.title,
@@ -338,7 +340,9 @@ class Task:
                                                          mr.source_branch,
                                                          mr.target_branch,
                                                          mr.web_url)
-            crop.send_text_msg(crop.user_name2id(assignee_name), mr_msg)
+            user_id = crop.user_name2id(assignee_name)
+            logger.info("send_mr_notify to {} url {}".format(user_id, mr_msg))
+            crop.send_text_msg(user_id, mr_msg)
             hmset("q7link-branch-merge", {mr.web_url: auth_name})
 
 if __name__ == '__main__':
