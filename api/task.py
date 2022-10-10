@@ -318,32 +318,70 @@ class Task:
     # 发送mr提醒通知
     def send_mr_notify(self, crop):
         before_five_min = (datetime.now() - timedelta(minutes=600)).isoformat()
-        platform_list = self.get_project('parent').getGroup().mergerequests.list(
-            state='opened', created_after=before_five_min)
-        apps_mr_list = self.project_build.getGroup().mergerequests.list(
-            state='opened', created_after=before_five_min)
-        global_mr_list = self.get_project('identity').getGroup().mergerequests.list(
-            state='opened', created_after=before_five_min)
-        all_mr_list = platform_list + apps_mr_list + global_mr_list
-        for mr in all_mr_list:
+        group = self.get_project('parent').getGroup('backend')
+        # 发送待合并通知
+        opened_mr_list = group.mergerequests.list(state='opened',
+                                                  created_after=before_five_min)
+        for mr in opened_mr_list:
             if mr.assignee is None:
                 continue
-            if hget("q7link-branch-merge", mr.web_url) is not None:
+            mr_key = "opened_" + mr.web_url
+            if hget("q7link-branch-merge", mr_key) is not None:
                 continue
-            auth_name = hget("q7link-git-user", mr.author.get("username"))
-            if auth_name is None:
-                auth_name = mr.author.get("username")
-            assignee_name = hget("q7link-git-user", mr.assignee.get("username"))
-            project = mr.references.get("relative").split("!")[0]
-            mr_msg = msg_content["merge_request"].format(auth_name, mr.title,
-                                                         project,
-                                                         mr.source_branch,
-                                                         mr.target_branch,
-                                                         mr.web_url)
-            user_id = crop.user_name2id(assignee_name)
-            logger.info("send_mr_notify to {} url {}".format(user_id, mr_msg))
-            crop.send_text_msg(user_id, mr_msg)
-            hmset("q7link-branch-merge", {mr.web_url: auth_name})
+            author_id = mr.author.get("username")
+            git_assignee_id = mr.assignee.get("username")
+            if author_id == git_assignee_id:
+                continue
+            author_name = hget("q7link-git-user", author_id)
+            if author_name is None:
+                author_name = author_id
+            assignee_name = hget("q7link-git-user", git_assignee_id)
+            if assignee_name is None:
+                logger.error("git assignee id [{}] not found".format(git_assignee_id))
+                continue
+            _, project = mr.references.get("full").split("!")[0].rsplit("/", 1)
+            mr_target_msg = msg_content["mr_target"].format(author_name,
+                                                            mr.title,
+                                                            project,
+                                                            mr.source_branch,
+                                                            mr.target_branch,
+                                                            mr.web_url)
+            assignee_user_id = crop.user_name2id(assignee_name)
+            logger.info("send mr to {} url {}".format(assignee_user_id,
+                                                      mr_target_msg))
+            crop.send_text_msg(assignee_user_id, mr_target_msg)
+            hmset("q7link-branch-merge", {mr_key: assignee_name})
+
+        # 发送已合并通知
+        merged_mr_list = group.mergerequests.list(state='merged',
+                                                  created_after=before_five_min)
+        for mr in merged_mr_list:
+            if mr.assignee is None:
+                continue
+            mr_key = "merged_" + mr.web_url
+            if hget("q7link-branch-merge", mr_key) is not None:
+                continue
+            author_id = mr.author.get("username")
+            git_assignee_id = mr.assignee.get("username")
+            if author_id == git_assignee_id:
+                continue
+            assignee_name = hget("q7link-git-user", git_assignee_id)
+            if assignee_name is None:
+                assignee_name = git_assignee_id
+            author_name = hget("q7link-git-user", author_id)
+            if author_name is None:
+                logger.error("git author id [{}] not found".format(author_id))
+                continue
+            _, project = mr.references.get("full").split("!")[0].rsplit("/", 1)
+            mr_source_msg = msg_content["mr_source"].format(project,
+                                                            assignee_name,
+                                                            mr.web_url)
+            auth_user_id = crop.user_name2id(author_name)
+            logger.info("send mr to {} url {}".format(auth_user_id,
+                                                      mr_source_msg))
+            crop.send_text_msg(auth_user_id, mr_source_msg)
+            hmset("q7link-branch-merge", {mr_key: author_name})
+
 
 if __name__ == '__main__':
     Task().send_mr_notify(None)
