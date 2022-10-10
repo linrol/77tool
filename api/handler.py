@@ -119,9 +119,11 @@ class Handler:
             ret, result = shell.exec_data_pre(pre_type, *data_pre_dirt)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(result))
+            result = "收到来自{}预制数据代码合并请求，请合并\n{}".format(self.user_name,
+                                                                  str(result))
             assignee_userid = self.crop.user_name2id(data_pre_dirt[4])
-            if assignee_userid is not None:
-                self.crop.send_text_msg(assignee_userid, str(result))
+            if assignee_userid is not None and assignee_userid != self.user_id:
+                self.crop.send_text_msg(assignee_userid, result)
             return result
         except Exception as err:
             print(str(err))
@@ -196,8 +198,7 @@ class Handler:
     def new_branch_task(self):
         try:
             req_user = (self.user_id, self.user_name)
-            fixed_ids = ["LuoLin", "XieXiaNiDeGuanYu",
-                              "yunpeng.liu@q7link.com"]
+            fixed_ids = ["LuoLin", "XieXiaNiDeGuanYu", "yunpeng.liu@q7link.com"]
             duty_user = self.crop.get_duty_info(self.is_test, fixed_ids)
             task_info = req_user + duty_user + get_branch_dirt(self.msg_content)
             ret = Task(self.is_test).new_branch_task(self.crop, *task_info)

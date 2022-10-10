@@ -100,7 +100,7 @@ def job_check_version():
     Task().check_version(user_ids, branch, crop)
 
 
-@scheduler.task('interval', id='job_mr_request_notify', seconds=300,
+@scheduler.task('interval', id='job_mr_request_notify', seconds=180,
                 timezone='Asia/Shanghai')
 def job_mr_request_notify():
     Task().send_mr_notify(crop)
