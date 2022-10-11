@@ -65,7 +65,7 @@ def gitlab_hook():
 @app.route("/listener/deploy", methods=["POST"])
 def listener_deploy():
     body = json.loads(request.data.decode('utf-8'))
-    print("listener_deploy:" + str(body))
+    logger.info("listener_deploy:" + str(body))
     return make_response("success")
 
 
@@ -102,7 +102,7 @@ def job_check_version():
     Task().check_version(user_ids, branch, crop)
 
 
-@scheduler.task('interval', id='job_mr_request_notify', seconds=180,
+@scheduler.task('interval', id='job_mr_request_notify', seconds=60,
                 timezone='Asia/Shanghai')
 def job_mr_request_notify():
     Task().send_mr_notify(crop)
