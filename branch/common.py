@@ -113,7 +113,7 @@ class Common:
         self.get_connection().hset(name, key, value)
 
     def get_gl_user_name(self):
-        return self.project_build.getGLUserName()
+        return self.project_build.getGl().user.username
 
     def get_branch_weight(self, key):
         name = "q7link-branch-weight"
