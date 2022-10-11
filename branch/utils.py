@@ -19,20 +19,20 @@ class ProjectInfo():
     self.__module = module
     self.__group = None
     self.__project = None
+    self.__gl = self.getGl()
     self.__checkPath()
     # self.fetch()# TODO 是否fetch
 
+  def getGl(self):
+    gl = gitlab.Gitlab(URL, TOKEN)
+    gl.auth()
+    return gl
   def getName(self):
     return self.__name
   def getPath(self):
     return self.__path
   def getModule(self):
     return self.__module
-
-  def getGLUserName(self):
-    gl = gitlab.Gitlab(URL, TOKEN)
-    gl.auth()
-    return gl.user.username
 
   def __checkPath(self):
     [result, msg] = subprocess.getstatusoutput('cd ' + self.__path)
@@ -43,10 +43,8 @@ class ProjectInfo():
   # 获取git仓库的项目信息
   def getProject(self):
     if self.__project is None:
-      gl = gitlab.Gitlab(URL, TOKEN)
       try:
-        gl.auth()
-        projects = gl.projects.list(search=self.__name) # 此处是模糊查询
+        projects = self.__gl.projects.list(search=self.__name) # 此处是模糊查询
         if len(projects) > 0:
           for project in projects:
             if project.name_with_namespace.startswith("backend") and project.name == self.__name:
