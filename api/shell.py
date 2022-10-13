@@ -184,12 +184,14 @@ class Shell(utils.ProjectInfo):
             [ret, checkout_msg] = self.checkout_branch(self.source_branch)
             if ret != 0:
                 return False, checkout_msg
+            self.protect_branch(self.target_branch, 'release')
             source = self.source_branch + ".clear" if clear else self.source_branch
             cmd = 'cd ../branch;python3 merge.py {} {}'.format(source, self.target_branch)
-            logger.info("merget_branch[{}]".format(cmd))
+            logger.info("merge_branch[{}]".format(cmd))
             [ret, merge_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
                 return False, merge_msg
+            self.protect_branch(self.target_branch, 'none')
             merge_msg = re.compile('WARNNING：.*目标分支.*已存在.*\n').sub('', merge_msg)
             merge_msg = re.compile('工程.*保护成功.*\n').sub('', merge_msg)
             return True, merge_msg
@@ -244,6 +246,13 @@ class Shell(utils.ProjectInfo):
                 project.deleteLocalBranch(self.source_branch)
         if self.lock_value is not None:
             self.lock.del_lock("lock", self.lock_value)
+
+    def protect_branch(self, branch, protect):
+        protect_cmd = "cd ../branch;python3 protectBranch.py {} {}".format(branch, protect)
+        [ret, msg] = subprocess.getstatusoutput(protect_cmd)
+        if ret != 0:
+            logger.info(msg)
+            raise Exception(msg)
 
     def commit_and_push(self, branch, protect):
         protect_cmd = "cd ../branch;python3 protectBranch.py {} release".format(branch)
