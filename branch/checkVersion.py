@@ -97,6 +97,8 @@ class CheckVersion(Common):
                 continue
             branch_version = self.get_branch_version(b_name, skip_release)
             for p, p_version in branch_version.items():
+                if p == "reimburse":
+                    continue
                 data = {"branch": b_name, "version": p_version}
                 project_version.setdefault(p, LinkedList()).append(data)
         for p, link in project_version.items():
