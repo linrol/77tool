@@ -356,31 +356,36 @@ class Task:
         merged_mr_list = group.mergerequests.list(state='merged',
                                                   created_after=before_five_min)
         for mr in merged_mr_list:
-            if mr.assignee is None:
+            if mr.merged_by is None:
                 continue
             mr_key = "merged_" + mr.web_url
             if hget("q7link-branch-merge", mr_key) is not None:
                 continue
+            data_pre_str = "<数据预置>前端多列表方案预置-"
+            is_data_pre = data_pre_str in mr.title
             author_id = mr.author.get("username")
-            git_assignee_id = mr.assignee.get("username")
-            if author_id == git_assignee_id:
+            merged_userid = mr.merged_by.get("username")
+            if author_id == merged_userid and not is_data_pre:
                 continue
-            assignee_name = hget("q7link-git-user", git_assignee_id)
-            if assignee_name is None:
-                assignee_name = git_assignee_id
-            author_name = hget("q7link-git-user", author_id)
-            if author_name is None:
-                logger.error("git author id [{}] not found".format(author_id))
-                continue
+            merged_username = hget("q7link-git-user", merged_userid)
+            if merged_username is None:
+                merged_username = merged_userid
+            if is_data_pre:
+                author_userid = mr.title.replace(data_pre_str, "")
+            else:
+                author_name = hget("q7link-git-user", author_id)
+                if not author_name:
+                    logger.error("author id [{}] not found".format(author_id))
+                    continue
+                author_userid = crop.user_name2id(author_name)
             _, project = mr.references.get("full").split("!")[0].rsplit("/", 1)
             mr_source_msg = msg_content["mr_source"].format(project,
-                                                            assignee_name,
+                                                            merged_username,
                                                             mr.web_url)
-            auth_user_id = crop.user_name2id(author_name)
-            logger.info("send mr to {} url {}".format(auth_user_id,
+            logger.info("send mr to {} url {}".format(author_userid,
                                                       mr_source_msg))
-            crop.send_text_msg(auth_user_id, mr_source_msg)
-            hmset("q7link-branch-merge", {mr_key: author_name})
+            crop.send_text_msg(author_userid, mr_source_msg)
+            hmset("q7link-branch-merge", {mr_key: author_userid})
 
 
 if __name__ == '__main__':
