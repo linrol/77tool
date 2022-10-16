@@ -393,6 +393,7 @@ class Task:
     # 发送代码合并任务
     def send_branch_merge(self, branches, groups, clusters, crop):
         user_ids, _ = crop.get_duty_info(self.is_test, ["LuoLin"])
+        ret = []
         for branch in branches:
             if is_chinese(branch):
                 continue
@@ -417,7 +418,10 @@ class Task:
                                                       ",".join(groups),
                                                       str(self.is_test),
                                                       task_code)
+            logger.info("task[{}] content[{}]".format(task_id, content))
             save_user_task(task_id, content)
+            ret.append(task_id)
+        return ",".join(ret)
 
 
 if __name__ == '__main__':
