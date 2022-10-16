@@ -45,7 +45,7 @@ class Backup(Common):
             return
         executor = DeleteBranch(self.source, self.target, backup_projects, True)
         executor.execute()
-        print("删除【{}】分支的工程【{}】成功，该分支已合并至分支【{}】".format(self.source, ",".join(backup_projects), self.target))
+        print("删除【{}】分支的工程【{}】成功，该分支已合并至分支【{}】".format(self.source, created_projects.replace(",build", ""), self.target))
 
 
 # 备份分支
