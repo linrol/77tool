@@ -39,7 +39,7 @@ class GenVersion(Common):
             self.target_version = self.get_branch_version(target)
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
-            self.weight = int(self.get_branch_weight(self.target_name))
+            self.weight = self.get_branch_weight()
             self.last_target_version = self.get_adjacent_branch_version(-7)
             self.next_target_version = self.get_adjacent_branch_version(7)
 
@@ -55,6 +55,15 @@ class GenVersion(Common):
             if len(force_project) > 0:
                 result.update(force_project)
         return list(result)
+
+    def get_branch_weight(self):
+        key = "{}_{}".format(self.source, self.target_name)
+        weight = self.hget("q7link-branch-weight", key)
+        if weight is not None:
+            return int(weight)
+        key = "{}_{}".format("*", self.target_name)
+        weight = self.hget("q7link-branch-weight", key)
+        return int(weight)
 
     def get_adjacent_branch_version(self, days):
         if self.target_name != "sprint":

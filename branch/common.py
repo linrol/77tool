@@ -115,10 +115,6 @@ class Common:
     def get_gl_user_name(self):
         return self.project_build.getGl().user.username
 
-    def get_branch_weight(self, key):
-        name = "q7link-branch-weight"
-        return self.hget(name, key)
-
     # 获取指定分支的版本号
     def get_branch_version(self, branch, skip_release=False):
         if self.project_build is None:
