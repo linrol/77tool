@@ -149,6 +149,7 @@ class Handler:
             source, target, namespaces = get_move_branch_dirt(self.msg_content)
             if "sprint" not in source:
                 raise Exception("迁移分支输入错误，当前仅支持班车sprint分支")
+            self.crop.send_text_msg(self.user_id, "分支迁移任务运行中，请稍等!")
             shell = Shell(self.user_id, self.is_test, source, target)
             ret, result = shell.move_branch(namespaces)
             # 发送消息通知
@@ -166,6 +167,7 @@ class Handler:
             if self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
             source, target, clear_source = get_merge_branch_dirt(self.msg_content)
+            self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等!")
             shell = Shell(self.user_id, self.is_test, source, target)
             ret, result = shell.merge_branch(clear_source)
             # 发送消息通知
@@ -183,6 +185,7 @@ class Handler:
             if self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
             target, params, protect, is_build = get_build_dirt(self.msg_content)
+            self.crop.send_text_msg(self.user_id, "构建发布包任务运行中，请稍等!")
             shell = Shell(self.user_id, self.is_test, 'master', target)
             ret, result = shell.build_package(params, protect, is_build)
             # 发送消息通知
