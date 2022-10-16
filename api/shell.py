@@ -255,11 +255,7 @@ class Shell(utils.ProjectInfo):
             raise Exception(msg)
 
     def commit_and_push(self, branch, protect):
-        protect_cmd = "cd ../branch;python3 protectBranch.py {} release".format(branch)
-        [ret, msg] = subprocess.getstatusoutput(protect_cmd)
-        if ret != 0:
-            logger.info(msg)
-            raise Exception(msg)
+        self.protect_branch(branch, 'release')
         push_cmd = ''
         for name, project in self.projects.items():
             path = project.getPath()
@@ -278,11 +274,8 @@ class Shell(utils.ProjectInfo):
         if ret != 0:
             logger.info(msg)
             raise Exception(msg)
-        protect_cmd = "cd ../../branch-manage/branch;python3 protectBranch.py {} {}".format(branch, protect)
-        [ret, msg] = subprocess.getstatusoutput(protect_cmd)
-        if ret != 0:
-            logger.info(msg)
-            raise Exception(msg)
+        self.protect_branch(branch, protect)
+
 
 if __name__ == "__main__":
     backup_msg = re.compile('工程.*删除分支.*\n').sub('', "工程【init-data】删除分支【sprint20221002】成功，该分支已合并至分支【stage-global】\n工程【metadata-impl】删除分支【sprint20221002】成功，该分支已合并至分支【stage-global】\n工程【metadata-api】删除分支【sprint20221002】成功，该分支已合并至分支【stage-global】\n工程【mbg-plugins】删除分支【sprint20221002】成功，该分支已合并至分支【stage-global】")
