@@ -66,6 +66,18 @@ def gitlab_hook():
 def listener_deploy():
     body = json.loads(request.data.decode('utf-8'))
     logger.info("listener_deploy:" + str(body))
+    deploy_ret = body.get("ret")
+    if deploy_ret is None or deploy_ret != "发布成功":
+        return make_response("ignore")
+    deploy_group = set(body.get("project_group").split(","))
+    if deploy_group is None:
+        return make_response("ignore")
+    groups = deploy_group.difference({"apps", "global"})
+    if len(groups) < 1:
+        return make_response("ignore")
+    branches = body.get("project_desc").split(",")
+    clusters = body.get("cluster").split(",")
+    Task(True).send_branch_merge(branches, groups, clusters, crop)
     return make_response("success")
 
 

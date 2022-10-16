@@ -133,6 +133,55 @@ msg_content = {
             }
         ]
     },
+    "merge_branch_task": {
+        "card_type": "button_interaction",
+        "source": {
+            "desc": "值班助手",
+            "desc_color": 1
+        },
+        "main_title": {
+            "title": "值班助手-代码合并任务"
+        },
+        "sub_title_text": "检测到{}分支已发布到{}，同意后将开始合并代码",
+        "horizontal_content_list": [
+            {
+                "keyname": "来源分支",
+                "value": "stage",
+            },
+            {
+                "keyname": "目标分支",
+                "value": "sprint20220818"
+            }
+        ],
+        "button_selection": {
+            "question_key": "remove_source",
+            "title": "删除来源",
+            "option_list": [
+                {
+                    "id": "true",
+                    "text": "是"
+                },
+                {
+                    "id": "false",
+                    "text": "否"
+                }
+            ],
+            "selected_id": "btn_selection_id1"
+        },
+        "task_id": "",
+        "button_list": [
+            {
+                "text": "取消",
+                "style": 3,
+                "key": "deny@"
+            },
+            {
+                "text": "同意",
+                "style": 2,
+                "key": "agree@"
+            }
+        ]
+    },
     "create_branch_task_response": "本次拉取分支的任务已发送到值班人：{}，请等待值班审批同意后将开始执行",
     "mr_source": "您发起的工程：{} MR请求，已被{}合并！\n{}",
     "mr_target": "您收到来自{}的MR请求，请及时合并！\n标题：{}\n工程/分支：{}(分支{}合并到{})\n{}"
@@ -153,7 +202,7 @@ def xml2dirt(raw_xml):
         data[node.tag] = node.text
     return data
 
-def is_chinese(k, word):
+def is_chinese(word):
     for ch in word:
         if '\u4e00' <= ch <= '\u9fff':
             return True
@@ -171,7 +220,7 @@ def get_map(lines, filter_chinese=True):
         v = kv[1]
         if k == '' or v == '':
             continue
-        if filter_chinese and is_chinese(k, v):
+        if filter_chinese and is_chinese(v):
             continue
         map[k] = v
     return map
@@ -280,3 +329,19 @@ def build_change_branch_version_msg(task_id, source, target, project_info):
     msg_content["change_branch_version"]["button_list"][0]["key"] = "deny@" + task_id
     msg_content["change_branch_version"]["button_list"][1]["key"] = "agree@" + task_id
     return msg_content["change_branch_version"]
+
+def build_merge_branch_msg(source, target, cluster, task_id):
+    task_info_list = [{
+        "keyname": "来源分支",
+        "value": source,
+    }, {
+        "keyname": "目标分支",
+        "value": target,
+    }]
+    msg_content["merge_branch_task"]["main_title"]["title"] = "值班助手-检测到{}分支已发布至{}".format(source, cluster)
+    msg_content["merge_branch_task"]["sub_title_text"] = "请确认以下信息，同意后将{}分支代码合并至{}".format(source, target)
+    msg_content["merge_branch_task"]["horizontal_content_list"] = task_info_list
+    msg_content["merge_branch_task"]["task_id"] = task_id
+    msg_content["merge_branch_task"]["button_list"][0]["key"] = "deny@" + task_id
+    msg_content["merge_branch_task"]["button_list"][1]["key"] = "agree@" + task_id
+    return msg_content["merge_branch_task"]

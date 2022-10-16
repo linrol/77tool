@@ -102,7 +102,7 @@ class Shell(utils.ProjectInfo):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             init_branch = self.init_branch()
-            is_feature_branch = fixed_version is not None
+            is_feature_branch = fixed_version != "None"
             if is_feature_branch:
                 gen_params = "-v {}".format(fixed_version)
             else:

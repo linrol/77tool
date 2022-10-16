@@ -6,8 +6,8 @@ import re
 from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
-from wxmessage import build_create_branch__msg, msg_content
-from redisclient import save_create_branch_task, get_branch_mapping, hmset, hget
+from wxmessage import build_create_branch__msg, build_merge_branch_msg, msg_content, is_chinese
+from redisclient import save_create_branch_task, get_branch_mapping, hmset, hget, like_key
 
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
@@ -96,11 +96,10 @@ class Task:
             for priority, projects in split.items():
                 if len(projects) < 1:
                     continue
-                task_id = "{}@{}@{}@{}".format(req_id.replace("@", "").replace(".", ""),
-                                               priority, target,
-                                               int(time.time()))
-                project_str = ",".join(projects)
+                task_id = "branch_new@{}@{}".format(req_id.replace("@", "").replace(".", ""),
+                                                    int(time.time()))
                 logger.info("task_id" + task_id)
+                project_str = ",".join(projects)
                 notify_duty, notify_req = build_create_branch__msg(req_id,
                                                                    req_name,
                                                                    duty_name,
@@ -112,10 +111,13 @@ class Task:
                 body = crop.send_template_card(duty_id, notify_duty)
                 # 记录任务
                 task_code = body.get("response_code")
-                task_content = "{}#{}#{}#{}".format(req_id, task_code,
-                                                    project_str,
-                                                    str(self.is_test))
-                save_create_branch_task(task_id, task_content)
+                content = "{}#{}#{}#{}#None#{}#{}".format(req_id,
+                                                          priority,
+                                                          target,
+                                                          project_str,
+                                                          str(self.is_test),
+                                                          task_code)
+                save_create_branch_task(task_id, content)
             return notify_req
         except Exception as err:
             return str(err)
@@ -124,8 +126,7 @@ class Task:
     def new_feature_branch_task(self, crop, req_user_id, req_user_name,
         source, target, project_names, version, approve_id, approve_name):
         project_str = ",".join(self.get_new_project(target, project_names))
-        task_id = "{}@{}@{}@{}".format(req_user_id, source, target,
-                                       int(time.time()))
+        task_id = "branch_new@{}@{}".format(req_user_id, int(time.time()))
         notify_approve, notify_req = build_create_branch__msg(req_user_id,
                                                               req_user_name,
                                                               approve_name,
@@ -137,9 +138,11 @@ class Task:
         body = crop.send_template_card(approve_id, notify_approve)
         # 记录任务
         task_code = body.get("response_code")
-        task_content = "{}#{}#{}#{}#{}".format(req_user_id, task_code,
-                                               project_str, str(self.is_test),
-                                               version)
+        task_content = "{}#{}#{}#{}#{}#{}#{}".format(req_user_id, source,
+                                                     target,
+                                                     project_str, version,
+                                                     str(self.is_test),
+                                                     task_code)
         save_create_branch_task(task_id, task_content)
         return notify_req
 
@@ -386,6 +389,34 @@ class Task:
                                                       mr_source_msg))
             crop.send_text_msg(author_userid, mr_source_msg)
             hmset("q7link-branch-merge", {mr_key: author_userid})
+
+    # 发送代码合并任务
+    def send_branch_merge(self, branches, groups, clusters, crop):
+        user_ids, _ = crop.get_duty_info(self.is_test, ["LuoLin"])
+        for branch in branches:
+            if is_chinese(branch):
+                continue
+            if self.project_build.getBranch(branch) is None:
+                continue
+            if "sprint" in branch:
+                continue
+            name = "q7link-branch-created"
+            target = like_key(name, branch)
+            if target is None:
+                continue
+            # 发送合并代码通知
+            task_id = "branch_merge@{}@{}".format(user_ids, int(time.time()))
+            _merge = build_merge_branch_msg(branch, target, clusters, task_id)
+            body = crop.send_template_card(user_ids, _merge)
+            # 记录任务
+            task_code = body.get("response_code")
+            content = "{}#{}#{}#{}#None#{}#{}".format(user_ids,
+                                                      branch,
+                                                      target,
+                                                      groups,
+                                                      str(self.is_test),
+                                                      task_code)
+            save_create_branch_task(task_id, content)
 
 
 if __name__ == '__main__':

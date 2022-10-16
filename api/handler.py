@@ -5,7 +5,7 @@ from shell import Shell
 from task import Task
 from log import logger
 from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_move_branch_dirt, xml2dirt
-from redisclient import duplicate_msg, get_create_branch_task, hmset
+from redisclient import duplicate_msg, get_user_task, hmset
 
 require_git_oauth_event = ["data_pre_new", "data_pre_old"]
 
@@ -56,28 +56,26 @@ class Handler:
 
     # 消费事件任务类消息
     def accept_event_task(self):
-        task_content = get_create_branch_task(self.event_task_id)
-        if task_content is None:
-            return "event task {} not found".format(self.event_task_id)
-        task_contents = task_content.split("#")
-        req_user_id = task_contents[0]
-        task_code = task_contents[1]
-        projects = task_contents[2]
-        _operation = self.event_key.split("@")[0]
-        if _operation == 'deny':
+        action = self.event_key.split("@")[0]
+        action_type = self.event_key.split("@")[1]
+        if action == 'deny':
             # 拒绝任务
             self.crop.disable_task_button(self.event_task_code, "已拒绝")
-            return "deny task[{}]".format(task_content)
+            return "deny task[{}]".format(self.event_task_id)
         # 同意任务
+        task_content = get_user_task(self.event_task_id)
+        if task_content is None:
+            return "get task {} not found".format(self.event_task_id)
+        task_contents = task_content.split("#")
+        self.is_test = task_contents[5] == "True"
         self.crop.disable_task_button(self.event_task_code, "任务执行中...")
-        project_list = projects.split(",")
-        self.is_test = task_contents[3] == "True"
-        fixed_version = None
-        if len(task_contents) > 4:
-            fixed_version = task_contents[4]
-        task_info = self.event_task_id.split("@")
-        ret_msg = self.create_branch(req_user_id, task_info[1], task_info[2],
-                                     project_list, fixed_version)
+        if action_type == "branch_new":
+            ret_msg = self.new_branch(task_contents)
+        elif action_type == "branch_merge":
+            ret_msg = self.merge_branch(task_contents)
+        else:
+            ret_msg = "未知任务"
+        task_code = task_contents[6]
         self.crop.disable_task_button(task_code, "任务执行完成")
         return ret_msg
 
@@ -105,7 +103,7 @@ class Handler:
         elif '分支迁移' in self.msg_content:
             return self.move_branch()
         elif '分支合并' in self.msg_content:
-            return self.merge_branch()
+            return self.merge_branch(None)
         elif '构建发布包' in self.msg_content:
             return self.build_package()
         elif '初始化特性分支' in self.msg_content:
@@ -132,18 +130,29 @@ class Handler:
             return str(err)
 
     # 拉分支
-    def create_branch(self, apply_user_id, source, target, projects,
-        fixed_version):
-        shell = Shell(apply_user_id, self.is_test, source, target)
-        ret, result = shell.create_branch(fixed_version, projects)
-        # 发送消息通知
-        notify_user_ids = "|".join({self.user_id, apply_user_id})
-        self.crop.send_text_msg(notify_user_ids, str(result))
-        return result
+    def new_branch(self, task_contents):
+        try:
+            req_userid = task_contents[0]
+            source = task_contents[1]
+            target = task_contents[2]
+            projects = task_contents[3].split(",")
+            fixed_version = task_contents[4]
+            shell = Shell(req_userid, self.is_test, source, target)
+            _, result = shell.create_branch(fixed_version, projects)
+            # 发送消息通知
+            user_ids = "|".join({self.user_id, req_userid})
+            self.crop.send_text_msg(user_ids, str(result))
+            return result
+        except Exception as err:
+            print(str(err))
+            # 发送消息通知
+            self.crop.send_text_msg(self.user_id, str(err))
+            return str(err)
 
     def move_branch(self):
         try:
-            duty_user_id, name = self.crop.get_duty_info(self.is_test, ["LuoLin"])
+            duty_user_id, name = self.crop.get_duty_info(self.is_test,
+                                                         ["LuoLin"])
             if self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
             source, target, namespaces = get_move_branch_dirt(self.msg_content)
@@ -161,15 +170,20 @@ class Handler:
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
 
-    def merge_branch(self):
+    def merge_branch(self, task_contents):
         try:
             duty_user_id, name = self.crop.get_duty_info(self.is_test, ["LuoLin"])
-            if self.user_id not in duty_user_id:
+            if task_contents is None and self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
-            source, target, clear_source = get_merge_branch_dirt(self.msg_content)
-            self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等!")
+            if task_contents is None:
+                source, target, clear = get_merge_branch_dirt(self.msg_content)
+                self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等!")
+            else:
+                source = task_contents[1]
+                target = task_contents[1]
+                clear = True
             shell = Shell(self.user_id, self.is_test, source, target)
-            ret, result = shell.merge_branch(clear_source)
+            ret, result = shell.merge_branch(clear)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(result))
             return result

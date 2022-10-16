@@ -27,6 +27,14 @@ def hget(name, key):
     return redisClient.get_connection().hget(name, key)
 
 
+def like_key(name, value):
+    all_hash = redisClient.get_connection().hgetall(name)
+    for k, v in all_hash.items():
+        if value in v:
+            return k
+    return None
+
+
 def duplicate_msg(msg):
     msg_id = msg.get('MsgId')
     if msg_id is None:
@@ -70,7 +78,7 @@ def save_create_branch_task(key, value):
     redisClient.get_connection().hmset("q7link-user-task", {key: value})
 
 
-def get_create_branch_task(key):
+def get_user_task(key):
     return redisClient.get_connection().hget("q7link-user-task", key)
 
 
