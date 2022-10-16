@@ -49,7 +49,7 @@ class GenVersion(Common):
             if name in project_framework:
                 name = "framework"
             result.add(name)
-        if self.force:
+        if self.force and self.source not in ["stage-global"]:
             compare_dict = {self.target: True, self.source: False}
             force_project = CheckVersion().compare_version(compare_dict, False)
             if len(force_project) > 0:
