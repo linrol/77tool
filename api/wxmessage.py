@@ -1,4 +1,6 @@
 import re
+import xmltodict
+import unicodedata as ucd
 from redisclient import get_branch_mapping
 
 menu_help = {
@@ -176,7 +178,7 @@ msg_content = {
                 "key": "deny@"
             },
             {
-                "text": "同意",
+                "text": "合并",
                 "style": 2,
                 "key": "agree@"
             }
@@ -193,13 +195,8 @@ build_group_mapping = {"all": ['framework', 'enterprise', 'enterprise-apps', 'en
 
 target_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
 
-import unicodedata as ucd
-from xml.etree.ElementTree import fromstring
-
 def xml2dirt(raw_xml):
-    data = {}
-    for node in list(fromstring(raw_xml.decode('utf-8'))):
-        data[node.tag] = node.text
+    data = xmltodict.parse(raw_xml).get("xml")
     return data
 
 def is_chinese(word):
@@ -338,8 +335,8 @@ def build_merge_branch_msg(source, target, cluster, task_id):
         "keyname": "目标分支",
         "value": target,
     }]
-    msg_content["merge_branch_task"]["main_title"]["title"] = "值班助手-检测到{}分支已发布至{}".format(source, cluster)
-    msg_content["merge_branch_task"]["sub_title_text"] = "请确认以下信息，同意后将{}分支代码合并至{}".format(source, target)
+    msg_content["merge_branch_task"]["main_title"]["title"] = "值班助手-代码合并请求"
+    msg_content["merge_branch_task"]["sub_title_text"] = "{}已发布至{}，请求将代码合并至{}".format(source, cluster, target)
     msg_content["merge_branch_task"]["horizontal_content_list"] = task_info_list
     msg_content["merge_branch_task"]["task_id"] = task_id
     msg_content["merge_branch_task"]["button_list"][0]["key"] = "deny@" + task_id

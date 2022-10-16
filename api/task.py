@@ -406,14 +406,15 @@ class Task:
             target = created_info.split("#")[0]
             # 发送合并代码通知
             task_id = "branch_merge@{}@{}".format(user_ids, int(time.time()))
-            _merge = build_merge_branch_msg(branch, target, clusters, task_id)
+            _merge = build_merge_branch_msg(branch, target, ",".join(clusters),
+                                            task_id)
             body = crop.send_template_card(user_ids, _merge)
             # 记录任务
             task_code = body.get("response_code")
             content = "{}#{}#{}#{}#None#{}#{}".format(user_ids,
                                                       branch,
                                                       target,
-                                                      groups,
+                                                      ",".join(groups),
                                                       str(self.is_test),
                                                       task_code)
             save_user_task(task_id, content)
