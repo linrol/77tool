@@ -7,8 +7,6 @@ from log import logger
 from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_move_branch_dirt, xml2dirt
 from redisclient import duplicate_msg, get_user_task, hmset
 
-require_git_oauth_event = ["data_pre_new", "data_pre_old"]
-
 
 class Handler:
     def __init__(self, crypt, crop, raw_content):

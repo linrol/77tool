@@ -27,6 +27,19 @@ def hget(name, key):
     return redisClient.get_connection().hget(name, key)
 
 
+def hdel(name, key):
+    redisClient.get_connection().hdel(name, key)
+
+
+def append(name, key, value):
+    connection = redisClient.get_connection()
+    old_value = hget(name, key)
+    if old_value is None:
+        connection.hmset("q7link-mr-log", {key: value})
+    else:
+        connection.hmset("q7link-mr-log", {key: old_value + "," + value})
+
+
 def duplicate_msg(msg):
     msg_id = msg.get('MsgId')
     if msg_id is None:
@@ -49,24 +62,7 @@ def duplicate_correct_id(correct_id, branch, project):
     return is_accept
 
 
-def add_mr(key, mr_id):
-    connection = redisClient.get_connection()
-    mr_ids = get_mr_ids(key)
-    if mr_ids is None:
-        connection.hmset("q7link-mr-log", {key: mr_id})
-    else:
-        connection.hmset("q7link-mr-log", {key: mr_ids + "," + mr_id})
-
-
-def get_mr_ids(key):
-    return redisClient.get_connection().hget("q7link-mr-log", key)
-
-
-def delete_mr(key):
-    redisClient.get_connection().hdel("q7link-mr-log", key)
-
-
-def save_create_branch_task(key, value):
+def save_user_task(key, value):
     redisClient.get_connection().hmset("q7link-user-task", {key: value})
 
 

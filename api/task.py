@@ -7,7 +7,7 @@ from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
 from wxmessage import build_create_branch__msg, build_merge_branch_msg, msg_content, is_chinese
-from redisclient import save_create_branch_task, get_branch_mapping, hmset, hget
+from redisclient import save_user_task, get_branch_mapping, hmset, hget
 
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
@@ -117,9 +117,7 @@ class Task:
                                                           project_str,
                                                           str(self.is_test),
                                                           task_code)
-                save_create_branch_task(task_id, content)
-                created_value = "{}#{}#{}".format(priority, req_id, project_str)
-                hmset('q7link-branch-created', {target: created_value})
+                save_user_task(task_id, content)
             return notify_req
         except Exception as err:
             return str(err)
@@ -145,7 +143,7 @@ class Task:
                                                      project_str, version,
                                                      str(self.is_test),
                                                      task_code)
-        save_create_branch_task(task_id, task_content)
+        save_user_task(task_id, task_content)
         return notify_req
 
     def compare_version(self, left_branch, right_branch):
@@ -418,7 +416,7 @@ class Task:
                                                       groups,
                                                       str(self.is_test),
                                                       task_code)
-            save_create_branch_task(task_id, content)
+            save_user_task(task_id, content)
 
 
 if __name__ == '__main__':

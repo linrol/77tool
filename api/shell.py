@@ -5,8 +5,7 @@ import subprocess
 import time
 
 from concurrent.futures import ThreadPoolExecutor
-
-from redisclient import add_mr, get_mr_ids, delete_mr
+from redisclient import append, hget, hmset, hdel
 from log import logger
 from redisclient import redisClient
 from redislock import RedisLock
@@ -15,7 +14,6 @@ sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/data/backend/branch-manage")
 from branch import utils
-
 executor = ThreadPoolExecutor()
 
 def chdir_branch():
@@ -44,13 +42,13 @@ class Shell(utils.ProjectInfo):
     # 获取目标分支+当前人是否还存在未合并的mr分支
     def get_open_mr_branch(self, mr_key, branch):
         temp_branch = branch + str(int(time.time()))
-        mr_ids = get_mr_ids(mr_key)
+        mr_ids = hget("q7link-mr-log", mr_key)
         if mr_ids is None:
             return None, temp_branch
         mr_list = self.project_init_data.getProject().mergerequests.list(state='opened', iids=mr_ids.split(","))
         if mr_list is not None and len(mr_list) > 0:
             return mr_list[0], mr_list[0].source_branch
-        delete_mr(mr_key)
+        hdel("q7link-mr-log", mr_key)
         return None, temp_branch
 
     def create_mr(self, mr_key, opened_mr, temp_branch, branch, title, assignee):
@@ -61,7 +59,7 @@ class Shell(utils.ProjectInfo):
         if opened_mr is not None:
             return True, opened_mr.web_url
         mr = self.project_init_data.createMrRequest(temp_branch, branch, title, assignee)
-        add_mr(mr_key, mr.web_url.rsplit("/", 1)[1])
+        append("q7link-mr-log", mr_key, mr.web_url.rsplit("/", 1)[1])
         return True, mr.web_url
 
     def exec_data_pre(self, data_type, env, tenant_id, target_branch, condition_value, mr_user):
@@ -136,6 +134,9 @@ class Shell(utils.ProjectInfo):
                 logger.error(e)
             create_msg = re.compile('WARNNING：.*\n').sub('', create_msg)
             create_msg = re.compile('工程.*保护成功.*\n').sub('', create_msg)
+            created_value = "{}#{}#{}".format(self.source_branch, self.user_id,
+                                              ",".join(project_names))
+            hmset('q7link-branch-created', {self.target_branch: created_value})
             return True, (create_msg + "\n" + change_version_msg)
         except Exception as err:
             return False, str(err)
