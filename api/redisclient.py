@@ -27,14 +27,6 @@ def hget(name, key):
     return redisClient.get_connection().hget(name, key)
 
 
-def like_key(name, value):
-    all_hash = redisClient.get_connection().hgetall(name)
-    for k, v in all_hash.items():
-        if value in v:
-            return k
-    return None
-
-
 def duplicate_msg(msg):
     msg_id = msg.get('MsgId')
     if msg_id is None:
