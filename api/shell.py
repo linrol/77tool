@@ -134,7 +134,9 @@ class Shell(utils.ProjectInfo):
                     post_form("http://ops.q7link.com:8000/qqdeploy/projectbuild/", params)
             except Exception as e:
                 logger.error(e)
-            return True, (create_msg + change_version_msg).replace("\n", "").replace("工程", "\n工程")
+            create_msg = re.compile('WARNNING：.*\n').sub('', create_msg)
+            create_msg = re.compile('工程.*保护成功.*\n').sub('', create_msg)
+            return True, (create_msg + "\n" + change_version_msg)
         except Exception as err:
             return False, str(err)
         finally:
