@@ -394,26 +394,37 @@ class Task:
     def send_branch_merge(self, branches, groups, clusters, crop):
         user_ids, _ = crop.get_duty_info(self.is_test, ["LuoLin"])
         ret = []
-        for branch in branches:
-            if is_chinese(branch):
+        for source in branches:
+            if is_chinese(source):
                 continue
-            if self.project_build.getBranch(branch) is None:
+            sprint_deploy_global = "sprint" in source and "global" in clusters
+            if sprint_deploy_global:
+                # 班车分支发布至集群0，需sprint分支迁移至stage-global
                 continue
-            if "sprint" in branch:
+            sprint_deploy_cluster0 = "sprint" in source and "集群0" in clusters
+            if sprint_deploy_cluster0 and len(clusters) > 1:
+                logger.error("sprint deploy unknown scene")
                 continue
-            created_info = hget("q7link-branch-created", branch)
+            if sprint_deploy_cluster0:
+                # 班车分支发布至集群0，需把stage-global合并至sprint
+                source = "stage-global"
+            created_info = hget("q7link-branch-created", source)
             if created_info is None:
                 continue
+            if self.project_build.getBranch(source) is None:
+                continue
             target = created_info.split("#")[0]
+            if self.project_build.getBranch(target) is None:
+                continue
             # 发送合并代码通知
             task_id = "branch_merge@{}@{}".format(user_ids, int(time.time()))
-            _merge = build_merge_branch_msg(branch, target, ",".join(clusters),
+            _merge = build_merge_branch_msg(source, target, ",".join(clusters),
                                             task_id)
             body = crop.send_template_card(user_ids, _merge)
             # 记录任务
             task_code = body.get("response_code")
             content = "{}#{}#{}#{}#None#{}#{}".format(user_ids,
-                                                      branch,
+                                                      source,
                                                       target,
                                                       ",".join(groups),
                                                       str(self.is_test),
