@@ -184,6 +184,44 @@ msg_content = {
             }
         ]
     },
+    "move_branch_task": {
+        "card_type": "button_interaction",
+        "source": {
+            "desc": "值班助手",
+            "desc_color": 1
+        },
+        "main_title": {
+            "title": "值班助手-分支迁移任务"
+        },
+        "sub_title_text": "检测到{}分支已发布到{}，同意后将开始迁移模块",
+        "horizontal_content_list": [
+            {
+                "keyname": "来源分支",
+                "value": "stage",
+            },
+            {
+                "keyname": "目标分支",
+                "value": "sprint20220818"
+            },
+            {
+                "keyname": "迁移模块",
+                "value": "global"
+            }
+        ],
+        "task_id": "",
+        "button_list": [
+            {
+                "text": "取消",
+                "style": 3,
+                "key": "deny@"
+            },
+            {
+                "text": "合并",
+                "style": 2,
+                "key": "agree@"
+            }
+        ]
+    },
     "create_branch_task_response": "本次拉取分支的任务已发送到值班人：{}，请等待值班审批同意后将开始执行",
     "mr_source": "您发起的工程：{} MR请求，已被{}合并！\n{}",
     "mr_target": "您收到来自{}的MR请求，请及时合并！\n标题：{}\n工程/分支：{}(分支{}合并到{})\n{}"
@@ -335,10 +373,29 @@ def build_merge_branch_msg(source, target, cluster, task_id):
         "keyname": "目标分支",
         "value": target,
     }]
-    msg_content["merge_branch_task"]["main_title"]["title"] = "值班助手-代码合并请求"
+    msg_content["merge_branch_task"]["main_title"]["title"] = "值班助手-代码合并任务"
     msg_content["merge_branch_task"]["sub_title_text"] = "{}已发布至{}，请求将代码合并至{}".format(source, cluster, target)
     msg_content["merge_branch_task"]["horizontal_content_list"] = task_info_list
     msg_content["merge_branch_task"]["task_id"] = task_id
     msg_content["merge_branch_task"]["button_list"][0]["key"] = "deny@" + task_id
     msg_content["merge_branch_task"]["button_list"][1]["key"] = "agree@" + task_id
     return msg_content["merge_branch_task"]
+
+def build_move_branch_msg(source, target, cluster, task_id):
+    task_info_list = [{
+        "keyname": "迁移分支",
+        "value": source,
+    }, {
+        "keyname": "迁出分支",
+        "value": target,
+    }, {
+        "keyname": "迁移模块",
+        "value": "global",
+    }]
+    msg_content["move_branch_task"]["main_title"]["title"] = "值班助手-分支迁移任务"
+    msg_content["move_branch_task"]["sub_title_text"] = "{}已发布至{}，请求将模块迁移至{}".format(source, cluster, target)
+    msg_content["move_branch_task"]["horizontal_content_list"] = task_info_list
+    msg_content["move_branch_task"]["task_id"] = task_id
+    msg_content["move_branch_task"]["button_list"][0]["key"] = "deny@" + task_id
+    msg_content["merge_branch_task"]["button_list"][1]["key"] = "agree@" + task_id
+    return msg_content["move_branch_task"]

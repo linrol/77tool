@@ -67,7 +67,9 @@ def listener_deploy():
     body = json.loads(request.data.decode('utf-8'))
     logger.info("listener_deploy:" + str(body))
     deploy_ret = body.get("ret")
-    if deploy_ret is None or deploy_ret != "成功":
+    if deploy_ret is None:
+        return make_response("ignore")
+    if deploy_ret not in ["success", "成功"]:
         return make_response("ignore")
     deploy_group = set(body.get("project_group").split(","))
     if deploy_group is None:

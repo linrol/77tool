@@ -6,7 +6,7 @@ import re
 from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
-from wxmessage import build_create_branch__msg, build_merge_branch_msg, msg_content, is_chinese
+from wxmessage import build_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content, is_chinese
 from redisclient import save_user_task, get_branch_mapping, hmset, hget
 
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
@@ -400,6 +400,10 @@ class Task:
             sprint_deploy_global = "sprint" in source and "global" in clusters
             if sprint_deploy_global:
                 # 班车分支发布至集群0，需sprint分支迁移至stage-global
+                target = "stage-global"
+                task_id = self.send_branch_move(user_ids, source, target,
+                                                groups, clusters, crop)
+                ret.append(task_id)
                 continue
             sprint_deploy_cluster0 = "sprint" in source and "集群0" in clusters
             if sprint_deploy_cluster0 and len(clusters) > 1:
@@ -433,6 +437,25 @@ class Task:
             save_user_task(task_id, content)
             ret.append(task_id)
         return ",".join(ret)
+
+    # 发送分支迁移任务
+    def send_branch_move(self, user_ids, source, target, group, clusters, crop):
+        # 发送合并代码通知
+        task_id = "branch_move@{}@{}".format(user_ids, int(time.time()))
+        _merge = build_move_branch_msg(source, target, ",".join(clusters),
+                                        task_id)
+        body = crop.send_template_card(user_ids, _merge)
+        # 记录任务
+        task_code = body.get("response_code")
+        content = "{}#{}#{}#{}#None#{}#{}".format(user_ids,
+                                                  source,
+                                                  target,
+                                                  group,
+                                                  str(self.is_test),
+                                                  task_code)
+        logger.info("task[{}] content[{}]".format(task_id, content))
+        save_user_task(task_id, content)
+        return task_id
 
 
 if __name__ == '__main__':
