@@ -441,7 +441,7 @@ class Task:
     def send_branch_move(self, user_ids, source, target, group, clusters, crop):
         # 发送合并代码通知
         task_id = "branch_move@{}".format(int(time.time()))
-        _merge = build_move_branch_msg(source, target, group,
+        _merge = build_move_branch_msg(source, target, ",".join(group),
                                        ",".join(clusters), task_id)
         body = crop.send_template_card(user_ids, _merge)
         # 记录任务
@@ -449,7 +449,7 @@ class Task:
         content = "{}#{}#{}#{}#None#{}#{}".format(user_ids,
                                                   source,
                                                   target,
-                                                  group,
+                                                  ",".join(group),
                                                   str(self.is_test),
                                                   task_code)
         logger.info("task[{}] content[{}]".format(task_id, content))

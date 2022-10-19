@@ -216,7 +216,7 @@ msg_content = {
                 "key": "deny@"
             },
             {
-                "text": "合并",
+                "text": "迁移",
                 "style": 2,
                 "key": "agree@"
             }
@@ -397,5 +397,5 @@ def build_move_branch_msg(source, target, group, cluster, task_id):
     msg_content["move_branch_task"]["horizontal_content_list"] = task_info_list
     msg_content["move_branch_task"]["task_id"] = task_id
     msg_content["move_branch_task"]["button_list"][0]["key"] = "deny@" + task_id
-    msg_content["merge_branch_task"]["button_list"][1]["key"] = "agree@" + task_id
+    msg_content["move_branch_task"]["button_list"][1]["key"] = "agree@" + task_id
     return msg_content["move_branch_task"]
