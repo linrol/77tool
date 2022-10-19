@@ -79,7 +79,7 @@ def listener_deploy():
         return make_response("ignore")
     branches = body.get("project_desc").split(",")
     clusters = body.get("cluster").split(",")
-    ret = Task(True).send_branch_merge(branches, groups, clusters, crop)
+    ret = Task().send_branch_merge(branches, groups, clusters, crop)
     return make_response(ret)
 
 
