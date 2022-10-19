@@ -71,6 +71,8 @@ class Handler:
             ret_msg = self.new_branch(task_contents)
         elif action_type == "branch_merge":
             ret_msg = self.merge_branch(task_contents)
+        elif action_type == "branch_move":
+            ret_msg = self.move_branch(task_contents)
         else:
             ret_msg = "未知任务"
         task_code = task_contents[6]
@@ -99,7 +101,7 @@ class Handler:
         elif '拉分支' in self.msg_content:
             return self.new_branch_task()
         elif '分支迁移' in self.msg_content:
-            return self.move_branch()
+            return self.move_branch(None)
         elif '分支合并' in self.msg_content:
             return self.merge_branch(None)
         elif '构建发布包' in self.msg_content:
@@ -147,13 +149,18 @@ class Handler:
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
 
-    def move_branch(self):
+    def move_branch(self, task_contents):
         try:
             duty_user_id, name = self.crop.get_duty_info(self.is_test,
                                                          ["LuoLin"])
-            if self.user_id not in duty_user_id:
+            if task_contents is None and self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
-            source, target, namespaces = get_move_branch_dirt(self.msg_content)
+            if task_contents is None:
+                source, target, namespaces = get_move_branch_dirt(self.msg_content)
+            else:
+                source = task_contents[1]
+                target = task_contents[2]
+                namespaces = task_contents[3]
             if "sprint" not in source:
                 raise Exception("迁移分支输入错误，当前仅支持班车sprint分支")
             self.crop.send_text_msg(self.user_id, "分支迁移任务运行中，请稍等!")

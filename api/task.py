@@ -96,8 +96,7 @@ class Task:
             for priority, projects in split.items():
                 if len(projects) < 1:
                     continue
-                task_id = "branch_new@{}@{}".format(req_id.replace("@", "").replace(".", ""),
-                                                    int(time.time()))
+                task_id = "branch_new@{}".format(int(time.time()))
                 logger.info("task_id" + task_id)
                 project_str = ",".join(projects)
                 notify_duty, notify_req = build_create_branch__msg(req_id,
@@ -126,7 +125,7 @@ class Task:
     def new_feature_branch_task(self, crop, req_user_id, req_user_name,
         source, target, project_names, version, approve_id, approve_name):
         project_str = ",".join(self.get_new_project(target, project_names))
-        task_id = "branch_new@{}@{}".format(req_user_id, int(time.time()))
+        task_id = "branch_new@{}".format(int(time.time()))
         notify_approve, notify_req = build_create_branch__msg(req_user_id,
                                                               req_user_name,
                                                               approve_name,
@@ -392,7 +391,7 @@ class Task:
 
     # 发送代码合并任务
     def send_branch_merge(self, branches, groups, clusters, crop):
-        user_ids, _ = crop.get_duty_info(self.is_test, [])
+        user_ids, _ = crop.get_duty_info(self.is_test, ["LuoLin"])
         ret = []
         for source in branches:
             if is_chinese(source):
@@ -421,7 +420,7 @@ class Task:
             if self.project_build.getBranch(target) is None:
                 continue
             # 发送合并代码通知
-            task_id = "branch_merge@{}@{}".format(user_ids, int(time.time()))
+            task_id = "branch_merge@{}".format(int(time.time()))
             _merge = build_merge_branch_msg(source, target, ",".join(clusters),
                                             task_id)
             body = crop.send_template_card(user_ids, _merge)
@@ -441,9 +440,9 @@ class Task:
     # 发送分支迁移任务
     def send_branch_move(self, user_ids, source, target, group, clusters, crop):
         # 发送合并代码通知
-        task_id = "branch_move@{}@{}".format(user_ids, int(time.time()))
-        _merge = build_move_branch_msg(source, target, ",".join(clusters),
-                                        task_id)
+        task_id = "branch_move@{}".format(int(time.time()))
+        _merge = build_move_branch_msg(source, target, group,
+                                       ",".join(clusters), task_id)
         body = crop.send_template_card(user_ids, _merge)
         # 记录任务
         task_code = body.get("response_code")

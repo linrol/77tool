@@ -381,7 +381,7 @@ def build_merge_branch_msg(source, target, cluster, task_id):
     msg_content["merge_branch_task"]["button_list"][1]["key"] = "agree@" + task_id
     return msg_content["merge_branch_task"]
 
-def build_move_branch_msg(source, target, cluster, task_id):
+def build_move_branch_msg(source, target, group, cluster, task_id):
     task_info_list = [{
         "keyname": "迁移分支",
         "value": source,
@@ -390,7 +390,7 @@ def build_move_branch_msg(source, target, cluster, task_id):
         "value": target,
     }, {
         "keyname": "迁移模块",
-        "value": "global",
+        "value": group,
     }]
     msg_content["move_branch_task"]["main_title"]["title"] = "值班助手-分支迁移任务"
     msg_content["move_branch_task"]["sub_title_text"] = "{}已发布至{}，请求将模块迁移至{}".format(source, cluster, target)
