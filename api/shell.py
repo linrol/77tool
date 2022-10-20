@@ -163,7 +163,7 @@ class Shell(utils.ProjectInfo):
 
     def move_branch(self, namespaces):
         try:
-            self.lock_value = self.lock.get_lock("lock", 300)
+            self.lock_value = self.lock.get_lock("lock", 600)
             [ret, checkout_msg] = self.checkout_branch(self.source_branch)
             if ret != 0:
                 return False, checkout_msg
@@ -183,7 +183,7 @@ class Shell(utils.ProjectInfo):
 
     def merge_branch(self, clear):
         try:
-            self.lock_value = self.lock.get_lock("lock", 300)
+            self.lock_value = self.lock.get_lock("lock", 600)
             [ret, checkout_msg] = self.checkout_branch(self.source_branch)
             if ret != 0:
                 return False, checkout_msg
