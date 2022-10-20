@@ -106,6 +106,9 @@ class Common:
     def get_connection(self):
         return redis.Redis(connection_pool=self.redis_pool)
 
+    def hgetall(self, name):
+        return self.get_connection().hgetall(name)
+
     def hget(self, name, key):
         return self.get_connection().hget(name, key)
 

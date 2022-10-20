@@ -25,7 +25,6 @@ def usage():
     pass
 
 
-
 class GenVersion(Common):
     def __init__(self, force, version, source, target, project_names):
         super().__init__(utils)
@@ -39,7 +38,7 @@ class GenVersion(Common):
             self.target_version = self.get_branch_version(target)
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
-            self.weight = self.get_branch_weight()
+            self.weights = self.hgetall("q7link-branch-weight")
             self.last_target_version = self.get_adjacent_branch_version(-7)
             self.next_target_version = self.get_adjacent_branch_version(7)
 
@@ -56,13 +55,17 @@ class GenVersion(Common):
                 result.update(force_project)
         return list(result)
 
-    def get_branch_weight(self):
-        key = "{}_{}".format(self.source, self.target_name)
-        weight = self.hget("q7link-branch-weight", key)
+    def get_branch_weight(self, project):
+        key = "{}_{}_{}".format(self.source, self.target_name, project)
+        weight = self.weights.get(key)
         if weight is not None:
             return int(weight)
-        key = "{}_{}".format("*", self.target_name)
-        weight = self.hget("q7link-branch-weight", key)
+        key1 = "{}_{}_*".format(self.source, self.target_name)
+        weight = self.weights.get(key1)
+        if weight is not None:
+            return int(weight)
+        key2 = "*_{}_*".format(self.target_name)
+        weight = self.weights.get(key2)
         return int(weight)
 
     def get_adjacent_branch_version(self, days):
@@ -117,10 +120,11 @@ class GenVersion(Common):
             factory = self.factory_week()
         else:
             factory = self.factory_day()
-        if self.weight is None:
+        weight = self.get_branch_weight(project_name)
+        if weight is None:
             raise Exception("工程【{}】分支【{}】获取权重值失败".format(project_name,
                                                                   self.target))
-        inc_version = factory * self.weight
+        inc_version = factory * weight
         source_version = self.source_version.get(project_name)
         target_version = self.target_version.get(project_name)
         if source_version is None:
@@ -172,10 +176,10 @@ class GenVersion(Common):
             inc_version = (next_target_min - source_min) // 2
             target_min = source_min + inc_version
         if last_target_min is not None:
-            less_weight = source_min + inc_version - last_target_min < self.weight
-            target_min = last_target_min + self.weight if less_weight else target_min
+            less_weight = source_min + inc_version - last_target_min < weight
+            target_min = last_target_min + weight if less_weight else target_min
         if target_min - source_min < 2:
-            target_min = source_min + self.weight
+            target_min = source_min + weight
             print("工程【{}】目标分支【{}】增量版本号小于2请确认下个班车版本号".
                   format(project_name, self.target))
         return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
