@@ -12,6 +12,10 @@ URL='http://gitlab.q7link.com'
 # TOKEN='NZ4CEzg1-wWH6ZckWUyD'
 TOKEN='v5kHG8DLAUDs2tXVfJKW'
 
+DEVELOPER_ACCESS = 30
+MAINTAINER_ACCESS = 40
+VISIBILITY_PRIVATE = 0
+
 class ProjectInfo():
   def __init__(self, name, path, module):
     self.__name = name
@@ -106,18 +110,18 @@ class ProjectInfo():
   # 删除本地分支
   def deleteLocalBranch(self, deleteBranch, checkoutBranch=None):
     if checkoutBranch is None or len(checkoutBranch) == 0:
-      [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +';git status')
+      [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git status')
       if(result == 0):
         if (msg.splitlines(False)[0]).endswith(deleteBranch):
           if deleteBranch == 'master':
-            subprocess.getstatusoutput('cd ' + self.__path +';git checkout stage')
+            subprocess.getstatusoutput('cd ' + self.__path +' && git checkout stage')
           else:
-            subprocess.getstatusoutput('cd ' + self.__path +';git checkout master')
+            subprocess.getstatusoutput('cd ' + self.__path +' && git checkout master')
     else:
-      subprocess.getstatusoutput('cd ' + self.__path +';git checkout ' + checkoutBranch)
-    subprocess.getstatusoutput('cd ' + self.__path +';git pull')
+      subprocess.getstatusoutput('cd ' + self.__path +' && git checkout ' + checkoutBranch)
+    subprocess.getstatusoutput('cd ' + self.__path +' && git pull')
     #删除本地分支(使用-d，如果没有合并到当前分支，删除会报错)
-    subprocess.getstatusoutput('cd ' + self.__path +';git branch -D ' + deleteBranch)
+    subprocess.getstatusoutput('cd ' + self.__path +' && git branch -D ' + deleteBranch)
 
   # 删除远程分支
   def deleteRemoteBranch(self, deleteBranch):
@@ -190,7 +194,7 @@ class ProjectInfo():
 
   # 更新本地远程分支
   def fetch(self):
-    [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +';git fetch -p')
+    [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git fetch -p')
     if result != 0:
       print(msg)
       sys.exit(1)
@@ -198,12 +202,12 @@ class ProjectInfo():
   # 检出指定分支
   def checkout(self, branchName):
     self.fetch()
-    [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +';git checkout ' + branchName)
+    [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git checkout ' + branchName)
     if result != 0:
       print("WARNNING: 在路径【{}】检出分支【{}】失败！！！".format(self.__path, branchName))
       return False
     else:
-      [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +';git pull')
+      [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git pull')
       if result != 0:
         print(msg)
         return False
@@ -213,7 +217,7 @@ class ProjectInfo():
   def branchClass(self):
     self.fetch()
     branchs=[]
-    [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +';git branch -vv')
+    [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git branch -vv')
     if result == 0 :
       #dev       a88c2c1 [origin/dev: behind 161] dev_dev-310-201912121945
       #master-1  1a0bc76 [origin/master: ahead 1, behind 1] 任务执行报告默认值设置
@@ -305,7 +309,7 @@ def project_path(names=None):
     for projectName,path in v.items():
       if names is None or len(names) == 0 or projectName in names or module in names:
         #刷新每个工程的信息，防止因为本地信息和远程信息不同步导致报错
-        # subprocess.getstatusoutput('cd ' + path +';git fetch -p')
+        # subprocess.getstatusoutput('cd ' + path +' && git fetch -p')
         projectInfo = ProjectInfo(projectName, path, module)
         projectInfos[projectName] = projectInfo
   return projectInfos

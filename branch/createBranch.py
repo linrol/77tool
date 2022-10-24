@@ -1,6 +1,5 @@
 # coding=utf-8
 import sys
-import gitlab
 import utils
 import traceback
 import re
@@ -167,8 +166,8 @@ class CreateBranch:
   def protect_branch(self, projectInfo):
     #release、hotfix、emergency、stage-emergency、hotfix-inte、dev分支预先设置管理员全权限，便于修改版本号
     if re.match(BRANCH_REGEX, self.newBranchName) is not None or self.newBranchName in ['release', 'hotfix', 'emergency', 'stage-emergency', 'hotfix-inte', 'dev']:
-      mergeAccessLevel = gitlab.MAINTAINER_ACCESS
-      pushAccessLevel = gitlab.MAINTAINER_ACCESS
+      mergeAccessLevel = utils.MAINTAINER_ACCESS
+      pushAccessLevel = utils.MAINTAINER_ACCESS
       projectInfo.protectBranch(self.newBranchName, mergeAccessLevel, pushAccessLevel)
       print('工程【{}】分支【{}】保护成功'.format(projectInfo.getName(), self.newBranchName))
     else:
