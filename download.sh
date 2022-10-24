@@ -46,6 +46,8 @@ git clone http://linrol:Linrol19950120@gitlab.q7link.com//backend/apps/salary-ap
 git clone http://linrol:Linrol19950120@gitlab.q7link.com//backend/apps/salary.git
 git clone http://linrol:Linrol19950120@gitlab.q7link.com//backend/apps/projectcost-api.git
 git clone http://linrol:Linrol19950120@gitlab.q7link.com//backend/apps/projectcost.git
+git clone http://linrol:Linrol19950120@gitlab.q7link.com//backend/apps/sales-api.git
+git clone http://linrol:Linrol19950120@gitlab.q7link.com//backend/apps/sales.git
 
 cd ../
 mkdir global
