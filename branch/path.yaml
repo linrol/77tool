@@ -41,6 +41,8 @@ apps:
   reimbursement-api: ../../apps/reimbursement-api
   salary: ../../apps/salary
   salary-api: ../../apps/salary-api
+  sales: ../../apps/sales
+  sales-api: ../../apps/sales-api
 
 global:
   identity: ../../global/identity

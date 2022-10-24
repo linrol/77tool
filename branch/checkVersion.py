@@ -23,7 +23,7 @@ class CheckVersion:
 
     this_config_file = os.path.join(os.curdir, BUILD_PATH + '/config.yaml').replace("\\", "/")
     self.config_yaml = yaml.load(open(this_config_file), Loader=yaml.FullLoader)
-    [result, this_branch] = subprocess.getstatusoutput('cd ' + BUILD_PATH +';git branch --show-current')
+    [result, this_branch] = subprocess.getstatusoutput('cd ' + BUILD_PATH +' && git branch --show-current')
     self.this_branch = this_branch
 
   def branch_filter(self, branch):
