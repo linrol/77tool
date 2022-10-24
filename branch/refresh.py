@@ -62,7 +62,7 @@ class Refresh():
 
   # 获取工程所属文件夹
   def __getProjectPath(self, project):
-    path = project.namespace['full_path'].replace('backend', '')
+    path = project.namespace['full_path'].replace('backend/', '')
     if len(path) > 0:
       return '{}{}'.format(self.__rootPath, path)
     else:
@@ -91,7 +91,7 @@ class Refresh():
       rootpath = clone['rootpath']
       url = clone['url']
       name = clone['name']
-      [result, msg] = subprocess.getstatusoutput('cd {};git clone {}'.format(rootpath, url))
+      [result, msg] = subprocess.getstatusoutput('cd {} && git clone {}'.format(rootpath, url))
       if(result != 0):
         print('ERROR: 克隆项目【{}】到本地失败：'.format(name))
         print (msg)
@@ -99,17 +99,17 @@ class Refresh():
       if 'master' != self.__branch:
         #检出对应分支代码
         projectPath = '{}/{}'.format(rootpath, name)
-        [result, msg] = subprocess.getstatusoutput('cd ' + projectPath +';git fetch -p')
+        [result, msg] = subprocess.getstatusoutput('cd ' + projectPath +' && git fetch -p')
         if result != 0:
           print(msg)
           sys.exit(1)
-        [result, msg] = subprocess.getstatusoutput('cd ' + projectPath +';git checkout ' + self.__branch)
+        [result, msg] = subprocess.getstatusoutput('cd ' + projectPath +' && git checkout ' + self.__branch)
         if result != 0:
           print("WARNNING: 在路径【{}】检出分支【{}】失败！！！".format(projectPath, self.__branch))
           print(msg)
           sys.exit(1)
         else:
-          [result, msg] = subprocess.getstatusoutput('cd ' + projectPath +';git pull')
+          [result, msg] = subprocess.getstatusoutput('cd ' + projectPath +' && git pull')
           if result != 0:
             print(msg)
             sys.exit(1)
