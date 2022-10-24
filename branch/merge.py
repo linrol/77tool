@@ -2,9 +2,11 @@
 import sys
 import utils
 import subprocess
+from datetime import datetime
 from common import Common
 from createBranch import CreateBranch
 from checkanddeleted import DeleteBranch
+from tag import CreateTag
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
@@ -63,6 +65,7 @@ class Merge(Common):
             wait_push[name] = path
         self.push(wait_push)
         self.created(wait_created)
+        self.tag()
         if not self.clear or self.source in ['stage', 'master']:
             return
         executor = DeleteBranch(self.source, self.target, None, True)
@@ -80,6 +83,17 @@ class Merge(Common):
             sys.exit(1)
         for name in paths.keys():
             print("工程【{}】分支【{}】合并至【{}】成功".format(name, self.source, self.target))
+
+    def tag(self):
+        try:
+            if self.target not in ["stage", "master"]:
+                return True, str("ignore")
+            date = datetime.now().strftime("%Y%m%d")
+            executor = CreateTag(self.target, date)
+            executor.execute()
+            return True, str("success")
+        except Exception as err:
+            return False, str(err)
 
     def created(self, projects):
         if len(projects) < 1:
