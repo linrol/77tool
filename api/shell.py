@@ -108,7 +108,7 @@ class Shell(utils.ProjectInfo):
             [ret, checkout_msg] = self.checkout_branch(self.source_branch)
             if ret != 0:
                 return False, checkout_msg
-            cmd = 'cd ../branch;python3 createBranch.py {} {}.false {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
+            cmd = 'cd ../branch;python3 createBranch.py {}.stage {}.false {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
             logger.info("create_branch[{}]".format(cmd))
             [ret, create_msg] = subprocess.getstatusoutput(cmd)
             if ret != 0:
