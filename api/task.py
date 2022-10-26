@@ -398,7 +398,9 @@ class Task:
                 continue
             sprint_deploy_global = "sprint" in source and "global" in clusters
             if sprint_deploy_global:
-                # 班车分支发布至集群0，需sprint分支迁移至stage-global
+                if self.has_release(source):
+                    continue
+                # 班车分支发布至global and 班车分支未封板，需sprint分支迁移至stage-global
                 target = "stage-global"
                 task_id = self.send_branch_move(user_ids, source, target,
                                                 groups, clusters, crop)
@@ -436,6 +438,18 @@ class Task:
             save_user_task(task_id, content)
             ret.append(task_id)
         return ",".join(ret)
+
+    # 检测分支版本号是否都为发布包（所有模块）
+    def has_release(self, branch):
+        try:
+            versions = self.get_branch_version(branch).values()
+            for version in versions:
+                if "SNAPSHOT" in version:
+                    return False
+            return True
+        except Exception as err:
+            logger.error(str(err))
+            return True
 
     # 发送分支迁移任务
     def send_branch_move(self, user_ids, source, target, group, clusters, crop):
