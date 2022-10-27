@@ -169,6 +169,8 @@ class GenVersion(Common):
         target_min = target_min + offset
         if last_target_min is None and next_target_min is None:
             return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
+        if self.source == "stage-global":
+            return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
         if last_target_min is not None and next_target_min is not None:
             inc_version = (next_target_min - last_target_min) // 2
             target_min = last_target_min + inc_version
