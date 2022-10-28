@@ -75,9 +75,9 @@ class Task:
             target_name = target_branch.replace(target_date, "")
         if target_date is None or target_name not in match_target:
             raise Exception("目标分支非值班系列【{}】{}".format(",".join(match_target), tips))
-        # now = datetime.now().strftime("%Y%m%d")
-        # if int(now) > int(target_date):
-        #     raise Exception("目标分支的上线日期须大于等于当天，请检查分支名称日期")
+        week_later = (datetime.now() + timedelta(days=-7)).strftime("%Y%m%d")
+        if int(week_later) > int(target_date):
+            raise Exception("目标分支的上线日期过小，请检查分支名称日期")
 
     # 创建拉值班分支的任务
     def new_branch_task(self, crop, req_id, req_name, duty_id, duty_name,
