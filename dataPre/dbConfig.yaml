@@ -352,6 +352,17 @@ temp24:
     uiconfig: X0S2JU50K7W0007
     reset: X0S2JU50K7W0007
 
+temp27:
+  host: postgres.nx-temp27-k8s.e7link.com
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-purchase-invoice
+  tenantId:
+    multiList: X0S2JU50K7W0007
+    uiconfig: X0S2JU50K7W0007
+    reset: X0S2JU50K7W0007
+
 temp29:
   host: postgres.nx-temp29.e7link.com
   port: 5432
