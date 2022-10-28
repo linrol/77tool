@@ -102,7 +102,10 @@ class GenVersion(Common):
     def factory_day(self):
         target_date_full = self.target_date + "235959"
         date_target = datetime.strptime(target_date_full, "%Y%m%d%H%M%S")
-        return (date_target - datetime.today()).days + 1
+        factory = (date_target - datetime.today()).days + 1
+        if factory < 1:
+            return 1
+        return factory
 
     def factory_week(self):
         week_start = datetime.today()
@@ -113,7 +116,10 @@ class GenVersion(Common):
         week_end_num = int(datetime.strftime(week_end, "%W"))
         week_start_num = int(datetime.strftime(week_start, "%W"))
         week_sub = week_end_num - week_start_num + 1
-        return (week_end_year - week_start_year) * year_week_num + week_sub
+        factory = (week_end_year - week_start_year) * year_week_num + week_sub
+        if factory < 1:
+            return 1
+        return factory
 
     def get_replace_version(self, project_name):
         if self.target_name in ['sprint']:
