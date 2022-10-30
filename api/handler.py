@@ -114,6 +114,7 @@ class Handler:
         try:
             data_pre_dirt = get_pre_dirt(self.msg_content)
             shell = Shell(self.user_id, target_branch=data_pre_dirt[2])
+            self.crop.send_text_msg(self.user_id, "列表方案预制任务运行中，请稍等!")
             ret, result = shell.exec_data_pre(pre_type, *data_pre_dirt)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(result))
