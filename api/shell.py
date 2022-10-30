@@ -35,7 +35,7 @@ class Shell(Common):
     def create_mr(self, mr_key, opened_mr, temp_branch, branch, title, assignee):
         cmd = 'cd {};git push origin {}'.format(self.project_init_data.getPath(), temp_branch)
         ret, msg = self.exec(cmd, level_info=False)
-        if not result:
+        if not ret:
             return False, msg
         if opened_mr is not None:
             return True, opened_mr.web_url
