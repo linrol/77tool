@@ -11,7 +11,6 @@ executor = ThreadPoolExecutor()
 class Shell(Common):
     def __init__(self, user_id, is_test=False, source_branch=None, target_branch=None):
         super().__init__()
-        self.chdir_branch()
         self.user_id = user_id
         self.is_test = is_test
         self.source_branch = source_branch

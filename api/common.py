@@ -12,6 +12,7 @@ from branch import utils
 
 class Common:
     def __init__(self):
+        self.chdir_branch()
         self.utils = utils
         self.projects = utils.project_path()
         self.project_build = self.projects.get('build')
