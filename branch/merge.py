@@ -117,8 +117,8 @@ class Merge(Common):
             sys.exit(1)
 
 
-# 修改版本号
-# 例：修改hotfix分支的版本号，并且修改工程自身版本号，清空开发脚本
+# 代码合并
+# 例：将sprint20220922分支代码合并至stage
 # python3 merge.py sprint20220922 stage
 if __name__ == "__main__":
     if len(sys.argv) < 2:
