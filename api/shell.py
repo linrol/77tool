@@ -34,7 +34,7 @@ class Shell(Common):
 
     def create_mr(self, mr_key, opened_mr, temp_branch, branch, title, assignee):
         cmd = 'cd {};git push origin {}'.format(self.project_init_data.getPath(), temp_branch)
-        ret, msg = self.exec(cmd)
+        ret, msg = self.exec(cmd, level_info=False)
         if not result:
             return False, msg
         if opened_mr is not None:
@@ -58,10 +58,10 @@ class Shell(Common):
             self.chdir_data_pre()
             if data_type == 'new':
                 cmd = 'cd ../dataPre;python3 multi.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, self.user_id, condition_value)
-                [ret, msg] = self.exec(cmd)
+                [ret, msg] = self.exec(cmd, level_info=False)
             elif data_type == 'old':
                 cmd = 'cd ../dataPre;python3 uiconfig.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, self.user_id, condition_value)
-                [ret, msg] = self.exec(cmd)
+                [ret, msg] = self.exec(cmd, level_info=False)
             else:
                 [ret, msg] = False, "unknown cmd"
             self.chdir_branch()
@@ -90,7 +90,7 @@ class Shell(Common):
             cmd = 'cd ../branch;python3 createBranch.py {}.stage {}.false {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
             [_, created_msg] = self.exec(cmd, True)
             cmd = 'cd ../branch;python3 genVersion.py {} -s {} -t {} -p {}'.format(gen_params, self.source_branch, self.target_branch, ",".join(project_names))
-            self.exec(cmd, True)
+            self.exec(cmd, True, False)
             cmd = 'cd ../branch;python3 changeVersion.py {} {}'.format(self.target_branch, clear_build_params)
             [_, version_msg] = self.exec(cmd, True)
             self.commit_and_push(self.target_branch, 'dev' if is_feature_branch else 'hotfix')
@@ -110,7 +110,7 @@ class Shell(Common):
         try:
             self.lock_value = self.lock.get_lock("lock", 2)
             cmd = 'cd ../branch;python3 checkVersion.py -t compare -b {}'.format(branch_str)
-            return self.exec(cmd)
+            return self.exec(cmd, level_info=False)
         except Exception as err:
             return False, str(err)
 
@@ -119,7 +119,7 @@ class Shell(Common):
             self.lock_value = self.lock.get_lock("lock", 600)
             self.checkout_branch(self.source_branch)
             cmd = 'cd ../branch;python3 backup.py {}.clear {} {},platform,init-data'.format(self.source_branch, self.target_branch, namespaces)
-            [_, backup_msg] = self.exec(cmd, True)
+            [_, backup_msg] = self.exec(cmd, True, False)
             backup_msg = re.compile('WARNNING：.*\n').sub('', backup_msg)
             backup_msg = re.compile('工程.*创建分支.*\n').sub('', backup_msg)
             backup_msg = re.compile('工程.*删除分支.*\n').sub('', backup_msg)
@@ -151,7 +151,7 @@ class Shell(Common):
             self.lock_value = self.lock.get_lock("lock", 300)
             self.checkout_branch(self.target_branch)
             cmd = 'cd ../branch;python3 releaseVersion.py {} {} {}'.format(self.source_branch, self.target_branch, params)
-            [_, release_version_msg] = self.exec(cmd, True)
+            [_, release_version_msg] = self.exec(cmd, True, False)
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
             [_, change_version_msg] = self.exec(cmd, True)
             self.commit_and_push(self.target_branch, protect)
@@ -180,10 +180,10 @@ class Shell(Common):
         push_cmd = ''
         for name, project in self.projects.items():
             path = project.getPath()
-            _, current_branch = self.exec('cd {};git branch --show-current'.format(path), True)
+            _, current_branch = self.exec('cd {};git branch --show-current'.format(path), True, False)
             if current_branch != branch:
                 continue
-            _, project_commit = self.exec("cd {};git status -s".format(path), True)
+            _, project_commit = self.exec("cd {};git status -s".format(path), True, False)
             if len(project_commit) < 1:
                 continue
             commit_title = "{}-task-0000-修改版本号--{}({})".format(branch, name, self.user_id)
@@ -191,7 +191,7 @@ class Shell(Common):
             push_cmd += ";git push origin {}".format(branch)
         if len(push_cmd) < 1:
             return
-        self.exec(push_cmd.replace(';', '', 1), True)
+        self.exec(push_cmd.replace(';', '', 1), True, False)
         self.protect_branch(branch, protect)
 
 

@@ -21,11 +21,13 @@ class Common:
                                                decode_responses=True,
                                                max_connections=16)
 
-    def exec(self, command, throw=False):
+    def exec(self, command, throw=False, level_info=True):
         [ret, msg] = subprocess.getstatusoutput(command)
-        logger.info("exec[{}] ret[{}]".format(command, msg))
         if throw and ret != 0:
+            logger.error("exec[{}] ret[{}]".format(command, msg))
             raise Exception(str(msg))
+        if level_info:
+            logger.info("exec[{}] ret[{}]".format(command, msg))
         return [ret == 0, msg]
 
     def chdir_branch(self):
@@ -48,13 +50,13 @@ class Common:
     # 切换本地分支
     def checkout_branch(self, branch_name):
         cmd = 'cd ../branch;python3 checkout.py {}'.format(branch_name)
-        return self.exec(cmd, True)
+        return self.exec(cmd, True, False)
 
     # 删除分支
     def clear_branch(self, branch_name):
         try:
             cmd = 'cd ../branch;python3 checkanddeleted.py {} none'.format(branch_name)
-            return self.exec(cmd)
+            return self.exec(cmd, level_info=False)
         except Exception as err:
             return False, str(err)
 
@@ -62,7 +64,7 @@ class Common:
     def protect_branch(self, branch, protect):
         try:
             protect_cmd = "cd ../branch;python3 protectBranch.py {} {}".format(branch, protect)
-            return self.exec(protect_cmd)
+            return self.exec(protect_cmd, level_info=False)
         except Exception as err:
             return False, str(err)
 
