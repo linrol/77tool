@@ -88,7 +88,7 @@ class Merge(Common):
         try:
             if self.target not in ["stage", "master"]:
                 return True, str("ignore")
-            date = datetime.now().strftime("%Y%m%d%H%M%S")
+            date = datetime.now().strftime("%Y%m%d%H%M")
             executor = CreateTag(self.target, date)
             executor.execute()
             return True, str("success")
@@ -121,7 +121,6 @@ class Merge(Common):
 # 例：将sprint20220922分支代码合并至stage
 # python3 merge.py sprint20220922 stage
 if __name__ == "__main__":
-    date = datetime.now().strftime("%Y%m%d%H%M")
     if len(sys.argv) < 2:
         print("ERROR: 输入参数错误, 正确的参数为：<source_branch> <target_branch>")
         sys.exit(1)
