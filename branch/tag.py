@@ -65,7 +65,7 @@ class CreateTag:
       if projectInfo.checkout(self.branchName):
         projectName = projectInfo.getName()
         if projectName == 'build':
-          tagName = '{}-{}'.format(releaseDate, self.branchName)
+          tagName = '{}-{}'.format(self.releaseDate, self.branchName)
         elif projectInfo.getModule() == 'platform':
           version = self.projectVersionMap.get('framework', None)
           if self.check_tag_exist(projectInfo) or version is None or len(version) == 0:
