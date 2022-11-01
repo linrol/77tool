@@ -139,13 +139,18 @@ class Handler:
             projects = task_contents[3].split(",")
             fixed_version = task_contents[4]
             shell = Shell(req_userid, self.is_test, source, target)
-            _, result = shell.create_branch(fixed_version, projects)
+            front_projects = set(projects).intersection({"front-theory",
+                                                         "front-goserver"})
+            if len(front_projects) > 0:
+                _, result = shell.create_front_branch(projects)
+            else:
+                _, result = shell.create_branch(fixed_version, projects)
             # 发送消息通知
             user_ids = "|".join({self.user_id, req_userid})
             self.crop.send_text_msg(user_ids, str(result))
             return result
         except Exception as err:
-            print(str(err))
+            logger.error(str(err))
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)

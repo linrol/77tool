@@ -78,10 +78,6 @@ class Shell(Common):
     # 创建分支
     def create_branch(self, fixed_version, project_names):
         try:
-            front_projects = set(project_names).intersection({"front-theory",
-                                                              "front-goserver"})
-            if len(front_projects) > 0:
-                return self.create_front_branch(project_names)
             self.lock_value = self.lock.get_lock("lock", 300)
             clear_build_params = self.get_clear_build_params(self.target_branch)
             is_feature_branch = fixed_version != "None"
