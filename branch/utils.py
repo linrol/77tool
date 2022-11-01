@@ -54,6 +54,9 @@ class ProjectInfo():
             if project.name_with_namespace.startswith("backend") and project.name == self.__name:
               self.__project = project
               break
+            if project.name_with_namespace.startswith("front") and project.name == self.__name:
+              self.__project = project
+              break
       except Exception:
         print("项目：{}".format(self.__name))
         raise
