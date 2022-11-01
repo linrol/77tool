@@ -16,6 +16,7 @@ from branch import utils
 
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
 target_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
+front_project = ["front-theory", "front-goserver"]
 
 
 class Task:
@@ -30,6 +31,13 @@ class Task:
             raise Exception("ERROR: 工程【{}】不存在".format(project_name))
         return self.projects.get(project_name)
 
+    def get_project_branch(self, project_name, branch):
+        if project_name in front_project:
+            # 前端项目不判断分支是否存在
+            return None
+        project = self.get_project(project_name)
+        return project.getBranch(branch)
+
     def get_feature_branch(self, source_branch, target_branch, crop):
         feature_info = hget("q7link-branch-feature", target_branch)
         if feature_info is None:
@@ -43,7 +51,7 @@ class Task:
 
     def get_new_project(self, target, project_names):
         need_project_list = list(filter(
-            lambda name: self.get_project(name).getBranch(target) is None,
+            lambda name: self.get_project_branch(name, target) is None,
             project_names.split(",")))
         if len(need_project_list) < 1:
             raise Exception("ERROR: \n" + "工程【{}】目标分支【{}】已存在!!!".format(

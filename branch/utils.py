@@ -9,8 +9,8 @@ import re
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 URL='http://gitlab.q7link.com'
-# TOKEN='NZ4CEzg1-wWH6ZckWUyD'
-TOKEN='v5kHG8DLAUDs2tXVfJKW'
+TOKEN='sTyo1zhgMyDEsq9Mxm1H'
+# TOKEN='v5kHG8DLAUDs2tXVfJKW'
 
 DEVELOPER_ACCESS = 30
 MAINTAINER_ACCESS = 40

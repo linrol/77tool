@@ -78,6 +78,10 @@ class Shell(Common):
     # 创建分支
     def create_branch(self, fixed_version, project_names):
         try:
+            front_projects = set(project_names).intersection({"front-theory",
+                                                              "front-goserver"})
+            if len(front_projects) > 0:
+                return self.create_front_branch(project_names)
             self.lock_value = self.lock.get_lock("lock", 300)
             clear_build_params = self.get_clear_build_params(self.target_branch)
             is_feature_branch = fixed_version != "None"
@@ -104,6 +108,25 @@ class Shell(Common):
             return False, str(err)
         finally:
             executor.submit(self.rest_branch_env)
+
+    # 创建前端分支
+    def create_front_branch(self, project_names):
+        try:
+            rets = []
+            ret_template = "工程【{}】基于分支【{}】创建分支【{}】成功"
+            for project_name in project_names:
+                path = "../../../front/{}".format(project_name)
+                p_git = self.utils.ProjectInfo(project_name, path, "front")
+                target_branch = p_git.createBranch(self.source_branch,
+                                                   self.target_branch)
+                if target_branch is None:
+                    raise Exception("拉分支失败，请检查输出日志")
+                rets.append(ret_template.format(project_name,
+                                                self.source_branch,
+                                                self.target_branch))
+            return True, "\n".join(rets)
+        except Exception as err:
+            return False, str(err)
 
     def check_version(self, branch_str):
         try:
