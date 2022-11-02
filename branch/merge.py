@@ -23,6 +23,9 @@ class Merge(Common):
     def check_conflict(self):
         conflict_project = []
         for p, p_info in self.projects.items():
+            module = p_info.getModule()
+            if module in ["front"]:
+                continue
             branch_source = p_info.getBranch(self.source)
             if branch_source is None:
                 continue
@@ -49,6 +52,9 @@ class Merge(Common):
         wait_created = []
         wait_push = {}
         for name, project in self.projects.items():
+            module = project.getModule()
+            if module in ["front"]:
+                continue
             branch_source = project.getBranch(self.source)
             branch_target = project.getBranch(self.target)
             if branch_source is None:
@@ -111,6 +117,9 @@ class Merge(Common):
                 sys.exit(1)
             self.merge()
             for project in self.projects.values():
+                module = project.getModule()
+                if module in ["front"]:
+                    continue
                 project.deleteLocalBranch(self.source)
         except Exception as err:
             print(str(err))
