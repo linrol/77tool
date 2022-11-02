@@ -45,9 +45,9 @@ def duplicate_msg(msg):
     if msg_id is None:
         return False
     connection = redisClient.get_connection()
-    is_accept = connection.hexists("crop-msg-log", msg_id)
+    is_accept = connection.hexists("q7link-msg-log", msg_id)
     if not is_accept:
-        connection.hmset("crop-msg-log", {msg_id: json.dumps(msg)})
+        connection.hmset("q7link-msg-log", {msg_id: json.dumps(msg)})
     return is_accept
 
 

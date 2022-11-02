@@ -64,12 +64,12 @@ class Handler:
             self.crop.disable_task_button(self.event_task_code, "已拒绝")
             return "deny task[{}]".format(self.event_task_id)
         # 同意任务
+        self.crop.disable_task_button(self.event_task_code, "任务执行中...")
         task_content = get_user_task(self.event_task_id)
         if task_content is None:
-            return "get task {} not found".format(self.event_task_id)
+            return "agree task {} not found".format(self.event_task_id)
         task_contents = task_content.split("#")
         self.is_test = task_contents[5] == "True"
-        self.crop.disable_task_button(self.event_task_code, "任务执行中...")
         if action_type == "branch_new":
             ret_msg = self.new_branch(task_contents)
         elif action_type == "branch_merge":
@@ -136,12 +136,12 @@ class Handler:
     # 拉分支
     def new_branch(self, task_contents):
         try:
-            req_userid = task_contents[0]
+            req_id = task_contents[0]
             source = task_contents[1]
             target = task_contents[2]
             projects = task_contents[3].split(",")
             fixed_version = task_contents[4]
-            shell = Shell(req_userid, self.is_test, source, target)
+            shell = Shell(req_id, self.is_test, source, target)
             front_projects = set(projects).intersection({"front-theory",
                                                          "front-goserver"})
             if len(front_projects) > 0:
@@ -149,7 +149,7 @@ class Handler:
             else:
                 _, ret = shell.create_branch(fixed_version, projects)
             # 发送消息通知
-            user_ids = "|".join({self.user_id, req_userid})
+            user_ids = "|".join({self.user_id, req_id})
             self.crop.send_text_msg(user_ids, str(ret))
             return ret
         except Exception as err:
