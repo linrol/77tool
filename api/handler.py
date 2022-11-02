@@ -30,25 +30,28 @@ class Handler:
         self.is_event_msg = self.msg_type == 'event' and not self.is_event_task
 
     def accept(self):
-        if duplicate_msg(self.data):
-            accept_ret = "duplicate accept"
-        elif self.is_event_msg:
-            accept_ret = self.accept_event()
-        elif self.is_event_task:
-            accept_ret = self.accept_event_task()
-        else:
-            accept_ret = self.accept_data()
-        logger.info("* {}_{} accept ret: {}".format(self.user_name, self.msg_id,
-                                                    accept_ret))
-        return accept_ret
+        logger.info("* {} accept request: {}".format(self.user_name, self.data))
+        try:
+            if duplicate_msg(self.data):
+                ret = "duplicate accept"
+            elif self.is_event_msg:
+                ret = self.accept_event()
+            elif self.is_event_task:
+                ret = self.accept_event_task()
+            else:
+                ret = self.accept_message()
+            logger.info("* {} accept response: {}".format(self.user_name, ret))
+            return ret
+        except Exception as err:
+            logger.info("* {} accept response: {}".format(self.user_name,
+                                                          str(err)))
+            return str(err)
 
     # 消费事件消息
     def accept_event(self):
         help_msg = menu_help.get(self.event_key, None)
         if help_msg is None:
             return "event key {} are not listening".format(self.event_key)
-        # if not self.require_git_auth():
-        #     return "need to gitlab authorization"
         self.crop.send_markdown_msg(self.user_id, help_msg)
         return help_msg
 
@@ -90,7 +93,7 @@ class Handler:
                '初始化特性分支' in self.msg_content
 
     # 消费数据回调：拉分支、修改版本号、打tag、预制列表方案
-    def accept_data(self):
+    def accept_message(self):
         if not self.is_text_msg:
             return "the msg_type [{}] not listening".format(self.msg_type)
         elif not self.is_listen_content():
@@ -125,7 +128,7 @@ class Handler:
                 self.crop.send_text_msg(assignee_userid, result)
             return result
         except Exception as err:
-            print(str(err))
+            logger.error(str(err))
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -142,13 +145,13 @@ class Handler:
             front_projects = set(projects).intersection({"front-theory",
                                                          "front-goserver"})
             if len(front_projects) > 0:
-                _, result = shell.create_front_branch(projects)
+                _, ret = shell.create_front_branch(projects)
             else:
-                _, result = shell.create_branch(fixed_version, projects)
+                _, ret = shell.create_branch(fixed_version, projects)
             # 发送消息通知
             user_ids = "|".join({self.user_id, req_userid})
-            self.crop.send_text_msg(user_ids, str(result))
-            return result
+            self.crop.send_text_msg(user_ids, str(ret))
+            return ret
         except Exception as err:
             logger.error(str(err))
             # 发送消息通知
@@ -171,12 +174,12 @@ class Handler:
                 raise Exception("迁移分支输入错误，当前仅支持班车sprint分支")
             self.crop.send_text_msg(self.user_id, "分支迁移任务运行中，请稍等!")
             shell = Shell(self.user_id, self.is_test, source, target)
-            ret, result = shell.move_branch(namespaces)
+            _, ret = shell.move_branch(namespaces)
             # 发送消息通知
-            self.crop.send_text_msg(self.user_id, str(result))
-            return result
+            self.crop.send_text_msg(self.user_id, str(ret))
+            return ret
         except Exception as err:
-            print(str(err))
+            logger.error(str(err))
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -194,12 +197,12 @@ class Handler:
                 target = task_contents[2]
                 clear = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
             shell = Shell(self.user_id, self.is_test, source, target)
-            _, result = shell.merge_branch(clear)
+            _, ret = shell.merge_branch(clear)
             # 发送消息通知
-            self.crop.send_text_msg(self.user_id, str(result))
-            return result
+            self.crop.send_text_msg(self.user_id, str(ret))
+            return ret
         except Exception as err:
-            print(str(err))
+            logger.error(str(err))
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -212,12 +215,12 @@ class Handler:
             target, params, protect, is_build = get_build_dirt(self.msg_content)
             self.crop.send_text_msg(self.user_id, "构建发布包任务运行中，请稍等!")
             shell = Shell(self.user_id, self.is_test, 'master', target)
-            ret, result = shell.build_package(params, protect, is_build)
+            _, ret = shell.build_package(params, protect, is_build)
             # 发送消息通知
-            self.crop.send_text_msg(self.user_id, str(result))
-            return result
+            self.crop.send_text_msg(self.user_id, str(ret))
+            return ret
         except Exception as err:
-            print(str(err))
+            logger.error(str(err))
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -229,12 +232,10 @@ class Handler:
             fixed_ids = ["LuoLin", "XieXiaNiDeGuanYu", "yunpeng.liu@q7link.com"]
             duty_user = self.crop.get_duty_info(self.is_test, fixed_ids)
             task_info = req_user + duty_user + get_branch_dirt(self.msg_content)
-            ret = Task(self.is_test).new_branch_task(self.crop, *task_info)
-            self.crop.send_text_msg(self.user_id, ret)
-            return "create project[{}] branch[{}] task success".format(
-                task_info[-1], task_info[-2])
+            _, ret = Task(self.is_test).new_branch_task(self.crop, *task_info)
+            return ret
         except Exception as err:
-            print(str(err))
+            logger.error(str(err))
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -252,8 +253,9 @@ class Handler:
             value = "{}@{}@{}".format(source, version, approve_user)
             hmset("q7link-branch-feature", {target: value})
             self.crop.send_text_msg(self.user_id, "分支初始化成功，请重新发起拉分支请求")
+            return "init branch[{}] success".format(target)
         except Exception as err:
-            print(str(err))
+            logger.error(str(err))
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)

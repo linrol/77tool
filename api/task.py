@@ -125,9 +125,11 @@ class Task:
                                                           str(self.is_test),
                                                           task_code)
                 save_user_task(task_id, content)
-            return notify_req
+            crop.send_text_msg(req_id, notify_req)
+            task_brief = "{}#{}#{}".format(source, target, project_names)
+            return True, "new branch task[] success".format(task_brief)
         except Exception as err:
-            return str(err)
+            return False, str(err)
 
     # 创建拉特性分支的任务
     def new_feature_branch_task(self, crop, req_user_id, req_user_name,
@@ -151,7 +153,8 @@ class Task:
                                                      str(self.is_test),
                                                      task_code)
         save_user_task(task_id, task_content)
-        return notify_req
+        crop.send_text_msg(req_user_id, notify_req)
+        return True, "new branch task[] success".format(task_id)
 
     def compare_version(self, left_branch, right_branch):
         ret = {}

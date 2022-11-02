@@ -112,6 +112,8 @@ class Crop:
     return self.send_message(to_user, 'template_card', content)
 
   def send_text_msg(self, to_user, content):
+    if content is None:
+      return None
     return self.send_message(to_user, 'text', {"content": content})
 
   def send_text_card_msg(self, to_user, content):
