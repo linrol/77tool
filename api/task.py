@@ -127,7 +127,7 @@ class Task:
                 save_user_task(task_id, content)
             crop.send_text_msg(req_id, notify_req)
             task_brief = "{}#{}#{}".format(source, target, project_names)
-            return True, "new branch task[] success".format(task_brief)
+            return True, "new branch task[{}] success".format(task_brief)
         except Exception as err:
             return False, str(err)
 
@@ -154,7 +154,7 @@ class Task:
                                                      task_code)
         save_user_task(task_id, task_content)
         crop.send_text_msg(req_user_id, notify_req)
-        return True, "new branch task[] success".format(task_id)
+        return True, "new branch task[{}] success".format(task_id)
 
     def compare_version(self, left_branch, right_branch):
         ret = {}
