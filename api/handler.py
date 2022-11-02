@@ -142,9 +142,8 @@ class Handler:
             projects = task_contents[3].split(",")
             fixed_version = task_contents[4]
             shell = Shell(req_id, self.is_test, source, target)
-            front_projects = set(projects).intersection({"front-theory",
-                                                         "front-goserver"})
-            if len(front_projects) > 0:
+            end = self.get_project_end(projects)
+            if end == "front":
                 _, ret = shell.create_front_branch(projects)
             else:
                 _, ret = shell.create_branch(fixed_version, projects)
@@ -230,8 +229,10 @@ class Handler:
         try:
             req_user = (self.user_id, self.user_name)
             fixed_ids = ["LuoLin", "XieXiaNiDeGuanYu", "yunpeng.liu@q7link.com"]
-            duty_user = self.crop.get_duty_info(self.is_test, fixed_ids)
-            task_info = req_user + duty_user + get_branch_dirt(self.msg_content)
+            new_branch_params = get_branch_dirt(self.msg_content)
+            end = self.get_project_end(new_branch_params[2].split(","))
+            duty_user = self.crop.get_duty_info(self.is_test, fixed_ids, end)
+            task_info = req_user + duty_user + new_branch_params
             _, ret = Task(self.is_test).new_branch_task(self.crop, *task_info)
             return ret
         except Exception as err:
@@ -259,4 +260,12 @@ class Handler:
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
+
+    def get_project_end(self, projects):
+        front_projects = {"front-theory", "front-goserver"}
+        intersection = set(projects).intersection(front_projects)
+        if len(intersection) > 0:
+            return "front"
+        else:
+            return "backend"
 

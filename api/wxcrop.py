@@ -122,12 +122,12 @@ class Crop:
   def send_markdown_msg(self, to_user, content):
     return self.send_message(to_user, 'markdown', {"content": content})
 
-  def get_duty_info(self, is_test, fixed_user_ids):
+  def get_duty_info(self, is_test, fixed_user_ids, end="backend"):
     if self.isdev or is_test:
       return "LuoLin", "罗林"
     else:
       body = get("http://10.0.144.51:5000/api/verify/duty/users")
-      role_duty_info = body.get("data").get("backend")
+      role_duty_info = body.get("data").get(end)
       duty_user_ids = []
       duty_user_names = []
       for duty in role_duty_info:
