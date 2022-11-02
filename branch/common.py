@@ -93,7 +93,7 @@ class Common:
     def __init__(self, utils, end="backend"):
         self.branch_group = {}
         self.utils = utils
-        self.projects = utils.project_path_end(end)
+        self.projects = utils.project_path(self.end2module(end))
         self.project_build = self.projects.get('build')
         self.redis_pool = redis.ConnectionPool(host="linrol.cn", port=6379,
                                                password='linrol_redis', db=2,
@@ -166,3 +166,10 @@ class Common:
     def checkout_branch(self, branch_name):
         cmd = 'cd ../branch;python3 checkout.py {}'.format(branch_name)
         return subprocess.getstatusoutput(cmd)
+
+    # 所属端转换为模块
+    def end2module(self, end):
+        if end == "front":
+            return ["front"]
+        else:
+            return ["apps", "global", "platform"]
