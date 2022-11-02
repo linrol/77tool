@@ -14,8 +14,8 @@ branch_group = {}
 
 
 class Merge(Common):
-    def __init__(self, source, target, clear):
-        super().__init__(utils)
+    def __init__(self, end, source, target, clear):
+        super().__init__(utils, end)
         self.source = source
         self.target = target
         self.clear = clear
@@ -23,9 +23,6 @@ class Merge(Common):
     def check_conflict(self):
         conflict_project = []
         for p, p_info in self.projects.items():
-            module = p_info.getModule()
-            if module in ["front"]:
-                continue
             branch_source = p_info.getBranch(self.source)
             if branch_source is None:
                 continue
@@ -52,9 +49,6 @@ class Merge(Common):
         wait_created = []
         wait_push = {}
         for name, project in self.projects.items():
-            module = project.getModule()
-            if module in ["front"]:
-                continue
             branch_source = project.getBranch(self.source)
             branch_target = project.getBranch(self.target)
             if branch_source is None:
@@ -117,9 +111,6 @@ class Merge(Common):
                 sys.exit(1)
             self.merge()
             for project in self.projects.values():
-                module = project.getModule()
-                if module in ["front"]:
-                    continue
                 project.deleteLocalBranch(self.source)
         except Exception as err:
             print(str(err))
@@ -130,11 +121,12 @@ class Merge(Common):
 # 例：将sprint20220922分支代码合并至stage
 # python3 merge.py sprint20220922 stage
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("ERROR: 输入参数错误, 正确的参数为：<source_branch> <target_branch>")
+    if len(sys.argv) < 3:
+        print("ERROR: 输入参数错误, 正确的参数为：<end> <source_branch> <target_branch>")
         sys.exit(1)
     else:
-        clear_source = ".clear" in sys.argv[1]
-        source_branch = sys.argv[1].replace(".clear", "")
-        target_branch = sys.argv[2]
-        Merge(source_branch, target_branch, clear_source).execute()
+        belong_end = sys.argv[1]
+        clear_source = ".clear" in sys.argv[2]
+        source_branch = sys.argv[2].replace(".clear", "")
+        target_branch = sys.argv[3]
+        Merge(belong_end, source_branch, target_branch, clear_source).execute()

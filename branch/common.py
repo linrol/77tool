@@ -90,10 +90,10 @@ class LinkedList(object):
 
 
 class Common:
-    def __init__(self, utils):
+    def __init__(self, utils, end="backend"):
         self.branch_group = {}
         self.utils = utils
-        self.projects = utils.project_path()
+        self.projects = utils.project_path_end(end)
         self.project_build = self.projects.get('build')
         self.redis_pool = redis.ConnectionPool(host="linrol.cn", port=6379,
                                                password='linrol_redis', db=2,

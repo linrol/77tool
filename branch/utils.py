@@ -301,6 +301,11 @@ class LocalBranch():
   def hasPull(self):
     return self.__hasPull
 
+def project_path_end(end):
+  if end == "front":
+    return project_path(["front"])
+  else:
+    return project_path(["apps", "global", "platform"])
 
 
 def project_path(names=None):

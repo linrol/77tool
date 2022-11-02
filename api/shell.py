@@ -146,7 +146,7 @@ class Shell(Common):
             self.checkout_branch(self.source_branch)
             self.protect_branch(self.target_branch, 'release')
             source = self.source_branch + ".clear" if clear else self.source_branch
-            cmd = 'cd ../branch;python3 merge.py {} {}'.format(source, self.target_branch)
+            cmd = 'cd ../branch;python3 merge.py backend {} {}'.format(source, self.target_branch)
             [_, merge_msg] = self.exec(cmd, True)
             self.protect_branch(self.target_branch, 'none')
             merge_msg = re.compile('WARNNING：.*目标分支.*已存在.*\n').sub('', merge_msg)

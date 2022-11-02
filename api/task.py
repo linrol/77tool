@@ -1,5 +1,4 @@
 import os
-import sys
 import time
 import yaml
 import re
@@ -8,22 +7,17 @@ from log import logger
 from shell import Shell
 from wxmessage import build_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content, is_chinese
 from redisclient import save_user_task, get_branch_mapping, hmset, hget
+from common import Common
 
-sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
-sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
-sys.path.append("/data/backend/branch-manage")
-from branch import utils
 
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
 target_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
 
 
-class Task:
+class Task(Common):
     def __init__(self, is_test=False):
-        os.chdir("../branch/")
+        super().__init__()
         self.is_test = is_test
-        self.projects = utils.project_path()
-        self.project_build = self.get_project('build')
 
     def get_project(self, project_name):
         if project_name not in self.projects.keys():

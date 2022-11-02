@@ -17,10 +17,6 @@ class Common:
         self.projects = utils.project_path()
         self.project_build = self.projects.get('build')
         self.project_init_data = self.projects.get('init-data')
-        self.redis_pool = redis.ConnectionPool(host="linrol.cn", port=6379,
-                                               password='linrol_redis', db=2,
-                                               decode_responses=True,
-                                               max_connections=16)
 
     def exec(self, command, throw=False, level_info=True):
         [ret, msg] = subprocess.getstatusoutput(command)
