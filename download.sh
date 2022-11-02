@@ -77,3 +77,9 @@ git clone http://linrol:Linrol19950120@gitlab.q7link.com//backend/platform/app-c
 git clone http://linrol:Linrol19950120@gitlab.q7link.com//backend/platform/baseapp-api.git
 git clone http://linrol:Linrol19950120@gitlab.q7link.com//backend/platform/app-build-plugins.git
 git clone http://linrol:Linrol19950120@gitlab.q7link.com//backend/platform/app-archetype.git
+
+cd ../../
+mkdir front
+cd front
+git clone http://linrol:Linrol19950120@gitlab.q7link.com/front/front-theory.git
+git clone http://linrol:Linrol19950120@gitlab.q7link.com/front/front-goserver.git
