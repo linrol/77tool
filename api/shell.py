@@ -108,21 +108,14 @@ class Shell(Common):
     # 创建前端分支
     def create_front_branch(self, project_names):
         try:
-            rets = []
-            ret_template = "工程【{}】基于分支【{}】创建分支【{}】成功"
-            for project_name in project_names:
-                path = "../../../front/{}".format(project_name)
-                p_git = self.utils.ProjectInfo(project_name, path, "front")
-                target_branch = p_git.createBranch(self.source_branch,
-                                                   self.target_branch)
-                if target_branch is None:
-                    raise Exception("拉分支失败，请检查输出日志")
-                rets.append(ret_template.format(project_name,
-                                                self.source_branch,
-                                                self.target_branch))
-            return True, "\n".join(rets)
+            self.lock_value = self.lock.get_lock("lock", 300)
+            cmd = 'cd ../branch;python3 createBranch.py {}.stage {} {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
+            [_, created_msg] = self.exec(cmd, True)
+            return True, created_msg
         except Exception as err:
             return False, str(err)
+        finally:
+            executor.submit(self.rest_branch_env)
 
     def check_version(self, branch_str):
         try:
@@ -185,11 +178,13 @@ class Shell(Common):
     def rest_branch_env(self):
         self.checkout_branch('master')
         if self.target_branch is not None:
-            for project in self.projects.values():
-                project.deleteLocalBranch(self.target_branch)
-        if self.source_branch is not None and self.source_branch not in ['stage', 'master']:
-            for project in self.projects.values():
-                project.deleteLocalBranch(self.source_branch)
+            if self.target_branch not in ['stage', 'master']:
+                for project in self.projects.values():
+                    project.deleteLocalBranch(self.target_branch)
+        if self.source_branch is not None:
+            if self.source_branch not in ['stage', 'master']:
+                for project in self.projects.values():
+                    project.deleteLocalBranch(self.source_branch)
         if self.lock_value is not None:
             self.lock.del_lock("lock", self.lock_value)
 
