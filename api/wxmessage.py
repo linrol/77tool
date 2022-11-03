@@ -311,19 +311,20 @@ def get_build_dirt(msg_content):
         target_name = target_branch.replace(target_date, "")
     if target_date is None or target_name not in ",".join(mapping.values()):
         raise Exception("目标分支非值班系列【{}】".format(",".join(mapping.values())))
-    group = branch_map.get('构建模块', 'all')
-    if group not in build_group_mapping.keys():
+    module = branch_map.get('构建模块', 'all')
+    if module not in build_group_mapping.keys():
         raise Exception("构建模块输入错误，必须是all,global,apps其中之一")
     is_build = branch_map.get('立即编译') == 'true'
     front_version = branch_map.get("前端预制", '').strip()
-    group_list = build_group_mapping.get(group).copy()
+    group_list = build_group_mapping.get(module).copy()
     if len(front_version) > 0:
         group_list.append("front-apps=reimburse:{}".format(front_version))
-    if group != 'all':
-        protect = "none.{}@{}".format(group, "platform")
+    if module != 'all':
+        protect = "none {} {} {}".format(module, "platform", "init-data")
     else:
-        protect = "none"
+        protect = "none {} {} {}".format("apps", "global", "platform")
     return branch_map.get('目标分支'), " ".join(group_list), protect, is_build
+
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
     task_info_list = [{

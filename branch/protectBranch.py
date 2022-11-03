@@ -4,9 +4,8 @@ import utils
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 
 class ProjectBranch:
-  def __init__(self, branchName, access, group, projectNames=None):
+  def __init__(self, branchName, access, projectNames=None):
     self.branchName = branchName
-    self.group = group
     self.projectNames = projectNames
     self.access = access
     # 检查入参
@@ -33,14 +32,12 @@ class ProjectBranch:
   #检查参数是否正确（返回：工程信息）
   def checkAndProtect(self, projectInfo):
     branch = projectInfo.getBranch(self.branchName)
-    project_path = projectInfo.getProject().namespace.get("path")
     #分支存在的才进行权限修改
     if (branch is None):
       return None
-    if len(self.group) > 0 and project_path not in self.group:
-      return None
-    self.protectBranch(projectInfo)
-    return projectInfo
+    else:
+      self.protectBranch(projectInfo)
+      return projectInfo
 
   #设置分支保护
   def protectBranch(self, projectInfo):
@@ -59,8 +56,8 @@ class ProjectBranch:
         mergeAccessLevel = utils.MAINTAINER_ACCESS
         pushAccessLevel = utils.VISIBILITY_PRIVATE
     elif self.access == 'none':
-        mergeAccessLevel = utils.VISIBILITY_PRIVATE
-        pushAccessLevel = utils.VISIBILITY_PRIVATE
+      mergeAccessLevel = utils.VISIBILITY_PRIVATE
+      pushAccessLevel = utils.VISIBILITY_PRIVATE
     elif self.access == 'd' or self.access =='delete':
       projectInfo.deleteBranchProtect(self.branchName)
       print('【{}】【{}】分支保护删除成功'.format(projectName, self.branchName))
@@ -83,12 +80,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 3:
       projectNames = sys.argv[3:]
     branchName = sys.argv[1]
-    if "." in sys.argv[2]:
-      access = sys.argv[2].split(".")[0]
-      group = sys.argv[2].split(".")[1].split("@")
-    else:
-      access = sys.argv[2]
-      group = []
+    access = sys.argv[2]
 
-  executor = ProjectBranch(branchName, access, group, projectNames)
+  executor = ProjectBranch(branchName, access, projectNames)
   executor.execute()
