@@ -74,11 +74,23 @@ class Common:
             caller = "值班助手"
             if call_name is not None:
                 caller += "({})".format(call_name)
-            build_params = {"branch": branch, "byCaller": caller}
+            params = {"branch": branch, "byCaller": caller}
             if project is not None:
-                build_params["projects"] = project
-            post_form(build_url, build_params)
+                params["projects"] = project
+            post_form(build_url, params)
         except Exception as e:
             logger.error(e)
+
+    # 开关ops自动编译
+    def ops_switch_build(self, value):
+        try:
+            job_url = "http://ops.q7link.com:8000/qqdeploy/jenkinsjob/"
+            params = {"jobName": "backend-auto-build",
+                      "jobParams": {"operate": value},
+                      "byCaller": "值班助手"}
+            post_form(job_url, params)
+        except Exception as e:
+            logger.error(e)
+
 
 
