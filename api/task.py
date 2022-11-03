@@ -384,7 +384,7 @@ class Task(Common):
                                                       mr_source_msg))
             crop.send_text_msg(author_userid, mr_source_msg)
             hmset("q7link-branch-merge", {mr_key: author_userid})
-            project = mr.references.get("full").split("!")[0].rsplit("/", 1)
+            project = mr.references.get("full").split("!")[0]
             self.ops_build(mr.target_branch, self.is_test, project, author_name)
 
     # 发送代码合并任务
