@@ -9,8 +9,7 @@ from redisclient import duplicate_msg, get_user_task, hmset
 
 
 class Handler:
-    def __init__(self, crypt, crop, raw_content):
-        self.crypt = crypt
+    def __init__(self, crop, raw_content):
         self.crop = crop
         self.data = xml2dirt(raw_content)
         # 消息内容

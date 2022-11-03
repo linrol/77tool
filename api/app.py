@@ -138,13 +138,13 @@ def callback():
     timestamp = request.args.get('timestamp')
     nonce = request.args.get('nonce')
     body = request.data.decode('utf-8')
-    ret, raw_content = crypt.DecryptMsg(body, msg_signature, timestamp, nonce)
+    ret, raw = crypt.DecryptMsg(body, msg_signature, timestamp, nonce)
     if ret != 0:
-        logger.error("验证企业微信消息真实性失败")
-        return make_response({"errcode": ret}, 500)
-
+        _error = {"errcode": ret, "message": "验证企业微信消息真实性失败"}
+        return make_response(_error, 500)
     # 启用异步任务消费消息
-    executor.submit(Handler(crypt, crop, raw_content).accept)
+    logger.info("start accept: {}".format(raw))
+    executor.submit(Handler(crop, raw).accept)
     return make_response("success")
 
 
@@ -154,5 +154,4 @@ if __name__ == "__main__":
     # scheduler.api_enabled = True
     scheduler.init_app(app)
     scheduler.start()
-
     app.run(host="0.0.0.0", debug=True, use_reloader=False, port=args.port)
