@@ -9,6 +9,7 @@ from wxcrop import Crop
 from handler import Handler
 from task import Task
 from redisclient import duplicate_correct_id
+from wxmessage import xml2dirt
 executor = ThreadPoolExecutor()
 app = Flask(__name__)
 scheduler = APScheduler()
@@ -143,8 +144,7 @@ def callback():
         _error = {"errcode": ret, "message": "验证企业微信消息真实性失败"}
         return make_response(_error, 500)
     # 启用异步任务消费消息
-    logger.info("start accept: {}".format(raw))
-    executor.submit(Handler(crop, raw).accept)
+    executor.submit(Handler(crop, xml2dirt(raw)).accept)
     return make_response("success")
 
 

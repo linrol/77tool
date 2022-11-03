@@ -4,14 +4,14 @@ import string
 from shell import Shell
 from task import Task
 from log import logger
-from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_move_branch_dirt, xml2dirt
+from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_move_branch_dirt
 from redisclient import duplicate_msg, get_user_task, hmset
 
 
 class Handler:
-    def __init__(self, crop, raw_content):
+    def __init__(self, crop, data):
         self.crop = crop
-        self.data = xml2dirt(raw_content)
+        self.data = data
         # 消息内容
         self.msg_id = self.data.get('MsgId', '')
         self.msg_content = self.data.get('Content', '')
