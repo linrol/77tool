@@ -85,7 +85,7 @@ class Shell(Common):
                 gen_params = "-v {}".format(fixed_version)
             else:
                 gen_params = "-f"
-            self.checkout_branch(self.source_branch)
+            # self.checkout_branch(self.source_branch)
             cmd = 'cd ../branch;python3 createBranch.py {}.stage {}.false {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
             [_, created_msg] = self.exec(cmd, True)
             cmd = 'cd ../branch;python3 genVersion.py {} -s {} -t {} -p {}'.format(gen_params, self.source_branch, self.target_branch, ",".join(project_names))
