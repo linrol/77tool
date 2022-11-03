@@ -66,12 +66,18 @@ class Common:
             return False, str(err)
 
     # 触发ops编译
-    def ops_build(self, branch, skip=False):
+    def ops_build(self, branch, skip=False, project=None, call_name=None):
         try:
             build_url = "http://ops.q7link.com:8000/qqdeploy/projectbuild/"
             if skip:
                 return
-            post_form(build_url, {"branch": branch, "byCaller": "值班助手"})
+            caller = "值班助手"
+            if call_name is not None:
+                caller += "({})".format(call_name)
+            build_params = {"branch": branch, "byCaller": caller}
+            if project is not None:
+                build_params["projects"] = project
+            post_form(build_url, build_params)
         except Exception as e:
             logger.error(e)
 

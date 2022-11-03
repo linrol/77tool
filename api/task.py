@@ -369,6 +369,7 @@ class Task(Common):
                 merged_username = merged_userid
             if is_data_pre:
                 author_userid = mr.title.replace(data_pre_str, "")
+                author_name = author_userid
             else:
                 author_name = hget("q7link-git-user", author_id)
                 if not author_name:
@@ -376,13 +377,15 @@ class Task(Common):
                     continue
                 author_userid = crop.user_name2id(author_name)
             _, project = mr.references.get("full").split("!")[0].rsplit("/", 1)
-            mr_source_msg = msg_content["mr_source"].format(project,
-                                                            merged_username,
-                                                            mr.web_url)
+            mr_source_msg = msg_content["mr_source"].format(mr.web_url,
+                                                            project,
+                                                            merged_username)
             logger.info("send mr to {} url {}".format(author_userid,
                                                       mr_source_msg))
             crop.send_text_msg(author_userid, mr_source_msg)
             hmset("q7link-branch-merge", {mr_key: author_userid})
+            project = mr.references.get("full").split("!")[0].rsplit("/", 1)
+            self.ops_build(mr.target_branch, self.is_test, project, author_name)
 
     # 发送代码合并任务
     def send_branch_merge(self, branches, groups, clusters, crop):
