@@ -159,7 +159,7 @@ class Shell(Common):
 
     def build_package(self, params, protect, is_build):
         try:
-            self.ops_build("stop")
+            self.ops_switch_build("stop")
             self.lock_value = self.lock.get_lock("lock", 300)
             self.checkout_branch(self.target_branch)
             cmd = 'cd ../branch;python3 releaseVersion.py {} {} {}'.format(self.source_branch, self.target_branch, params)
