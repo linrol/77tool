@@ -7,11 +7,7 @@ from shell import Shell
 from wxmessage import build_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content, is_chinese
 from redisclient import save_user_task, get_branch_mapping, hmset, hget
 from common import Common
-
-
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
-target_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
-
 
 class Task(Common):
     def __init__(self, is_test=False):
@@ -65,11 +61,7 @@ class Task(Common):
             match_target = v.split(",")
         if match_source is None:
             raise Exception("来源分支非值班系列【{}】{}".format(",".join(mapping.keys()), tips))
-        target_name = None
-        target_date = None
-        if re.search(target_regex, target_branch):
-            target_date = re.search(target_regex, target_branch).group()
-            target_name = target_branch.replace(target_date, "")
+        target_name, target_date = self.get_branch_date(target_branch)
         if target_date is None or target_name not in match_target:
             raise Exception("目标分支非值班系列【{}】{}".format(",".join(match_target), tips))
         week_later = (datetime.now() + timedelta(days=-7)).strftime("%Y%m%d")
@@ -387,14 +379,14 @@ class Task(Common):
             self.ops_build(mr.target_branch, self.is_test, project, author_name)
 
     # 发送代码合并任务
-    def send_branch_merge(self, branches, groups, clusters, crop):
+    def build_branch_task(self, branches, groups, clusters, crop):
         user_ids, _ = crop.get_duty_info(self.is_test, ["LuoLin"])
         duty_branches = self.get_duty_branches()
         ret = []
         for source in branches:
             if is_chinese(source):
                 continue
-            if len(duty_branches) > 0 and source not in duty_branches:
+            if len(duty_branches) > 0 and self.get_branch_date(source)[0] not in duty_branches:
                 continue
             sprint_deploy_global = "sprint" in source and "global" in groups and "global" in clusters
             if sprint_deploy_global:

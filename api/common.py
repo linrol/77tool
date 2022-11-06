@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import re
 from request import post_form
 from log import logger
 from redisclient import get_branch_mapping
@@ -8,6 +9,7 @@ sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/data/backend/branch-manage")
 from branch import utils
+date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
 
 
 class Common:
@@ -65,13 +67,21 @@ class Common:
         except Exception as err:
             return False, str(err)
 
+    # 获取分支前缀和时间
+    def get_branch_date(self, branch):
+        if re.search(date_regex, branch):
+            date = re.search(date_regex, branch).group()
+            name = branch.replace(date, "")
+            return name, date
+        return branch, None
+
     # 获取值班目标分支集合
     def get_duty_branches(self):
         branches = set()
         try:
             mapping = get_branch_mapping()
             for bs in mapping.values():
-                branches.add(bs.split(","))
+                branches.update(bs.split(","))
         except Exception as e:
             logger.error(e)
         return branches
