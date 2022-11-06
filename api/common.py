@@ -1,9 +1,9 @@
 import os
 import sys
-import redis
 import subprocess
 from request import post_form
 from log import logger
+from redisclient import get_branch_mapping
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/data/backend/branch-manage")
@@ -65,6 +65,17 @@ class Common:
         except Exception as err:
             return False, str(err)
 
+    # 获取值班目标分支集合
+    def get_duty_branches(self):
+        branches = set()
+        try:
+            mapping = get_branch_mapping()
+            for bs in mapping.values():
+                branches.add(bs.split(","))
+        except Exception as e:
+            logger.error(e)
+        return branches
+
     # 触发ops编译
     def ops_build(self, branch, skip=False, project=None, call_name=None):
         try:
@@ -73,7 +84,7 @@ class Common:
                 return
             caller = "值班助手"
             if call_name is not None:
-                caller += "({})".format(call_name)
+                caller = "{}-值班助手".format(call_name)
             params = {"branch": branch, "byCaller": caller}
             if project is not None:
                 params["projects"] = project

@@ -1,4 +1,3 @@
-import os
 import time
 import yaml
 import re
@@ -390,18 +389,21 @@ class Task(Common):
     # 发送代码合并任务
     def send_branch_merge(self, branches, groups, clusters, crop):
         user_ids, _ = crop.get_duty_info(self.is_test, ["LuoLin"])
+        duty_branches = self.get_duty_branches()
         ret = []
         for source in branches:
             if is_chinese(source):
                 continue
-            sprint_deploy_global = "sprint" in source and "global" in clusters
+            if len(duty_branches) > 0 and source not in duty_branches:
+                continue
+            sprint_deploy_global = "sprint" in source and "global" in groups and "global" in clusters
             if sprint_deploy_global:
                 if self.has_release(source):
                     continue
-                # 班车分支发布至global and 班车分支未封板，需sprint分支迁移至stage-global
+                # sprint发布到global & 分支未封板，将global模块迁移至stage-global
                 target = "stage-global"
-                task_id = self.send_branch_move(user_ids, source, target,
-                                                groups, clusters, crop)
+                task_id = self.send_branch_action("move", user_ids, source, target,
+                                                  groups, clusters, crop)
                 ret.append(task_id)
                 continue
             sprint_deploy_cluster0 = "sprint" in source and "集群0" in clusters
@@ -420,20 +422,8 @@ class Task(Common):
             if self.project_build.getBranch(target) is None:
                 continue
             # 发送合并代码通知
-            task_id = "branch_merge@{}".format(int(time.time()))
-            _merge = build_merge_branch_msg(source, target, ",".join(clusters),
-                                            task_id)
-            body = crop.send_template_card(user_ids, _merge)
-            # 记录任务
-            task_code = body.get("response_code")
-            content = "{}#{}#{}#{}#None#{}#{}".format(user_ids,
-                                                      source,
-                                                      target,
-                                                      ",".join(groups),
-                                                      str(self.is_test),
-                                                      task_code)
-            logger.info("task[{}] content[{}]".format(task_id, content))
-            save_user_task(task_id, content)
+            task_id = self.send_branch_action("merge", user_ids, source, target,
+                                              groups, clusters, crop)
             ret.append(task_id)
         return ",".join(ret)
 
@@ -449,25 +439,30 @@ class Task(Common):
             logger.error(str(err))
             return True
 
-    # 发送分支迁移任务
-    def send_branch_move(self, user_ids, source, target, group, clusters, crop):
+    # 发送分支操作（迁移/合并）任务
+    def send_branch_action(self, action, user_ids, source, target, groups, clusters, crop):
         # 发送合并代码通知
-        task_id = "branch_move@{}".format(int(time.time()))
-        _merge = build_move_branch_msg(source, target, ",".join(group),
-                                       ",".join(clusters), task_id)
-        body = crop.send_template_card(user_ids, _merge)
+        task_id = "branch_{}@{}".format(action, int(time.time()))
+        if action == "move":
+            task_params = build_move_branch_msg(source, target, ",".join(groups),
+                                                ",".join(clusters), task_id)
+        elif action == "merge":
+            task_params = build_merge_branch_msg(source, target, ",".join(clusters),
+                                                 task_id)
+        else:
+            raise Exception("action error")
+        body = crop.send_template_card(user_ids, task_params)
         # 记录任务
         task_code = body.get("response_code")
         content = "{}#{}#{}#{}#None#{}#{}".format(user_ids,
                                                   source,
                                                   target,
-                                                  ",".join(group),
+                                                  ",".join(groups),
                                                   str(self.is_test),
                                                   task_code)
         logger.info("task[{}] content[{}]".format(task_id, content))
         save_user_task(task_id, content)
         return task_id
-
 
 if __name__ == '__main__':
     Task().send_mr_notify(None)
