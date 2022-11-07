@@ -353,8 +353,8 @@ class Task(Common):
             is_data_pre = data_pre_str in mr.title
             author_id = mr.author.get("username")
             merged_userid = mr.merged_by.get("username")
-            if author_id == merged_userid and not is_data_pre:
-                continue
+            # if author_id == merged_userid and not is_data_pre:
+            #     continue
             merged_username = hget("q7link-git-user", merged_userid)
             if merged_username is None:
                 merged_username = merged_userid
