@@ -209,10 +209,4 @@ class Shell(Common):
         self.protect_branch(branch, protect)
 
 
-if __name__ == "__main__":
-    shell = Shell('LuoLin', True, 'stage', 'stage-patch20221023')
-    _, result = shell.create_branch(None, ['app-common'])
-    print(result)
-
-
 

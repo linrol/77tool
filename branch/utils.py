@@ -9,8 +9,7 @@ import re
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 URL='http://gitlab.q7link.com'
-TOKEN='sTyo1zhgMyDEsq9Mxm1H'
-# TOKEN='v5kHG8DLAUDs2tXVfJKW'
+TOKEN=''
 
 DEVELOPER_ACCESS = 30
 MAINTAINER_ACCESS = 40
@@ -27,8 +26,10 @@ class ProjectInfo():
     self.__checkPath()
     # self.fetch()# TODO 是否fetch
 
+  def getToken(self):
+    return os.environ.get("GIT_TOKEN", TOKEN)
   def getGl(self):
-    gl = gitlab.Gitlab(URL, TOKEN)
+    gl = gitlab.Gitlab(URL, self.getToken())
     gl.auth()
     return gl
   def getName(self):
@@ -70,10 +71,8 @@ class ProjectInfo():
     if group_name is None:
       group_name = self.__module
     if self.__group is None:
-      gl = gitlab.Gitlab(URL, TOKEN)
       try:
-        gl.auth()
-        groups = gl.groups.list(search=group_name) # 此处是模糊查询
+        groups = self.__gl.groups.list(search=group_name) # 此处是模糊查询
         if len(groups) > 0:
           for group in groups:
             if group.full_path.startswith("backend") and group.name == group_name:

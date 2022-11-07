@@ -9,6 +9,7 @@ from redisclient import save_user_task, get_branch_mapping, hmset, hget
 from common import Common
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
 
+
 class Task(Common):
     def __init__(self, is_test=False):
         super().__init__()
@@ -457,6 +458,3 @@ class Task(Common):
         logger.info("task[{}] content[{}]".format(task_id, content))
         save_user_task(task_id, content)
         return task_id
-
-if __name__ == '__main__':
-    Task().send_mr_notify(None)

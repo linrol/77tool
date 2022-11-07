@@ -1,10 +1,10 @@
 import time
-import json
-from request import get, post, post_form
+from request import get, post
 from redisclient import redisClient
 from wxcrypt import WXBizMsgCrypt
-from wxmessage import msg, msg_content
+from wxmessage import msg
 from log import logger
+
 
 class Crop:
   def __init__(self, args):
