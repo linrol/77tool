@@ -1,0 +1,2 @@
+pyyaml
+python-gitlab==2.10.0
