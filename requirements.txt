@@ -1,2 +1,9 @@
+flask
+flask-apscheduler
+xmltodict
+requests
+redis
 pyyaml
 python-gitlab==2.10.0
+ruamel.yaml
+psycopg2

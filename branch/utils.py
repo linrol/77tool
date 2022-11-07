@@ -20,10 +20,18 @@ class ProjectInfo():
     self.__name = name
     self.__path = path
     self.__module = module
+    self.__group = None
     self.__project = None
+    self.__gl = self.getGl()
     self.__checkPath()
     # self.fetch()# TODO 是否fetch
 
+  def getToken(self):
+    return os.environ.get("GIT_TOKEN", TOKEN)
+  def getGl(self):
+    gl = gitlab.Gitlab(URL, self.getToken())
+    gl.auth()
+    return gl
   def getName(self):
     return self.__name
   def getPath(self):
@@ -40,13 +48,14 @@ class ProjectInfo():
   # 获取git仓库的项目信息
   def getProject(self):
     if self.__project is None:
-      gl = gitlab.Gitlab(URL, TOKEN)
       try:
-        gl.auth()
-        projects = gl.projects.list(search=self.__name) # 此处是模糊查询
+        projects = self.__gl.projects.list(search=self.__name) # 此处是模糊查询
         if len(projects) > 0:
           for project in projects:
             if project.name_with_namespace.startswith("backend") and project.name == self.__name:
+              self.__project = project
+              break
+            if project.name_with_namespace.startswith("front") and project.name == self.__name:
               self.__project = project
               break
       except Exception:
@@ -57,6 +66,26 @@ class ProjectInfo():
       print("ERROR: 工程【{}】不存在!!!".format(self.__name))
       sys.exit(1)
     return self.__project
+
+  def getGroup(self, group_name=None):
+    if group_name is None:
+      group_name = self.__module
+    if self.__group is None:
+      try:
+        groups = self.__gl.groups.list(search=group_name) # 此处是模糊查询
+        if len(groups) > 0:
+          for group in groups:
+            if group.full_path.startswith("backend") and group.name == group_name:
+              self.__group = group
+              break
+      except Exception:
+        print("群组：{}".format(self.__group))
+        raise
+
+    if self.__group is None:
+      print("ERROR: 群组【{}】不存在!!!".format(group_name))
+      sys.exit(1)
+    return self.__group
 
   # 获取远端git仓库的分支信息
   def getBranch(self, branchNames):
@@ -227,6 +256,27 @@ class ProjectInfo():
       print('ERROR: 工程【{}】无法获取远程信息!!!'.format(self.__name))
       return branchs
 
+  # 创建合并
+  def createMrRequest(self, source, target, title, assignee):
+    data = {
+    'source_branch': source,
+    'target_branch': target,
+    'title': title,
+    'remove_source_branch': True
+    }
+    member = self.getProjectMember(assignee)
+    if member is not None:
+      data['assignee_id'] = member.id
+    return self.getProject().mergerequests.create(data)
+
+  # 获取项目成员
+  def getProjectMember(self, query):
+    if query is None:
+      return None
+    members = self.getProject().members_all.list(query=query)
+    if members is not None and len(members) > 0:
+      return members[0]
+    return None
 
 class LocalBranch():
   def __init__(self, name, current, originBranchName, originDeleted, hasCommit, hasPull):
@@ -250,6 +300,11 @@ class LocalBranch():
   def hasPull(self):
     return self.__hasPull
 
+def project_path_end(end):
+  if end == "front":
+    return project_path(["front"])
+  else:
+    return project_path(["apps", "global", "platform"])
 
 
 def project_path(names=None):

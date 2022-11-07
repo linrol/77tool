@@ -42,7 +42,7 @@ class ChangeVersion:
       if self.needClear and ('build' in projectInfoMap):
         self.clear_script(projectInfoMap['build'].getPath())
         self.clear_interface(projectInfoMap['build'].getPath())
-        print('清空脚本完成')
+        print('工程【build】清空脚本完成')
 
     else:
       print('ERROR: 请在path.yaml文件配置各项目路径！！！')

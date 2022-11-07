@@ -56,8 +56,8 @@ class ProjectBranch:
         mergeAccessLevel = utils.MAINTAINER_ACCESS
         pushAccessLevel = utils.VISIBILITY_PRIVATE
     elif self.access == 'none':
-        mergeAccessLevel = utils.VISIBILITY_PRIVATE
-        pushAccessLevel = utils.VISIBILITY_PRIVATE
+      mergeAccessLevel = utils.VISIBILITY_PRIVATE
+      pushAccessLevel = utils.VISIBILITY_PRIVATE
     elif self.access == 'd' or self.access =='delete':
       projectInfo.deleteBranchProtect(self.branchName)
       print('【{}】【{}】分支保护删除成功'.format(projectName, self.branchName))

@@ -50,6 +50,7 @@ class CreateBranch:
       if len(adds) > 0 :
         tasks = [self.pool.submit(self.create_branch, projectInfo) for projectInfo in adds]
         wait(tasks, return_when=ALL_COMPLETED)
+      return ",".join(list(map(lambda add: add.getName(), adds)))
     else:
       print('ERROR: 请在path.yaml文件配置各工程路径！！！')
       sys.exit(1)
@@ -89,19 +90,20 @@ class CreateBranch:
 
     projectConfigs = utils.project_config()
     # 拉取工程分支，自动拉取必须要拉的工程
-    for module,projectNames in MUST_PROJECT.items():
-      for projectName in projectNames:
-        if not (projectName in projectInfoMap):
-          path = projectConfigs.get(module, {}).get(projectName, None)
-          projectInfo = utils.ProjectInfo(projectName, path, module)
-          result = self.check_project(projectInfo, False)
-          if result.isAdd():
-            adds.append(projectInfo)
-            relatedModule.add(projectInfo.getModule())
-          elif result.skip():
-            print(result.getMessage())
-          else:
-            error.append(result.getMessage())
+    if "front" not in relatedModule:
+      for module,projectNames in MUST_PROJECT.items():
+        for projectName in projectNames:
+          if not (projectName in projectInfoMap):
+            path = projectConfigs.get(module, {}).get(projectName, None)
+            projectInfo = utils.ProjectInfo(projectName, path, module)
+            result = self.check_project(projectInfo, False)
+            if result.isAdd():
+              adds.append(projectInfo)
+              relatedModule.add(projectInfo.getModule())
+            elif result.skip():
+              print(result.getMessage())
+            else:
+              error.append(result.getMessage())
 
     # 拉取某个模块的工程时，自动拉取该模块下的必须要拉的工程
     for module,projectNames in MODULE_PROJECT.items():
