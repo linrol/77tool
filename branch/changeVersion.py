@@ -100,17 +100,21 @@ class ChangeVersion:
       for filename in fileNames:
         if (filename.lower().find('identity') != -1) or (filename.lower().find('reconcile') != -1) or (filename.lower().find('tenantallin') != -1) :
           #清空文件内容
-          file=open(filePath+"/" + filename, "r+")
-          file.truncate()
+          self.clearFile(filePath, [filename])
         else:
           #删除文件
           os.remove(filePath+"/" + filename)
 
   #清空接口调用文件
   def clear_interface(self, buildPath):
-    filePath = buildPath + "/upgrade"
-    file=open(filePath+"/upgrade_Readme.md", "r+")
-    file.truncate()
+    self.clearFile(buildPath, ["upgrade/upgrade_Readme.md", "upgrade/4_apiUpgrade/global_api.json", "upgrade/4_apiUpgrade/tenantallin_api.json"])
+
+  def clearFile(self, buildPath, filePaths):
+    for filePath in filePaths:
+      path = os.path.join(buildPath, filePath)
+      if os.path.exists(path):
+        file=open(path, "r+")
+        file.truncate()
 
 
 class CommentedTreeBuilder(ET.TreeBuilder):
