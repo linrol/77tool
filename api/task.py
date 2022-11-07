@@ -367,16 +367,18 @@ class Task(Common):
                     logger.error("author id [{}] not found".format(author_id))
                     continue
                 author_userid = crop.user_name2id(author_name)
-            _, project = mr.references.get("full").split("!")[0].rsplit("/", 1)
+            project_full = mr.references.get("full").split("!")[0]
+            build_task_id = self.ops_build(mr.target_branch, self.is_test,
+                                           project_full, author_name)
+            _, project = project_full.rsplit("/", 1)
             mr_source_msg = msg_content["mr_source"].format(mr.web_url,
                                                             project,
-                                                            merged_username)
+                                                            merged_username,
+                                                            build_task_id)
             logger.info("send mr to {} url {}".format(author_userid,
                                                       mr_source_msg))
-            crop.send_text_msg(author_userid, mr_source_msg)
             hmset("q7link-branch-merge", {mr_key: author_userid})
-            project = mr.references.get("full").split("!")[0]
-            self.ops_build(mr.target_branch, self.is_test, project, author_name)
+            crop.send_text_msg(author_userid, mr_source_msg)
 
     # 发送代码合并任务
     def build_branch_task(self, branches, groups, clusters, crop):

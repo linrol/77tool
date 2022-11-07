@@ -98,9 +98,11 @@ class Common:
             params = {"branch": branch, "byCaller": caller}
             if project is not None:
                 params["projects"] = project
-            post_form(build_url, params)
+            res = post_form(build_url, params)
+            return res.get("data").get("taskid")
         except Exception as e:
             logger.error(e)
+            return "-1"
 
     # 开关ops自动编译
     def ops_switch_build(self, value):
