@@ -74,6 +74,11 @@ class Crop:
             },
             {
               "type":"click",
+              "name":"分支保护",
+              "key":"branch_protect"
+            },
+            {
+              "type":"click",
               "name":"构建发布包",
               "key":"build_release_package"
             }
