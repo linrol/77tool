@@ -211,8 +211,8 @@ class Handler:
     def protect_branch(self, task_contents):
         try:
             if task_contents is None:
-                target, project_str, is_protect = get_protect_branch_dirt(self.msg_content)
-                end = self.get_project_end(project_str.split(","))
+                target, projects, is_protect = get_protect_branch_dirt(self.msg_content)
+                end = self.get_project_end(projects)
                 duty_ids, name = self.crop.get_duty_info(self.is_test,
                                                              ["LuoLin"], end)
                 if task_contents is None and self.user_id not in duty_ids:
@@ -220,10 +220,14 @@ class Handler:
                 self.crop.send_text_msg(self.user_id, "分支保护任务运行中，请稍等!")
             else:
                 target = task_contents[1]
-                project_str = task_contents[2]
+                projects = task_contents[2]
                 is_protect = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
+            if is_protect:
+                protect = "none"
+            else:
+                protect = "hotfix"
             shell = Shell(self.user_id, self.is_test, "master", target)
-            _, ret = shell.protect_branch_project(is_protect, project_str)
+            _, ret = shell.protect_branch(target, protect, projects)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(ret))
             return ret

@@ -157,21 +157,6 @@ class Shell(Common):
         finally:
             executor.submit(self.rest_branch_env)
 
-    def protect_branch_project(self, is_protect, project_str):
-        try:
-            self.lock_value = self.lock.get_lock("lock", 200)
-            self.checkout_branch(self.target_branch)
-            if is_protect:
-                protect_access = "none"
-            else:
-                protect_access = "hotfix"
-            projects = project_str.split(",")
-            return self.protect_branch(self.target_branch, protect_access, projects)
-        except Exception as err:
-            return False, str(err)
-        finally:
-            executor.submit(self.rest_branch_env)
-
     def build_package(self, params, protect, is_build):
         try:
             # self.ops_switch_build("stop")

@@ -307,7 +307,7 @@ def get_protect_branch_dirt(msg_content):
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     is_protect = branch_map.get('是否保护') == 'true'
-    return branch_map.get("目标分支"), branch_map.get("工程模块"), is_protect
+    return branch_map.get("目标分支"), branch_map.get("工程模块").split(","), is_protect
 
 def get_build_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
