@@ -311,7 +311,7 @@ def get_protect_branch_dirt(msg_content):
 
 def get_build_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
-    require_keys = {"目标分支", "立即编译"}.difference(branch_map.keys())
+    require_keys = {"目标分支", "立即编译", "构建模块"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     target_branch = branch_map.get('目标分支')
@@ -323,8 +323,8 @@ def get_build_dirt(msg_content):
         target_name = target_branch.replace(target_date, "")
     if target_date is None or target_name not in ",".join(mapping.values()):
         raise Exception("目标分支非值班系列【{}】".format(",".join(mapping.values())))
-    module = branch_map.get('构建模块', 'all')
-    if module not in build_group_mapping.keys():
+    module = branch_map.get('构建模块')
+    if module is None or module not in build_group_mapping.keys():
         raise Exception("构建模块输入错误，必须是all,global,apps其中之一")
     is_build = branch_map.get('立即编译') == 'true'
     front_version = branch_map.get("前端预制", '').strip()
@@ -336,6 +336,11 @@ def get_build_dirt(msg_content):
     else:
         protect = "none {} {} {}".format("apps", "global", "platform")
     return branch_map.get('目标分支'), " ".join(group_list), protect, is_build
+
+
+if __name__ == '__main__':
+    group_list = build_group_mapping.get("global").copy()
+    print(" ".join(group_list))
 
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):

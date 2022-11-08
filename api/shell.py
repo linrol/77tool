@@ -178,7 +178,7 @@ class Shell(Common):
             self.lock_value = self.lock.get_lock("lock", 300)
             self.checkout_branch(self.target_branch)
             cmd = 'cd ../branch;python3 releaseVersion.py {} {} {}'.format(self.source_branch, self.target_branch, params)
-            [_, release_version_msg] = self.exec(cmd, True)
+            [_, release_version_msg] = self.exec(cmd, True, False)
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
             [_, change_version_msg] = self.exec(cmd, True)
             self.commit_and_push(self.target_branch, protect)
