@@ -4,7 +4,7 @@ import string
 from shell import Shell
 from task import Task
 from log import logger
-from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_move_branch_dirt
+from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_protect_branch_dirt, get_move_branch_dirt
 from redisclient import duplicate_msg, get_user_task, hmset
 
 
@@ -88,6 +88,7 @@ class Handler:
                '拉分支' in self.msg_content or \
                '分支迁移' in self.msg_content or \
                '分支合并' in self.msg_content or \
+               '分支保护' in self.msg_content or \
                '构建发布包' in self.msg_content or \
                '初始化特性分支' in self.msg_content
 
@@ -106,6 +107,8 @@ class Handler:
             return self.move_branch(None)
         elif '分支合并' in self.msg_content:
             return self.merge_branch(None)
+        elif '分支保护' in self.msg_content:
+            return self.protect_branch(None)
         elif '构建发布包' in self.msg_content:
             return self.build_package()
         elif '初始化特性分支' in self.msg_content:
@@ -196,6 +199,31 @@ class Handler:
                 clear = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
             shell = Shell(self.user_id, self.is_test, source, target)
             _, ret = shell.merge_branch(clear)
+            # 发送消息通知
+            self.crop.send_text_msg(self.user_id, str(ret))
+            return ret
+        except Exception as err:
+            logger.error(str(err))
+            # 发送消息通知
+            self.crop.send_text_msg(self.user_id, str(err))
+            return str(err)
+
+    def protect_branch(self, task_contents):
+        try:
+            if task_contents is None:
+                target, project_str, is_protect = get_protect_branch_dirt(self.msg_content)
+                end = self.get_project_end(project_str.split(","))
+                duty_ids, name = self.crop.get_duty_info(self.is_test,
+                                                             ["LuoLin"], end)
+                if task_contents is None and self.user_id not in duty_ids:
+                    raise Exception("仅限当周值班人：{}操作".format(name))
+                self.crop.send_text_msg(self.user_id, "分支保护任务运行中，请稍等!")
+            else:
+                target = task_contents[1]
+                project_str = task_contents[2]
+                is_protect = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
+            shell = Shell(self.user_id, self.is_test, "master", target)
+            _, ret = shell.protect_branch_project(is_protect, project_str)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(ret))
             return ret

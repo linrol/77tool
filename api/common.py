@@ -60,9 +60,11 @@ class Common:
             return False, str(err)
 
     # 保护分支
-    def protect_branch(self, branch, protect):
+    def protect_branch(self, branch, protect, projects=None):
         try:
             protect_cmd = "cd ../branch;python3 protectBranch.py {} {}".format(branch, protect)
+            if projects is not None:
+                protect_cmd += " {}".format(" ".join(projects))
             return self.exec(protect_cmd, level_info=False)
         except Exception as err:
             return False, str(err)
