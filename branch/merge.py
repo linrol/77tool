@@ -69,8 +69,7 @@ class Merge(Common):
         self.tag()
         if not self.clear or self.source in ['stage', 'master']:
             return
-        executor = DeleteBranch(self.source, self.target,
-                                self.end2module(self.end), True)
+        executor = DeleteBranch(self.source, self.target, None, True)
         executor.execute()
 
     def push(self, paths):

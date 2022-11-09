@@ -181,7 +181,7 @@ class Task(Common):
         return config_yaml
 
     # 检查版本号
-    def check_version(self, user_ids, branch, crop):
+    def check_version(self, branch, crop):
         branch_name = None
         branch_date = None
         for name in branch_check_list:
@@ -203,6 +203,7 @@ class Task(Common):
         branch_names = ",".join(branch_list)
         if len(branch_list) < 2:
             return True, "branch({}) length less than one".format(branch_names)
+        user_ids, _ = self.get_duty_info(True)
         ret, msg = Shell(self.is_test, user_ids).check_version(branch_names)
         logger.info(branch + ":" + msg)
         if not ret:
@@ -383,7 +384,7 @@ class Task(Common):
 
     # 发送代码合并任务
     def build_branch_task(self, branches, groups, clusters, crop):
-        user_ids, _ = crop.get_duty_info(self.is_test, ["LuoLin"])
+        user_ids, _ = self.get_duty_info(self.is_test)
         duty_branches = self.get_duty_branches()
         ret = []
         for source in branches:

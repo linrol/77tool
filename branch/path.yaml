@@ -67,7 +67,3 @@ platform:
   parent: ../../platform/parent
   sql-parser: ../../platform/sql-parser
   testapp: ../../platform/testapp
-
-front:
-  front-theory: ../../../front/front-theory
-  front-goserver: ../../../front/front-goserver
