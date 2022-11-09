@@ -15,7 +15,7 @@ class Common(Base):
         self.chdir_branch()
         self.utils = utils
         self.front_projects = utils.project_path(["front"])
-        self.projects = utils.project_path().update(self.front_projects)
+        self.projects = {**utils.project_path(), **self.front_projects}
         self.project_build = self.projects.get('build')
         self.project_init_data = self.projects.get('init-data')
 
