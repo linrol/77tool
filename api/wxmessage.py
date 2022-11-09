@@ -39,14 +39,15 @@ menu_help = {
                    "\n><font color=\"warning\">功能说明，将来源分支合并至目标分支，预检测存在冲突将放弃合并</font>",
   "branch_protect": ">**<font color=\"info\">分支保护（固定值不要删除）</font>** "
                     "\n>目标分支：<font color=\"comment\">输入将被保护的分支名称，例：sprint20220818</font>"
-                    "\n>工程模块：<font color=\"comment\">输入要保护的工程或模块，例：app-common,budget,front-theory,front-goserver</font>"
-                    "\n>是否保护：<font color=\"comment\">保护或取消保护分支，例：true,false(单选值)</font>",
+                    "\n>工程模块：<font color=\"comment\">输入要保护的工程或模块，例：front-theory,front-goserver</font>"
+                    "\n>是否保护：<font color=\"comment\">保护或取消保护分支，例：true,false(单选值)</font>"
+                    "\n><font color=\"warning\">功能说明，用于目标分支的对应工程模块分支保护</font>",
   "build_release_package": ">**<font color=\"info\">构建发布包（固定值不要删除）</font>** "
                            "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20220818</font>"
                            "\n>构建模块：<font color=\"comment\">输入需要构建发布包的模块，例：all,global,apps(单选值)</font>"
                            "\n>前端预制：<font color=\"comment\">输入需要替换的front-apps.reimburse版本号，前端值班提供(此参数可空)</font>"
                            "\n>立即编译：<font color=\"comment\">构建发布包后是否立即编译，例：true,false(单选值)</font>"
-                           "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
+                           "\n><font color=\"warning\">功能说明，将目标分支的对应的工程模块构建release包</font>"
 }
 
 msg = {

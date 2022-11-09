@@ -17,11 +17,9 @@ class Common(Base):
         self.projects = utils.project_path()
         self.project_build = self.projects.get('build')
         self.project_init_data = self.projects.get('init-data')
-        self.os = os
-        self.subprocess = subprocess
 
     def exec(self, command, throw=False, level_info=True):
-        [ret, msg] = self.subprocess.getstatusoutput(command)
+        [ret, msg] = subprocess.getstatusoutput(command)
         if throw and ret != 0:
             logger.error("exec[{}] ret[{}]".format(command, msg))
             raise Exception(str(msg))
@@ -30,10 +28,10 @@ class Common(Base):
         return [ret == 0, msg]
 
     def chdir_branch(self):
-        self.os.chdir("../branch/")
+        os.chdir("../branch/")
 
     def chdir_data_pre(self):
-        self.os.chdir("../dataPre/")
+        os.chdir("../dataPre/")
 
     # 是否首次创建分支
     def init_create_branch(self, branch):
