@@ -1,17 +1,15 @@
 import random
 import string
-
 from shell import Shell
 from task import Task
 from log import logger
-from common import Common
+from base import Base
 from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_protect_branch_dirt, get_move_branch_dirt
 from redisclient import duplicate_msg, get_user_task, hmset
 
 
-class Handler(Common):
+class Handler(Base):
     def __init__(self, crop, data):
-        super().__init__()
         self.crop = crop
         self.data = data
         # 消息内容
