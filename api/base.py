@@ -1,7 +1,7 @@
 import re
 from request import post_form, get
 from log import logger
-from redisclient import get_branch_mapping, hget
+from redisclient import get_branch_mapping, hget, hmset
 date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
 
 
@@ -68,6 +68,14 @@ class Base:
         except Exception as e:
             logger.error(e)
             return "-1"
+
+    def save_branch_created(self, user_id, source, target, projects):
+        excludes = ["stage-global"]
+        if source in excludes:
+            return
+        created_value = "{}#{}#{}".format(source, user_id, ",".join(projects))
+        created_mapping = {target: created_value}
+        hmset('q7link-branch-created', created_mapping)
 
 
 
