@@ -58,8 +58,7 @@ def gitlab_hook():
     if not update_config:
         return "not update version"
     branch = body.get('ref').rsplit("/", 1)[1]
-    user_ids, _ = crop.get_duty_info(True, ["LuoLin"])
-    executor.submit(Task().check_version, user_ids, branch, crop)
+    executor.submit(Task().check_version, branch, crop)
     return make_response("success")
 
 
@@ -113,8 +112,7 @@ def branch_correct():
 def job_check_version():
     cur_time = datetime.datetime.now()
     branch = 'sprint' + cur_time.strftime('%Y%m%d')
-    user_ids, _ = crop.get_duty_info(False, ["LuoLin"])
-    Task().check_version(user_ids, branch, crop)
+    Task().check_version(branch, crop)
 
 
 @scheduler.task('interval', id='job_mr_request_notify', seconds=60,

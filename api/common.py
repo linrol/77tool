@@ -2,9 +2,9 @@ import os
 import sys
 import subprocess
 import re
-from request import post_form
+from request import post_form, get
 from log import logger
-from redisclient import get_branch_mapping
+from redisclient import get_branch_mapping, hget
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/data/backend/branch-manage")
@@ -77,6 +77,23 @@ class Common:
             return name, date
         return branch, None
 
+    # 获取值班人
+    def get_duty_info(self, is_test, end="backend"):
+        if is_test:
+            return "LuoLin", "罗林"
+        else:
+            fixed_userid = hget("q7link_fixed_duty", end).split(",")
+            body = get("http://10.0.144.51:5000/api/verify/duty/users")
+            role_duty_info = body.get("data").get(end)
+            duty_user_ids = []
+            duty_user_names = []
+            for duty in role_duty_info:
+                duty_user_ids.append(duty.get("user_id"))
+                duty_user_names.append(duty.get("user_name"))
+            if len(fixed_userid) > 0:
+                duty_user_ids.extend(fixed_userid)
+            return "|".join(duty_user_ids), ",".join(duty_user_names)
+
     # 获取值班目标分支集合
     def get_duty_branches(self):
         branches = set()
@@ -87,6 +104,15 @@ class Common:
         except Exception as e:
             logger.error(e)
         return branches
+
+    # 获取项目所属端
+    def get_project_end(self, projects):
+        front_projects = {"front-theory", "front-goserver"}
+        intersection = set(projects).intersection(front_projects)
+        if len(intersection) > 0:
+            return "front"
+        else:
+            return "backend"
 
     # 触发ops编译
     def ops_build(self, branch, skip=False, project=None, call_name=None):
@@ -105,17 +131,6 @@ class Common:
         except Exception as e:
             logger.error(e)
             return "-1"
-
-    # 开关ops自动编译
-    def ops_switch_build(self, value):
-        try:
-            job_url = "http://ops.q7link.com:8000/qqdeploy/jenkinsjob/"
-            params = {"jobName": "backend-auto-build",
-                      "jobParams": {"operate": value},
-                      "byCaller": "值班助手"}
-            post_form(job_url, params)
-        except Exception as e:
-            logger.error(e)
 
 
 

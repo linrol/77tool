@@ -1,6 +1,6 @@
 import time
 from request import get, post
-from redisclient import redisClient
+from redisclient import hget, hmset
 from wxcrypt import WXBizMsgCrypt
 from wxmessage import msg
 from log import logger
@@ -22,10 +22,10 @@ class Crop:
 
 
   def get(self, key):
-    return redisClient.get_connection().hget(self.crop_id, key)
+    return hget(self.crop_id, key)
 
   def save(self, key, value):
-    redisClient.get_connection().hmset(self.crop_id, {key: value})
+    hmset(self.crop_id, {key: value})
 
   def get_agent_id(self):
     return self.get("agent_id")
@@ -126,21 +126,6 @@ class Crop:
 
   def send_markdown_msg(self, to_user, content):
     return self.send_message(to_user, 'markdown', {"content": content})
-
-  def get_duty_info(self, is_test, fixed_user_ids, end="backend"):
-    if self.isdev or is_test:
-      return "LuoLin", "罗林"
-    else:
-      body = get("http://10.0.144.51:5000/api/verify/duty/users")
-      role_duty_info = body.get("data").get(end)
-      duty_user_ids = []
-      duty_user_names = []
-      for duty in role_duty_info:
-        duty_user_ids.append(duty.get("user_id"))
-        duty_user_names.append(duty.get("user_name"))
-      if len(fixed_user_ids) > 0:
-        duty_user_ids.extend(fixed_user_ids)
-      return "|".join(duty_user_ids), ",".join(duty_user_names)
 
   def user_id2name(self, user_id):
     user_name = self.get("{}-userinfo".format(user_id))

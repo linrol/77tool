@@ -4,12 +4,14 @@ import string
 from shell import Shell
 from task import Task
 from log import logger
+from common import Common
 from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_protect_branch_dirt, get_move_branch_dirt
 from redisclient import duplicate_msg, get_user_task, hmset
 
 
-class Handler:
+class Handler(Common):
     def __init__(self, crop, data):
+        super().__init__()
         self.crop = crop
         self.data = data
         # 消息内容
@@ -108,7 +110,7 @@ class Handler:
         elif '分支合并' in self.msg_content:
             return self.merge_branch(None)
         elif '分支保护' in self.msg_content:
-            return self.protect_branch(None)
+            return self.protect_branch_project(None)
         elif '构建发布包' in self.msg_content:
             return self.build_package()
         elif '初始化特性分支' in self.msg_content:
@@ -161,8 +163,7 @@ class Handler:
 
     def move_branch(self, task_contents):
         try:
-            duty_user_id, name = self.crop.get_duty_info(self.is_test,
-                                                         ["LuoLin"])
+            duty_user_id, name = self.get_duty_info(self.is_test)
             if task_contents is None and self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
             if task_contents is None:
@@ -187,7 +188,7 @@ class Handler:
 
     def merge_branch(self, task_contents):
         try:
-            duty_user_id, name = self.crop.get_duty_info(self.is_test, ["LuoLin"])
+            duty_user_id, name = self.get_duty_info(self.is_test)
             if task_contents is None and self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
             if task_contents is None:
@@ -208,13 +209,12 @@ class Handler:
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
 
-    def protect_branch(self, task_contents):
+    def protect_branch_project(self, task_contents):
         try:
             if task_contents is None:
                 target, projects, is_protect = get_protect_branch_dirt(self.msg_content)
                 end = self.get_project_end(projects)
-                duty_ids, name = self.crop.get_duty_info(self.is_test,
-                                                             ["LuoLin"], end)
+                duty_ids, name = self.get_duty_info(self.is_test, end)
                 if task_contents is None and self.user_id not in duty_ids:
                     raise Exception("仅限当周值班人：{}操作".format(name))
                 self.crop.send_text_msg(self.user_id, "分支保护任务运行中，请稍等!")
@@ -239,7 +239,7 @@ class Handler:
 
     def build_package(self):
         try:
-            duty_user_id, name = self.crop.get_duty_info(self.is_test, ["LuoLin"])
+            duty_user_id, name = self.get_duty_info(self.is_test)
             if self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
             target, params, protect, is_build = get_build_dirt(self.msg_content)
@@ -259,10 +259,9 @@ class Handler:
     def new_branch_task(self):
         try:
             req_user = (self.user_id, self.user_name)
-            fixed_ids = ["LuoLin", "XieXiaNiDeGuanYu", "yunpeng.liu@q7link.com"]
             new_branch_params = get_branch_dirt(self.msg_content)
             end = self.get_project_end(new_branch_params[2].split(","))
-            duty_user = self.crop.get_duty_info(self.is_test, fixed_ids, end)
+            duty_user = self.get_duty_info(self.is_test, end)
             task_info = req_user + duty_user + new_branch_params
             _, ret = Task(self.is_test).new_branch_task(self.crop, *task_info)
             return ret
@@ -291,12 +290,4 @@ class Handler:
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
-
-    def get_project_end(self, projects):
-        front_projects = {"front-theory", "front-goserver"}
-        intersection = set(projects).intersection(front_projects)
-        if len(intersection) > 0:
-            return "front"
-        else:
-            return "backend"
 
