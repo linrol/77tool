@@ -43,7 +43,7 @@ class CreateTag:
         else:
           # 获取config.yaml
           filename = os.path.join(os.curdir, buildPath + '/config.yaml').replace("\\", "/")
-          f = open(filename)
+          f = open(filename, encoding='utf-8')
           config = yaml.load(f, Loader=yaml.FullLoader)
 
           projectVersionMap={}
