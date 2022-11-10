@@ -37,12 +37,17 @@ menu_help = {
                    "\n>目标分支：<font color=\"comment\">输入需要合并至的分支名称，例：stage</font>"
                    "\n>删除来源：<font color=\"comment\">分支合并成功后是否删除来源分支，例：true,false(单选值)</font>"
                    "\n><font color=\"warning\">功能说明，将来源分支合并至目标分支，预检测存在冲突将放弃合并</font>",
+  "branch_protect": ">**<font color=\"info\">分支保护（固定值不要删除）</font>** "
+                    "\n>目标分支：<font color=\"comment\">输入将被保护的分支名称，例：sprint20220818</font>"
+                    "\n>工程模块：<font color=\"comment\">输入要保护的工程或模块，例：front-theory,front-goserver</font>"
+                    "\n>是否保护：<font color=\"comment\">保护或取消保护分支，例：true,false(单选值)</font>"
+                    "\n><font color=\"warning\">功能说明，将目标分支对应的工程模块分支保护或取消保护</font>",
   "build_release_package": ">**<font color=\"info\">构建发布包（固定值不要删除）</font>** "
                            "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20220818</font>"
                            "\n>构建模块：<font color=\"comment\">输入需要构建发布包的模块，例：all,global,apps(单选值)</font>"
                            "\n>前端预制：<font color=\"comment\">输入需要替换的front-apps.reimburse版本号，前端值班提供(此参数可空)</font>"
                            "\n>立即编译：<font color=\"comment\">构建发布包后是否立即编译，例：true,false(单选值)</font>"
-                           "\n>或点击[去小程序操作](https://work.weixin.qq.com)"
+                           "\n><font color=\"warning\">功能说明，将目标分支的对应的工程模块构建release包</font>"
 }
 
 msg = {
@@ -297,9 +302,17 @@ def get_merge_branch_dirt(msg_content):
     clear_source = branch_map.get('删除来源') == 'true'
     return branch_map.get("来源分支"), branch_map.get("目标分支"), clear_source
 
+def get_protect_branch_dirt(msg_content):
+    branch_map = get_map(msg_content.split('\n'))
+    require_keys = {"目标分支", "工程模块", "是否保护"}.difference(branch_map.keys())
+    if len(require_keys) > 0:
+        raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
+    is_protect = branch_map.get('是否保护') == 'true'
+    return branch_map.get("目标分支"), branch_map.get("工程模块").split(","), is_protect
+
 def get_build_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
-    require_keys = {"目标分支", "立即编译"}.difference(branch_map.keys())
+    require_keys = {"目标分支", "立即编译", "构建模块"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     target_branch = branch_map.get('目标分支')
@@ -311,8 +324,8 @@ def get_build_dirt(msg_content):
         target_name = target_branch.replace(target_date, "")
     if target_date is None or target_name not in ",".join(mapping.values()):
         raise Exception("目标分支非值班系列【{}】".format(",".join(mapping.values())))
-    module = branch_map.get('构建模块', 'all')
-    if module not in build_group_mapping.keys():
+    module = branch_map.get('构建模块')
+    if module is None or module not in build_group_mapping.keys():
         raise Exception("构建模块输入错误，必须是all,global,apps其中之一")
     is_build = branch_map.get('立即编译') == 'true'
     front_version = branch_map.get("前端预制", '').strip()
@@ -324,6 +337,11 @@ def get_build_dirt(msg_content):
     else:
         protect = "none {} {} {}".format("apps", "global", "platform")
     return branch_map.get('目标分支'), " ".join(group_list), protect, is_build
+
+
+if __name__ == '__main__':
+    group_list = build_group_mapping.get("global").copy()
+    print(" ".join(group_list))
 
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):

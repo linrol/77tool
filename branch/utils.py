@@ -300,16 +300,22 @@ class LocalBranch():
   def hasPull(self):
     return self.__hasPull
 
-def project_path_end(end):
-  if end == "front":
-    return project_path(["front"])
-  else:
-    return project_path(["apps", "global", "platform"])
+# 获取项目所属端
+def get_project_end(projects):
+  if projects is None:
+    return "backend"
+  if len(projects) < 1:
+    return "backend"
+  front_projects = {"front-theory", "front-goserver", "front"}
+  intersection = set(projects).intersection(front_projects)
+  if len(intersection) > 0:
+    return "front"
+  return "backend"
 
 
 def project_path(names=None):
   # 获取path.yaml
-  projectConfigs = project_config()
+  projectConfigs = project_config(get_project_end(names))
 
   projectInfos = {}
   for module,v in projectConfigs.items():
@@ -322,8 +328,11 @@ def project_path(names=None):
   return projectInfos
 
 # 获取本地工程路径配置信息
-def project_config():
-  filename = os.path.join(os.curdir, 'path.yaml').replace("\\", "/")
+def project_config(end=None):
+  file = "path.yaml"
+  if end is not None and end == "front":
+    file = "path_front.yaml"
+  filename = os.path.join(os.curdir, file).replace("\\", "/")
   f = open(filename)
   return yaml.load(f, Loader=yaml.FullLoader)
 

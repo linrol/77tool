@@ -75,8 +75,17 @@ class Shell(Common):
             self.project_init_data.deleteLocalBranch(temp_branch)
             executor.submit(self.rest_branch_env)
 
+    # 获取从来源分支
+    def get_slave_source(self):
+        if self.source_branch in ["stage", "master"]:
+            return self.source_branch
+        branch = hget("q7link-branch-created", "stage-global").split("#")[0]
+        if branch in self.source_branch:
+            return "stage-global.stage"
+        return "stage"
+
     # 创建分支
-    def create_branch(self, fixed_version, project_names):
+    def create_branch(self, fixed_version, projects):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             clear_build_params = self.get_clear_build_params(self.target_branch)
@@ -86,17 +95,16 @@ class Shell(Common):
             else:
                 gen_params = "-f"
             # self.checkout_branch(self.source_branch)
-            cmd = 'cd ../branch;python3 createBranch.py {}.stage {}.false {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
+            slave_source = self.get_slave_source()
+            cmd = 'cd ../branch;python3 createBranch.py {}.{} {}.false {}'.format(self.source_branch, slave_source, self.target_branch, " ".join(projects))
             [_, created_msg] = self.exec(cmd, True)
-            cmd = 'cd ../branch;python3 genVersion.py {} -s {} -t {} -p {}'.format(gen_params, self.source_branch, self.target_branch, ",".join(project_names))
+            cmd = 'cd ../branch;python3 genVersion.py {} -s {} -t {} -p {}'.format(gen_params, self.source_branch, self.target_branch, ",".join(projects))
             self.exec(cmd, True, False)
             cmd = 'cd ../branch;python3 changeVersion.py {} {}'.format(self.target_branch, clear_build_params)
             [_, version_msg] = self.exec(cmd, True)
             self.commit_and_push(self.target_branch, 'dev' if is_feature_branch else 'hotfix')
             self.ops_build(self.target_branch, self.is_test)
-            created_value = "{}#{}#{}".format(self.source_branch, self.user_id, ",".join(project_names))
-            created_mapping = {self.target_branch: created_value}
-            hmset('q7link-branch-created', created_mapping)
+            self.save_branch_created(self.user_id, self.source_branch, self.target_branch, projects)
             created_msg = re.compile('WARNNING：.*\n').sub('', created_msg)
             created_msg = re.compile('工程.*保护成功.*\n').sub('', created_msg)
             return True, (created_msg + "\n" + version_msg)
