@@ -52,7 +52,7 @@ if __name__ == "__main__":
   elif len(sys.argv) == 3 :
     branchNames=sys.argv[1]
     close = (sys.argv[2].lower() == 'true')
-  elif len(sys.argv) == 4 :
+  elif len(sys.argv) > 3 :
     branchNames=sys.argv[1]
     close = (sys.argv[2].lower() == 'true')
     projectNames = sys.argv[3:]
