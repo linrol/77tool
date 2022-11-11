@@ -14,24 +14,21 @@ branch_group = {}
 
 
 class Merge(Common):
-    def __init__(self, end, source, target, include_projects, clear):
+    def __init__(self, end, source, target, includes, clear):
         super().__init__(utils, end)
-        self.include_projects = include_projects
-        self.projects = self.filter_projects(include_projects)
-        self.end = end
+        self.includes = includes
+        self.filter_projects()
         self.source = source
         self.target = target
         self.clear = clear
 
     # 过滤项目
-    def filter_projects(self, projects):
-        if projects is None or len(projects) < 1:
-            return self.projects
-        ret = {}
-        for k in projects:
-            if k in self.projects.keys():
-                ret[k] = self.projects.get(k)
-        return ret
+    def filter_projects(self):
+        if self.includes is None or len(self.includes) < 1:
+            return
+        for k in list(self.projects.keys()):
+            if k not in self.includes:
+                self.projects.pop(k)
 
     def check_conflict(self):
         conflict_project = []
@@ -76,17 +73,23 @@ class Merge(Common):
                 print("工程【{}】分支【{}】合并至分支【{}】失败【{}】".format(name, self.source, self.target, merge_msg))
                 sys.exit(1)
             wait_push[name] = path
-        self.push(wait_push)
+        self.push_end(wait_push)
         self.created(wait_created)
         self.tag()
         if not self.clear or self.source in ['stage', 'master']:
             return
-        if len(self.include_projects) > 0:
-            executor = DeleteBranch(self.source, self.target,
-                                    self.include_projects, True)
-        else:
-            executor = DeleteBranch(self.source, self.target, None, True)
+        delete_projects = None
+        if self.is_front:
+            delete_projects = self.projects.keys()
+        executor = DeleteBranch(self.source, self.target, delete_projects, True)
         executor.execute()
+
+    def push_end(self, paths):
+        if not self.is_front:
+            self.push(paths)
+        else:
+            for k, v in paths.items():
+                self.push({k: v})
 
     def push(self, paths):
         cmd = ''
@@ -103,7 +106,7 @@ class Merge(Common):
 
     def tag(self):
         try:
-            if self.end in ["front"]:
+            if self.is_front:
                 return True, str("ignore")
             if self.target not in ["stage", "master"]:
                 return True, str("ignore")
@@ -122,8 +125,8 @@ class Merge(Common):
 
     def execute(self):
         try:
-            self.checkout_branch(self.source, self.include_projects)
-            self.checkout_branch(self.target, self.include_projects)
+            self.checkout_branch(self.source, self.includes)
+            self.checkout_branch(self.target, self.includes)
             conflict_projects = self.check_conflict()
             if len(conflict_projects) > 0:
                 print("工程【{}】尝试合并请求发现冲突，需手动合并".format(",".join(conflict_projects)))

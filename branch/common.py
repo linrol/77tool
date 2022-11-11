@@ -92,6 +92,7 @@ class LinkedList(object):
 class Common:
     def __init__(self, utils, end="backend"):
         self.branch_group = {}
+        self.is_front = end in ["front"]
         self.utils = utils
         self.projects = utils.project_path(self.get_module(end))
         self.project_build = self.projects.get('build')

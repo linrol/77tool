@@ -108,7 +108,7 @@ class DeleteBranch:
             if isMerge:
               return CheckResult(projectInfo, skip=False)
             else:
-              if mergeError:
+              if self.mergeError:
                 message = '工程【{}】分支【{}】未合并至目标分支【{}】,不能删除分支【{}】'.format(projectName,
                                                                  self.deleteBranchName,
                                                                  self.mergedBranchName,
