@@ -110,14 +110,15 @@ class Merge(Common):
                 return True, str("ignore")
             date = datetime.now().strftime("%Y%m%d%H%M")
             if self.is_front:
-                return True, self.create_front_tag(date)
+                return True, self.create_front_tag()
             executor = CreateTag(self.target, date)
             executor.execute()
             return True, str("success")
         except Exception as err:
             return False, str(err)
 
-    def create_front_tag(self, date):
+    def create_front_tag(self):
+        date = datetime.now().strftime("%Y%m%d")
         for p_name, p_info in self.projects.items():
             tag = p_info.getLastTag()
             if tag is None:
