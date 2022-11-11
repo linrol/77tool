@@ -16,7 +16,7 @@ branch_group = {}
 class Merge(Common):
     def __init__(self, end, source, target, projects, clear):
         super().__init__(utils, end)
-        self.filter_projects(projects)
+        self.projects = self.filter_projects(projects)
         self.end = end
         self.source = source
         self.target = target
@@ -25,10 +25,12 @@ class Merge(Common):
     # 过滤项目
     def filter_projects(self, projects):
         if projects is None or len(projects) < 1:
-            return
-        for project in projects:
-            if project in self.projects.keys():
-                self.projects.pop(project)
+            return self.projects
+        ret = {}
+        for k in projects:
+            if k in self.projects.keys():
+                ret[k] = self.projects.get(k)
+        return ret
 
     def check_conflict(self):
         conflict_project = []
