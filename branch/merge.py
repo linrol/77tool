@@ -106,16 +106,33 @@ class Merge(Common):
 
     def tag(self):
         try:
-            if self.is_front:
-                return True, str("ignore")
             if self.target not in ["stage", "master"]:
                 return True, str("ignore")
             date = datetime.now().strftime("%Y%m%d%H%M")
+            if self.is_front:
+                return True, self.create_front_tag(date)
             executor = CreateTag(self.target, date)
             executor.execute()
             return True, str("success")
         except Exception as err:
             return False, str(err)
+
+    def create_front_tag(self, date):
+        for p_name, p_info in self.projects.items():
+            tag = p_info.getLastTag()
+            if tag is None:
+                continue
+            tag_str = tag.name.split(".")
+            if not tag_str[2].isdigit():
+                continue
+            tag_prefix = "{}.{}.".format(tag_str[0], tag_str[1])
+            tag_num = tag_str[2]
+            tag_name = tag_prefix + "{}.{}-{}".format(int(tag_num) + 1, date,
+                                                      self.target)
+            p_info.createTag(tag_name, self.target)
+            print('工程【{}】分支【{}】打Tag【{}】成功'.format(p_name, self.target,
+                                                         tag_name))
+        return str("success")
 
     def created(self, projects):
         if len(projects) < 1:

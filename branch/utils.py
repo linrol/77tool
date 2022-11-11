@@ -179,6 +179,12 @@ class ProjectInfo():
       except gitlab.exceptions.GitlabGetError:
         return None
 
+  def getLastTag(self):
+    tags = self.getProject().tags.list()
+    if len(tags) > 0:
+      return tags[0]
+    return None
+
   #给指定分支打tag
   def createTag(self, tagName, branchName):
     try:
