@@ -14,12 +14,21 @@ branch_group = {}
 
 
 class Merge(Common):
-    def __init__(self, end, source, target, clear):
+    def __init__(self, end, source, target, projects, clear):
         super().__init__(utils, end)
+        self.filter_projects(projects)
         self.end = end
         self.source = source
         self.target = target
         self.clear = clear
+
+    # 过滤项目
+    def filter_projects(self, projects):
+        if projects is None or len(projects) < 1:
+            return
+        for project in projects:
+            if project in self.projects.keys():
+                self.projects.pop(project)
 
     def check_conflict(self):
         conflict_project = []
@@ -87,6 +96,8 @@ class Merge(Common):
 
     def tag(self):
         try:
+            if self.end in ["front"]:
+                return True, str("ignore")
             if self.target not in ["stage", "master"]:
                 return True, str("ignore")
             date = datetime.now().strftime("%Y%m%d%H%M")
@@ -130,4 +141,7 @@ if __name__ == "__main__":
         clear_source = ".clear" in sys.argv[2]
         source_branch = sys.argv[2].replace(".clear", "")
         target_branch = sys.argv[3]
-        Merge(belong_end, source_branch, target_branch, clear_source).execute()
+        mr_projects = []
+        if len(sys.argv) > 4:
+            mr_projects = sys.argv[4:]
+        Merge(belong_end, source_branch, target_branch, mr_projects, clear_source).execute()

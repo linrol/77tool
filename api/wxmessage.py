@@ -35,6 +35,7 @@ menu_help = {
   "branch_merge": ">**<font color=\"info\">分支合并（固定值不要删除）</font>** "
                    "\n>来源分支：<font color=\"comment\">输入将被合并的分支名称，例：sprint20220818</font>"
                    "\n>目标分支：<font color=\"comment\">输入需要合并至的分支名称，例：stage</font>"
+                   "\n>工程模块：<font color=\"comment\">输入需要合并的模块或工程(此参数可空,为空时合并所有工程)，例：front-goserver,front-goserver</font>"
                    "\n>删除来源：<font color=\"comment\">分支合并成功后是否删除来源分支，例：true,false(单选值)</font>"
                    "\n><font color=\"warning\">功能说明，将来源分支合并至目标分支，预检测存在冲突将放弃合并</font>",
   "branch_protect": ">**<font color=\"info\">分支保护（固定值不要删除）</font>** "
@@ -296,11 +297,16 @@ def get_move_branch_dirt(msg_content):
 
 def get_merge_branch_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
-    require_keys = {"来源分支", "目标分支", "删除来源"}.difference(branch_map.keys())
+    require_keys = {"来源分支", "目标分支", "工程模块", "删除来源"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     clear_source = branch_map.get('删除来源') == 'true'
-    return branch_map.get("来源分支"), branch_map.get("目标分支"), clear_source
+    project_str = branch_map.get("工程模块", '').strip()
+    if len(project_str) > 0:
+        projects = project_str.split(",")
+    else:
+        projects = []
+    return branch_map.get("来源分支"), branch_map.get("目标分支"), projects, clear_source
 
 def get_protect_branch_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
