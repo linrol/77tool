@@ -14,9 +14,10 @@ branch_group = {}
 
 
 class Merge(Common):
-    def __init__(self, end, source, target, projects, clear):
+    def __init__(self, end, source, target, include_projects, clear):
         super().__init__(utils, end)
-        self.projects = self.filter_projects(projects)
+        self.include_projects = include_projects
+        self.projects = self.filter_projects(include_projects)
         self.end = end
         self.source = source
         self.target = target
@@ -80,7 +81,11 @@ class Merge(Common):
         self.tag()
         if not self.clear or self.source in ['stage', 'master']:
             return
-        executor = DeleteBranch(self.source, self.target, None, True)
+        if len(self.include_projects) > 0:
+            executor = DeleteBranch(self.source, self.target,
+                                    self.include_projects, True)
+        else:
+            executor = DeleteBranch(self.source, self.target, None, True)
         executor.execute()
 
     def push(self, paths):
@@ -117,8 +122,8 @@ class Merge(Common):
 
     def execute(self):
         try:
-            self.checkout_branch(self.source)
-            self.checkout_branch(self.target)
+            self.checkout_branch(self.source, self.include_projects)
+            self.checkout_branch(self.target, self.include_projects)
             conflict_projects = self.check_conflict()
             if len(conflict_projects) > 0:
                 print("工程【{}】尝试合并请求发现冲突，需手动合并".format(",".join(conflict_projects)))

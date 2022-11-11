@@ -6,14 +6,15 @@ import closeGit
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class Checout:
-  def __init__(self, branchNames, close=False):
+  def __init__(self, branchNames, projectNames, close=False):
     self.branchNames = branchNames
+    self.projectNames = projectNames
     self.close = close
     self.pool = ThreadPoolExecutor(max_workers=10)
 
   # 执行器
   def execute(self):
-    projectInfoMap = utils.project_path()
+    projectInfoMap = utils.project_path(self.projectNames)
     if len(projectInfoMap) == 0:
       sys.exit(1)
 
@@ -45,15 +46,20 @@ if __name__ == "__main__":
 
   branchNames=''
   close = False # 是否需要关闭git管理
+  projectNames = []
   if len(sys.argv) == 2 :
     branchNames=sys.argv[1]
   elif len(sys.argv) == 3 :
     branchNames=sys.argv[1]
     close = (sys.argv[2].lower() == 'true')
+  elif len(sys.argv) == 4 :
+    branchNames=sys.argv[1]
+    close = (sys.argv[2].lower() == 'true')
+    projectNames = sys.argv[3:]
   else:
     print ("ERROR: 输入参数错误, 正确的参数为：<branch> [<closeGit>]")
     sys.exit(1)
 
-  executor = Checout(branchNames, close)
+  executor = Checout(branchNames, projectNames, close)
   executor.execute()
 

@@ -169,6 +169,8 @@ class Common:
         return False
 
     # 切换本地分支
-    def checkout_branch(self, branch_name):
-        cmd = 'cd ../branch;python3 checkout.py {}'.format(branch_name)
+    def checkout_branch(self, branch_name, projects):
+        cmd = 'cd ../branch;python3 checkout.py {} false'.format(branch_name)
+        if projects is not None and len(projects) > 0:
+            cmd += " ".join(projects)
         return subprocess.getstatusoutput(cmd)

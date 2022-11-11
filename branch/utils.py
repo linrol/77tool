@@ -306,6 +306,8 @@ def get_project_end(projects):
     return "backend"
   if len(projects) < 1:
     return "backend"
+  if projects in ["backend", "front"]:
+    return projects
   front_projects = {"front-theory", "front-goserver", "front"}
   intersection = set(projects).intersection(front_projects)
   if len(intersection) > 0:
