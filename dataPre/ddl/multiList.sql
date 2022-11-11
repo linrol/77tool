@@ -344,6 +344,7 @@ CREATE TABLE "baseapp_query_list_definition"
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
     "customized_fields" JSONB,
+    "apply_scenario_names" JSONB,
     PRIMARY KEY ("id")
 );
 COMMENT ON COLUMN "baseapp_query_list_definition"."entry_src_system_id" IS '数据来源类型';
@@ -379,6 +380,7 @@ COMMENT ON COLUMN "baseapp_query_list_definition"."last_request_id" IS '最后�
 COMMENT ON COLUMN "baseapp_query_list_definition"."last_modified_user_id" IS '最后修改人';
 COMMENT ON COLUMN "baseapp_query_list_definition"."last_modified_time" IS '最后修改时间';
 COMMENT ON COLUMN "baseapp_query_list_definition"."customized_fields" IS '自定义属性';
+COMMENT ON COLUMN "baseapp_query_list_definition"."apply_scenario_names" IS '使用场景';
 COMMENT ON TABLE "baseapp_query_list_definition" IS '查询列表方案';
 
 DROP TABLE IF EXISTS "baseapp_query_schema" CASCADE;
