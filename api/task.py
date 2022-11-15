@@ -33,16 +33,18 @@ class Task(Common):
             raise Exception("ERROR: 特性分支初始化的来源分支必须为【{}】".format(source))
         version = feature_info.split("@")[1]
         approve = feature_info.split("@")[2]
-        return version, crop.user_name2id(approve), approve
+        return version, self.name2userid(approve), approve
 
     def get_new_project(self, target, project_names):
-        need_project_list = list(filter(
+        projects = list(filter(
             lambda name: self.get_project_branch(name, target) is None,
             project_names.split(",")))
-        if len(need_project_list) < 1:
+        if "build" in projects:
+            projects.remove("build")
+        if len(projects) < 1:
             raise Exception("ERROR: \n" + "工程【{}】目标分支【{}】已存在!!!".format(
                 project_names, target))
-        return need_project_list
+        return projects
 
     def check_new_branch(self, source_branch, target_branch, user_name):
         tips = "\n是否需要拉特性分支，如需请按以下格式初始化：" + \
@@ -227,7 +229,7 @@ class Task(Common):
             username = hget("q7link-git-user", author)
             if username is None:
                 continue
-            user_id = crop.user_name2id(username)
+            user_id = self.name2userid(username)
             if user_id == "LuoLin":
                 crop.send_text_msg(user_id, clear_branch_msg.format(branch, user_id, branch))
             print(clear_branch_msg.format(branch, user_id, branch))
@@ -336,7 +338,7 @@ class Task(Common):
                                                             mr.source_branch,
                                                             mr.target_branch,
                                                             mr.web_url)
-            assignee_user_id = crop.user_name2id(assignee_name)
+            assignee_user_id = self.name2userid(assignee_name)
             logger.info("send mr to {} url {}".format(assignee_user_id,
                                                       mr_target_msg))
             crop.send_text_msg(assignee_user_id, mr_target_msg)
@@ -368,7 +370,7 @@ class Task(Common):
                 if not author_name:
                     logger.error("author id [{}] not found".format(author_id))
                     continue
-                author_userid = crop.user_name2id(author_name)
+                author_userid = self.name2userid(author_name)
             project_full = mr.references.get("full").split("!")[0]
             build_task_id = self.ops_build(mr.target_branch, self.is_test,
                                            project_full, author_name)

@@ -125,7 +125,7 @@ class Handler(Base):
             self.crop.send_text_msg(self.user_id, str(result))
             result = "收到来自{}预制数据代码合并请求，请合并\n{}".format(self.user_name,
                                                                   str(result))
-            assignee_userid = self.crop.user_name2id(data_pre_dirt[4])
+            assignee_userid = self.name2userid(data_pre_dirt[4])
             if assignee_userid is not None and assignee_userid != self.user_id:
                 self.crop.send_text_msg(assignee_userid, result)
             return result

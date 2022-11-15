@@ -3,6 +3,7 @@ from request import post_form, get
 from log import logger
 from redisclient import get_branch_mapping, hget, hmset
 date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
+rd_url = "http://10.0.144.51:5000"
 
 
 class Base:
@@ -14,13 +15,25 @@ class Base:
             return name, date
         return branch, None
 
+    # 用户名称转换企业微信ID
+    def name2userid(self, user_name):
+        try:
+            if user_name is None:
+                return None
+            url = "{}/api/verify/duty/user_id?user_name={}"
+            body = get(url.format(rd_url, user_name))
+            return body.get("data")[0].get("user_id")
+        except Exception as err:
+            logger.error("name2userid error: {}".format(str(err)))
+            return None
+
     # 获取值班人
     def get_duty_info(self, is_test, end="backend"):
         if is_test:
             return "LuoLin", "罗林"
         else:
             fixed_userid = hget("q7link_fixed_duty", end).split(",")
-            body = get("http://10.0.144.51:5000/api/verify/duty/users")
+            body = get("{}/api/verify/duty/users".format(rd_url))
             role_duty_info = body.get("data").get(end)
             duty_user_ids = []
             duty_user_names = []

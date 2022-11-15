@@ -21,23 +21,11 @@ class Config(object):
 
 def parse_args():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--env', '-e', default="prod", type=str,
-                            help='your env')
-    arg_parser.add_argument('--domain', '-d', type=str, help='your host')
-    arg_parser.add_argument('--port', '-p', default=8075, type=int,
-                            help="port to build web server")
+    arg_parser.add_argument('--port', '-p', default=8075, type=int, help="port to build web server")
     arg_parser.add_argument('--crop_id', '-i', type=str, help='your crop id')
-    arg_parser.add_argument('--crop_secret', '-s', type=str,
-                            help='your crop Secret')
-    arg_parser.add_argument('--token', '-t', type=str,
-                            help='token set in crop app')
+    arg_parser.add_argument('--crop_secret', '-s', type=str, help='your crop Secret')
+    arg_parser.add_argument('--token', '-t', type=str, help='token set in crop app')
     arg_parser.add_argument('--aes_key', '-k', type=str, help='encode aes_key')
-    arg_parser.add_argument('--gitlab_domain', '-gd', type=str,
-                            help='gitlab domain')
-    arg_parser.add_argument('--gitlab_app_id', '-gi', type=str,
-                            help='gitlab app_id')
-    arg_parser.add_argument('--gitlab_secret', '-gs', type=str,
-                            help='gitlab secret')
     return arg_parser.parse_args()
 
 
