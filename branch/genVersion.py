@@ -94,7 +94,7 @@ class GenVersion(Common):
             opv_min = int(opv[1].replace("-SNAPSHOT", ""))
             if target_min > opv_min:
                 return 0
-            return opv_min - target_min + 1
+            return opv_min - target_min + 5
         except Exception as e:
             print(str(e))
             return 0
