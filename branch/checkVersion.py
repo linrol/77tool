@@ -112,7 +112,7 @@ class CheckVersion(Common):
                 if not is_correct:
                     node = node.next
                     continue
-                correct_p_v = p + ":" + node.inc_next_version(1)
+                correct_p_v = p + ":" + node.inc_next_version(5)
                 correct.setdefault(node.branch, []).append(correct_p_v)
                 node = node.next
         host = "https://branch.linrol.cn/branch/correct?correct_id={}&user_id=&branch={}&project={}"
