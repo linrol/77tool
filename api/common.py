@@ -46,8 +46,8 @@ class Common(Base):
             return "false"
 
     # 切换本地分支
-    def checkout_branch(self, branch):
-        cmd = 'cd ../branch;python3 checkout.py {}'.format(branch)
+    def checkout_branch(self, branch, end="backend"):
+        cmd = 'cd ../branch;python3 checkout.py {} {}'.format(end, branch)
         return self.exec(cmd, True, False)
 
     # 删除分支

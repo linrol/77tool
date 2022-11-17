@@ -123,7 +123,7 @@ class Shell(Common):
         except Exception as err:
             return False, str(err)
         finally:
-            executor.submit(self.rest_branch_env)
+            executor.submit(self.rest_branch_env, "front")
 
     def check_version(self, branch_str):
         try:
@@ -186,8 +186,8 @@ class Shell(Common):
             executor.submit(self.rest_branch_env)
 
     # 重值值班助手环境，切换到master分支，删除本地的target分支
-    def rest_branch_env(self):
-        self.checkout_branch('master')
+    def rest_branch_env(self, end="backend"):
+        self.checkout_branch('master', end)
         if self.target_branch is not None:
             if self.target_branch not in ['stage', 'master']:
                 for project in self.projects.values():
