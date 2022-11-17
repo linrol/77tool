@@ -1,3 +1,5 @@
+import random
+import string
 import time
 import yaml
 import re
@@ -46,13 +48,21 @@ class Task(Common):
                 project_names, target))
         return projects
 
+    def gen_feature_version(self, branch):
+        prefix = self.get_branch_version(branch).get("framework")
+        last_version = ''.join(random.sample(string.ascii_letters, 6))
+        return "{}.{}-SNAPSHOT".format(prefix.replace("-SNAPSHOT", ""),
+                                       last_version)
+
     def check_new_branch(self, source_branch, target_branch, user_name):
         tips = "\n是否需要拉特性分支，如需请按以下格式初始化：" + \
                "\n===================================" + \
                "\n操　　作：初始化特性分支" + \
                "\n来源分支：" + source_branch + \
                "\n目标分支：" + target_branch + \
+               "\n分支版本号：{}" + \
                "\n分支负责人：" + user_name
+
         mapping = get_branch_mapping()
         match_source = None
         match_target = []
@@ -63,10 +73,14 @@ class Task(Common):
             match_source = match.group()
             match_target = v.split(",")
         if match_source is None:
-            raise Exception("来源分支非值班系列【{}】{}".format(",".join(mapping.keys()), tips))
+            error = "来源分支非值班系列【{}】{}"
+            tips = tips.format(self.gen_feature_version(source_branch))
+            raise Exception(error.format(",".join(mapping.keys()), tips))
         target_name, target_date = self.get_branch_date(target_branch)
         if target_date is None or target_name not in match_target:
-            raise Exception("目标分支非值班系列【{}】{}".format(",".join(match_target), tips))
+            error = "目标分支非值班系列【{}】{}"
+            tips = tips.format(self.gen_feature_version(source_branch))
+            raise Exception(error.format(",".join(match_target), tips))
         week_later = (datetime.now() + timedelta(days=-7)).strftime("%Y%m%d")
         if int(week_later) > int(target_date):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
@@ -107,7 +121,6 @@ class Task(Common):
         crop.send_text_msg(req_id, notify_req)
         task_brief = "{}#{}#{}".format(source, target, project_names)
         return True, "new branch task[{}] success".format(task_brief)
-
 
     # 创建拉特性分支的任务
     def new_feature_branch_task(self, crop, req_user_id, req_user_name,
@@ -222,7 +235,7 @@ class Task(Common):
 
     # 发生清理脏分支通知
     def clear_dirty_branch_notice(self, crop):
-        # self.save_branch_created()
+        # self.save_branch_pushed()
         clear_branch_msg = "您创建的分支【{}】超过三个月不存在提交记录，可能为脏分支，请确认是否需要删除？\n<a href=\"https://branch.linrol.cn/branch/clear?user_id={}&branch={}\">点击删除</a>\n无需删除请忽略"
         dirty_branches = self.get_dirty_branches()
         for branch, author in dirty_branches.items():
@@ -258,7 +271,7 @@ class Task(Common):
             dirty_branches[branch_name] = author
         return dirty_branches
 
-    def save_branch_created(self):
+    def save_branch_pushed(self):
         for i in range(1, 150):
             branch_created = {}
             events = self.project_build.getProject().events.list(

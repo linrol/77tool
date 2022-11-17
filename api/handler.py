@@ -285,8 +285,9 @@ class Handler(Base):
             last_version = ''.join(random.sample(string.ascii_letters, 6))
             version = "{}.{}-SNAPSHOT".format(prefix.replace("-SNAPSHOT", ""),
                                               last_version)
+            feature_version = init_feature.get("分支版本号", version)
             approve_user = init_feature.get("分支负责人")
-            value = "{}@{}@{}".format(source, version, approve_user)
+            value = "{}@{}@{}".format(source, feature_version, approve_user)
             hmset("q7link-branch-feature", {target: value})
             self.crop.send_text_msg(self.user_id, "分支初始化成功，请重新发起拉分支请求")
             return "init branch[{}] success".format(target)
