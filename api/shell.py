@@ -102,7 +102,7 @@ class Shell(Common):
             self.exec(cmd, True, False)
             cmd = 'cd ../branch;python3 changeVersion.py {} {}'.format(self.target_branch, clear_build_params)
             [_, version_msg] = self.exec(cmd, True)
-            self.commit_and_push(self.target_branch, 'dev' if is_feature_branch else 'hotfix')
+            self.commit_and_push(self.target_branch, 'd' if is_feature_branch else 'hotfix')
             self.ops_build(self.target_branch, self.is_test)
             self.save_branch_created(self.user_id, self.source_branch, self.target_branch, projects)
             created_msg = re.compile('WARNNING：.*\n').sub('', created_msg)
