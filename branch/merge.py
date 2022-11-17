@@ -16,6 +16,7 @@ branch_group = {}
 class Merge(Common):
     def __init__(self, end, source, target, includes, clear):
         super().__init__(utils, end)
+        self.end = end
         self.includes = includes
         self.filter_projects()
         self.source = source
@@ -143,8 +144,8 @@ class Merge(Common):
 
     def execute(self):
         try:
-            self.checkout_branch(self.source, self.includes)
-            self.checkout_branch(self.target, self.includes)
+            self.checkout_branch(self.end, self.source)
+            self.checkout_branch(self.end, self.target)
             conflict_projects = self.check_conflict()
             if len(conflict_projects) > 0:
                 print("工程【{}】尝试合并请求发现冲突，需手动合并".format(",".join(conflict_projects)))

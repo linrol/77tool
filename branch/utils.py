@@ -97,6 +97,14 @@ class ProjectInfo():
         pass
     return None
 
+  # 获取分支是否存在交集
+  def branchIntersection(self, branchNames):
+    for branch in branchNames:
+      if self.getBranch(branch) is None:
+        return False
+    return True
+
+
   # 删除分支保护
   def deleteBranchProtect(self, branchName):
     #获取受保护分支列表
