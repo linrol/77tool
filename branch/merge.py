@@ -6,6 +6,7 @@ from datetime import datetime
 from common import Common
 from createBranch import CreateBranch
 from checkanddeleted import DeleteBranch
+from protectBranch import ProjectBranch
 from tag import CreateTag
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
@@ -74,7 +75,7 @@ class Merge(Common):
                 print("工程【{}】分支【{}】合并至分支【{}】失败【{}】".format(name, self.source, self.target, merge_msg))
                 sys.exit(1)
             wait_push[name] = path
-        self.push_end(wait_push)
+        self.push_front(wait_push) if self.is_front else self.push(wait_push)
         self.created(wait_created)
         self.tag()
         if not self.clear or self.source in ['stage', 'master']:
@@ -85,12 +86,11 @@ class Merge(Common):
         executor = DeleteBranch(self.source, self.target, delete_projects, True)
         executor.execute()
 
-    def push_end(self, paths):
-        if not self.is_front:
-            self.push(paths)
-        else:
-            for k, v in paths.items():
-                self.push({k: v})
+    def push_front(self, paths):
+        # 前端push
+        ProjectBranch(self.target, "release", paths.keys()).execute()
+        for k, v in paths.items():
+            self.push({k: v})
 
     def push(self, paths):
         cmd = ''
