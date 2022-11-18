@@ -297,7 +297,7 @@ def get_move_branch_dirt(msg_content):
 
 def get_merge_branch_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
-    require_keys = {"来源分支", "目标分支", "工程模块", "删除来源"}.difference(branch_map.keys())
+    require_keys = {"来源分支", "目标分支", "删除来源"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     clear_source = branch_map.get('删除来源') == 'true'
