@@ -81,5 +81,5 @@ git clone http://linrol:Linrol19950120@gitlab.q7link.com//backend/platform/app-a
 cd ../../
 mkdir front
 cd front
-git clone http://linrol:Linrol19950120@gitlab.q7link.com/front/front-theory.git
-git clone http://linrol:Linrol19950120@gitlab.q7link.com/front/front-goserver.git
+git clone http://backend-ci:Linrol19950120@gitlab.q7link.com/front/front-theory.git
+git clone http://backend-ci:Linrol19950120@gitlab.q7link.com/front/front-goserver.git
