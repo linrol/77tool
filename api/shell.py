@@ -114,11 +114,12 @@ class Shell(Common):
             executor.submit(self.rest_branch_env)
 
     # 创建前端分支
-    def create_front_branch(self, project_names):
+    def create_front_branch(self, projects):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
-            cmd = 'cd ../branch;python3 createBranch.py {}.stage {} {}'.format(self.source_branch, self.target_branch, " ".join(project_names))
+            cmd = 'cd ../branch;python3 createBranch.py {}.stage {} {}'.format(self.source_branch, self.target_branch, " ".join(projects))
             [_, created_msg] = self.exec(cmd, True)
+            self.save_branch_created(self.user_id, self.source_branch, self.target_branch, projects)
             return True, created_msg
         except Exception as err:
             return False, str(err)
