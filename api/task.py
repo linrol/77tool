@@ -439,6 +439,11 @@ class Task(Common):
     def build_front_merge(self, modules, branches, clusters, crop):
         user_ids, _ = self.get_duty_info(self.is_test, "front")
         source, target = self.get_merge_branch(branches, clusters, False)
+        module = modules[0]
+        if self.projects.get(module).getBranch(source) is None:
+            raise Exception("module {} branch {} none".format(module, source))
+        if self.projects.get(module).getBranch(target) is None:
+            raise Exception("module {} branch {} none".format(module, target))
         return self.send_branch_action("merge", user_ids, source, target,
                                        modules, clusters, crop)
 
