@@ -89,10 +89,9 @@ class Common(Base):
                 continue
             branch_merge[branch] = target
         if len(branch_merge) < 1:
-            raise Exception("获取需分支合并信息失败")
+            raise Exception("解析合并分支信息失败")
         if len(branch_merge) > 1:
-            logger.error("获取需分支合并信息不唯一: {}".format(branch_merge))
-            raise Exception("获取需分支合并信息不唯一")
+            raise Exception("解析合并分支信息不唯一: {}".format(branch_merge))
         for k, v in branch_merge.items():
             return k, v
 
