@@ -159,6 +159,10 @@ msg_content = {
             {
                 "keyname": "目标分支",
                 "value": "sprint20220818"
+            },
+            {
+                "keyname": "工程模块",
+                "value": "apps,global"
             }
         ],
         "button_selection": {
@@ -390,13 +394,16 @@ def build_change_branch_version_msg(task_id, source, target, project_info):
     msg_content["change_branch_version"]["button_list"][1]["key"] = "agree@" + task_id
     return msg_content["change_branch_version"]
 
-def build_merge_branch_msg(source, target, cluster, task_id):
+def build_merge_branch_msg(source, target, modules, cluster, task_id):
     task_info_list = [{
         "keyname": "来源分支",
         "value": source,
     }, {
         "keyname": "目标分支",
         "value": target,
+    }, {
+        "keyname": "工程模块",
+        "value": modules,
     }]
     msg_content["merge_branch_task"]["main_title"]["title"] = "值班助手-代码合并任务"
     msg_content["merge_branch_task"]["sub_title_text"] = "{}已发布至{}，请求将代码合并至{}".format(source, cluster, target)

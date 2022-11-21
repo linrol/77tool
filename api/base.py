@@ -55,6 +55,12 @@ class Base:
             logger.error(e)
         return branches
 
+    def is_chinese(self, word):
+        for ch in word:
+            if '\u4e00' <= ch <= '\u9fff':
+                return True
+        return False
+
     # 获取项目所属端
     def get_project_end(self, projects):
         front_projects = {"front-theory", "front-goserver"}
@@ -90,5 +96,8 @@ class Base:
         created_mapping = {target: created_value}
         hmset('q7link-branch-created', created_mapping)
 
-
-
+    def get_branch_created_source(self, target):
+        created_value = hget("q7link-branch-created", target)
+        if created_value is None:
+            return None
+        return created_value.split("#")[0]

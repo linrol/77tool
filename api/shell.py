@@ -79,7 +79,7 @@ class Shell(Common):
     def get_slave_source(self):
         if self.source_branch in ["stage", "master"]:
             return self.source_branch
-        branch = hget("q7link-branch-created", "stage-global").split("#")[0]
+        branch = self.get_branch_created_source("stage-global")
         if branch in self.source_branch:
             return "stage-global.stage"
         return "stage"

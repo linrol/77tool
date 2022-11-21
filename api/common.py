@@ -68,5 +68,33 @@ class Common(Base):
         except Exception as err:
             return False, str(err)
 
+    # 获取合并代码的分支
+    def get_merge_branch(self, branches, clusters, is_backend):
+        duty_branches = self.get_duty_branches()
+        branch_merge = {}
+        for branch in branches:
+            if self.is_chinese(branch):
+                continue
+            branch_prefix = self.get_branch_date(branch)
+            if len(duty_branches) > 0 and branch_prefix not in duty_branches:
+                continue
+            if is_backend and "sprint" in branch and "集群0" in clusters:
+                branch = "stage-global"
+            if is_backend and self.project_build.getBranch(branch) is None:
+                continue
+            target = self.get_branch_created_source(branch)
+            if target is None:
+                continue
+            if is_backend and self.project_build.getBranch(target) is None:
+                continue
+            branch_merge[branch] = target
+        if len(branch_merge) < 1:
+            raise Exception("获取需分支合并信息失败")
+        if len(branch_merge) > 1:
+            logger.error("获取需分支合并信息不唯一: {}".format(branch_merge))
+            raise Exception("获取需分支合并信息不唯一")
+        for k, v in branch_merge.items():
+            return k, v
+
 
 

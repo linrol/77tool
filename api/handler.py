@@ -198,10 +198,12 @@ class Handler(Base):
                 source, target, projects, clear = get_merge_branch_dirt(self.msg_content)
                 self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等!")
             else:
-                end = "backend"
                 source = task_contents[1]
                 target = task_contents[2]
-                projects = []
+                projects = task_contents[3].split(",")
+                end = self.get_project_end(projects)
+                if end == "backend":
+                    projects = []
                 clear = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
             shell = Shell(self.user_id, self.is_test, source, target)
             _, ret = shell.merge_branch(end, projects, clear)

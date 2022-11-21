@@ -6,7 +6,7 @@ import re
 from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
-from wxmessage import build_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content, is_chinese
+from wxmessage import build_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content
 from redisclient import save_user_task, get_branch_mapping, hmset, hget
 from common import Common
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
@@ -265,7 +265,7 @@ class Task(Common):
             dirty_branch = (date1 - date2).days < 90
             if dirty_branch:
                 continue
-            author = hget("q7link-branch-created", branch_name)
+            author = hget("q7link-branch-pushed", branch_name)
             if author is None:
                 continue
             dirty_branches[branch_name] = author
@@ -289,7 +289,7 @@ class Task(Common):
             print("保存分支创建信息第{}页面".format(i))
             if len(branch_created) < 1:
                 continue
-            hmset("q7link-branch-created", branch_created)
+            hmset("q7link-branch-pushed", branch_created)
 
     # 校正分支版本号
     def branch_correct(self, user_id, branch, project, crop):
@@ -307,10 +307,9 @@ class Task(Common):
         over_source = "stage-global"
         if source != 'stage':
             return ret
-        info = hget("q7link-branch-created", over_source)
-        if info is None:
+        branch = self.get_branch_created_source(over_source)
+        if branch is None:
             return ret
-        branch = info.split("#")[0]
         if target != branch:
             return ret
         for p in projects:
@@ -398,45 +397,50 @@ class Task(Common):
             crop.send_text_msg(author_userid, mr_source_msg)
 
     # 发送代码合并任务
-    def build_branch_task(self, branches, groups, clusters, crop):
-        user_ids, _ = self.get_duty_info(self.is_test)
-        duty_branches = self.get_duty_branches()
-        ret = []
-        for source in branches:
-            if is_chinese(source):
-                continue
-            if len(duty_branches) > 0 and self.get_branch_date(source)[0] not in duty_branches:
-                continue
-            sprint_deploy_global = "sprint" in source and "global" in groups and "global" in clusters
-            if sprint_deploy_global:
-                if self.has_release(source):
-                    continue
-                # sprint发布到global & 分支未封板，将global模块迁移至stage-global
-                target = "stage-global"
-                task_id = self.send_branch_action("move", user_ids, source, target,
-                                                  groups, clusters, crop)
+    def build_branch_task(self, branches, modules, clusters, crop):
+        try:
+            ret = []
+            backend_modules = modules.intersection({"apps", "global"})
+            if len(backend_modules) > 0:
+                task_id = self.build_backend_merge(backend_modules, branches,
+                                                   clusters, crop)
                 ret.append(task_id)
-                continue
-            sprint_deploy_cluster0 = "sprint" in source and "集群0" in clusters
-            if sprint_deploy_cluster0 and len(clusters) > 1:
-                logger.error("sprint deploy unknown scene")
-                continue
-            if sprint_deploy_cluster0:
-                # 班车分支发布至集群0，需把stage-global合并至sprint
-                source = "stage-global"
-            created_info = hget("q7link-branch-created", source)
-            if created_info is None:
-                continue
-            if self.project_build.getBranch(source) is None:
-                continue
-            target = created_info.split("#")[0]
-            if self.project_build.getBranch(target) is None:
-                continue
-            # 发送合并代码通知
-            task_id = self.send_branch_action("merge", user_ids, source, target,
-                                              groups, clusters, crop)
-            ret.append(task_id)
-        return ",".join(ret)
+            if len(modules.intersection({"web", "h5", "front-theory"})) > 0:
+                front_modules = ["front-theory"]
+                task_id = self.build_front_merge(front_modules, branches,
+                                                 clusters, crop)
+                ret.append(task_id)
+            if len(modules.intersection({"trek", "front-goserver"})) > 0:
+                front_modules = ["front-goserver"]
+                task_id = self.build_front_merge(front_modules, branches,
+                                                 clusters, crop)
+                ret.append(task_id)
+            return ret
+        except Exception as err:
+            logger.error(str(err))
+            return str(err)
+
+    # 发送后端代码合并任务
+    def build_backend_merge(self, modules, branches, clusters, crop):
+        user_ids, _ = self.get_duty_info(self.is_test)
+        source, target = self.get_merge_branch(branches, clusters, True)
+        is_global = "global" in modules and "global" in clusters
+        if is_global and "sprint" in source:
+            if self.has_release(source):
+                raise Exception("sprint deploy global,all release not move")
+            # sprint发布到global & 分支未封板，将global模块迁移至stage-global
+            target = "stage-global"
+            return self.send_branch_action("move", user_ids, source, target,
+                                           modules, clusters, crop)
+        return self.send_branch_action("merge", user_ids, source, target,
+                                       modules, clusters, crop)
+
+    # 发送前端代码合并任务
+    def build_front_merge(self, modules, branches, clusters, crop):
+        user_ids, _ = self.get_duty_info(self.is_test, "front")
+        source, target = self.get_merge_branch(branches, clusters, False)
+        return self.send_branch_action("merge", user_ids, source, target,
+                                       modules, clusters, crop)
 
     # 检测分支版本号是否都为发布包（所有模块）
     def has_release(self, branch):
@@ -451,14 +455,18 @@ class Task(Common):
             return True
 
     # 发送分支操作（迁移/合并）任务
-    def send_branch_action(self, action, user_ids, source, target, groups, clusters, crop):
+    def send_branch_action(self, action, user_ids, source, target, modules, clusters, crop):
         # 发送合并代码通知
         task_id = "branch_{}@{}".format(action, int(time.time()))
         if action == "move":
-            task_params = build_move_branch_msg(source, target, ",".join(groups),
-                                                ",".join(clusters), task_id)
+            task_params = build_move_branch_msg(source, target,
+                                                ",".join(modules),
+                                                ",".join(clusters),
+                                                task_id)
         elif action == "merge":
-            task_params = build_merge_branch_msg(source, target, ",".join(clusters),
+            task_params = build_merge_branch_msg(source, target,
+                                                 ",".join(modules),
+                                                 ",".join(clusters),
                                                  task_id)
         else:
             raise Exception("action error")
@@ -468,7 +476,7 @@ class Task(Common):
         content = "{}#{}#{}#{}#None#{}#{}".format(user_ids,
                                                   source,
                                                   target,
-                                                  ",".join(groups),
+                                                  ",".join(modules),
                                                   str(self.is_test),
                                                   task_code)
         logger.info("task[{}] content[{}]".format(task_id, content))
