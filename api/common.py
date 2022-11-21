@@ -75,7 +75,7 @@ class Common(Base):
         for branch in branches:
             if self.is_chinese(branch):
                 continue
-            branch_prefix = self.get_branch_date(branch)
+            branch_prefix, _ = self.get_branch_date(branch)
             if len(duty_branches) > 0 and branch_prefix not in duty_branches:
                 continue
             if is_backend and "sprint" in branch and "集群0" in clusters:
