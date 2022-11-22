@@ -201,7 +201,6 @@ class Shell(Common):
             self.lock.del_lock("lock", self.lock_value)
 
     def commit_and_push(self, branch, protect):
-        self.protect_branch(branch, 'release')
         push_cmd = ''
         for name, project in self.projects.items():
             path = project.getPath()
@@ -216,6 +215,7 @@ class Shell(Common):
             push_cmd += ";git push origin {}".format(branch)
         if len(push_cmd) < 1:
             return
+        self.protect_branch(branch, 'release')
         self.exec(push_cmd.replace(';', '', 1), True, False)
         self.protect_branch(branch, protect)
 
