@@ -151,8 +151,8 @@ class Shell(Common):
 
     def merge_branch(self, end, projects, clear):
         try:
-            if len(projects) > 0:
-                end = self.get_project_end(projects)
+            if end == "backend":
+                projects = []
             self.lock_value = self.lock.get_lock("lock", 600)
             self.checkout_branch(self.source_branch)
             self.protect_branch(self.target_branch, 'release', projects)

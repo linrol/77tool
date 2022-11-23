@@ -415,7 +415,7 @@ class Task(Common):
                 task_id = self.build_front_merge(front_modules, branches,
                                                  clusters, crop)
                 ret.append(task_id)
-            return ret
+            return ",".join(ret)
         except Exception as err:
             logger.error(str(err))
             return str(err)

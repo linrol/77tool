@@ -189,12 +189,9 @@ class Handler(Base):
             if task_contents is None:
                 f_duty_id, f_name = self.get_duty_info(self.is_test, "front")
                 b_duty_id, b_name = self.get_duty_info(self.is_test, "backend")
-                if self.user_id in f_duty_id:
-                    end = "front"
-                elif self.user_id in b_duty_id:
-                    end = "backend"
-                else:
+                if self.user_id not in [f_duty_id, b_duty_id]:
                     raise Exception("仅限当周值班人：{},{}操作".format(f_name, b_name))
+                end = "front" if self.user_id in f_duty_id else "backend"
                 source, target, projects, clear = get_merge_branch_dirt(self.msg_content)
                 self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等!")
             else:
@@ -202,8 +199,6 @@ class Handler(Base):
                 target = task_contents[2]
                 projects = task_contents[3].split(",")
                 end = self.get_project_end(projects)
-                if end == "backend":
-                    projects = []
                 clear = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
             shell = Shell(self.user_id, self.is_test, source, target)
             _, ret = shell.merge_branch(end, projects, clear)
