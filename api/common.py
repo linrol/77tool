@@ -73,6 +73,7 @@ class Common(Base):
         duty_branches = self.get_duty_branches()
         branch_merge = {}
         is_backend = self.get_project_end([project]) == "backend"
+        error = []
         for branch in branches:
             if self.is_chinese(branch):
                 continue
@@ -94,15 +95,18 @@ class Common(Base):
                 branch_merge["stage"] = "master"
                 continue
             if source_branch is None:
+                error.append("分支【{}】不存在".format(branch))
                 continue
             target = self.get_branch_created_source(branch)
             if target is None:
+                error.append("分支【{}】未知的目标分支".format(branch))
                 continue
             if self.projects.get(project).getBranch(target) is None:
+                error.append("分支【{}】不存在".format(branch))
                 continue
             branch_merge[branch] = target
         if len(branch_merge) < 1:
-            raise Exception("解析合并分支信息失败")
+            raise Exception("解析合并分支信息失败: {}".format(";".join(error)))
         if len(branch_merge) > 1:
             raise Exception("解析合并分支信息不唯一: {}".format(branch_merge))
         for k, v in branch_merge.items():

@@ -400,50 +400,54 @@ class Task(Common):
 
     # 发送代码合并任务
     def build_branch_task(self, branches, modules, clusters, crop):
+        ret = []
+        backend_modules = modules.intersection({"apps", "global"})
+        if len(backend_modules) > 0:
+            task_id = self.build_backend_merge(backend_modules, branches,
+                                               clusters, crop)
+            ret.append(task_id)
+        if len(modules.intersection({"web", "h5", "front-theory"})) > 0:
+            front_modules = ["front-theory"]
+            task_id = self.build_front_merge(front_modules, branches,
+                                             clusters, crop)
+            ret.append(task_id)
+        if len(modules.intersection({"trek", "front-goserver"})) > 0:
+            front_modules = ["front-goserver"]
+            task_id = self.build_front_merge(front_modules, branches,
+                                             clusters, crop)
+            ret.append(task_id)
+        return ",".join(ret)
+
+    # 发送后端代码合并任务
+    def build_backend_merge(self, modules, branches, clusters, crop):
         try:
-            ret = []
-            backend_modules = modules.intersection({"apps", "global"})
-            if len(backend_modules) > 0:
-                task_id = self.build_backend_merge(backend_modules, branches,
-                                                   clusters, crop)
-                ret.append(task_id)
-            if len(modules.intersection({"web", "h5", "front-theory"})) > 0:
-                front_modules = ["front-theory"]
-                task_id = self.build_front_merge(front_modules, branches,
-                                                 clusters, crop)
-                ret.append(task_id)
-            if len(modules.intersection({"trek", "front-goserver"})) > 0:
-                front_modules = ["front-goserver"]
-                task_id = self.build_front_merge(front_modules, branches,
-                                                 clusters, crop)
-                ret.append(task_id)
-            return ",".join(ret)
+            user_ids, _ = self.get_duty_info(self.is_test)
+            source, target = self.get_merge_branch(branches, clusters, "build")
+            is_global = "global" in modules and "global" in clusters
+            params = [user_ids, source, target, modules, clusters, crop]
+            if is_global and "sprint" in source:
+                if self.has_release(source):
+                    raise Exception("sprint deploy global,all release not move")
+                # sprint发布到global & 分支未封板，将global模块迁移至stage-global
+                target = "stage-global"
+                params[2] = target
+                return self.send_branch_action("move", *params)
+            return self.send_branch_action("merge", *params)
         except Exception as err:
             logger.error(str(err))
             return str(err)
 
-    # 发送后端代码合并任务
-    def build_backend_merge(self, modules, branches, clusters, crop):
-        user_ids, _ = self.get_duty_info(self.is_test)
-        source, target = self.get_merge_branch(branches, clusters, "build")
-        is_global = "global" in modules and "global" in clusters
-        if is_global and "sprint" in source:
-            if self.has_release(source):
-                raise Exception("sprint deploy global,all release not move")
-            # sprint发布到global & 分支未封板，将global模块迁移至stage-global
-            target = "stage-global"
-            return self.send_branch_action("move", user_ids, source, target,
-                                           modules, clusters, crop)
-        return self.send_branch_action("merge", user_ids, source, target,
-                                       modules, clusters, crop)
-
     # 发送前端代码合并任务
     def build_front_merge(self, modules, branches, clusters, crop):
-        user_ids, _ = self.get_duty_info(self.is_test, "front")
-        module = modules[0]
-        source, target = self.get_merge_branch(branches, clusters, module)
-        return self.send_branch_action("merge", user_ids, source, target,
-                                       modules, clusters, crop)
+        try:
+            user_ids, _ = self.get_duty_info(self.is_test, "front")
+            module = modules[0]
+            source, target = self.get_merge_branch(branches, clusters, module)
+            return self.send_branch_action("merge", user_ids, source, target,
+                                           modules, clusters, crop)
+        except Exception as err:
+            logger.error(str(err))
+            return str(err)
 
     # 检测分支版本号是否都为发布包（所有模块）
     def has_release(self, branch):
