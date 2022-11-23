@@ -69,9 +69,10 @@ class Common(Base):
             return False, str(err)
 
     # 获取合并代码的分支
-    def get_merge_branch(self, branches, clusters, is_backend):
+    def get_merge_branch(self, branches, clusters, project):
         duty_branches = self.get_duty_branches()
         branch_merge = {}
+        is_backend = self.get_project_end([project]) == "backend"
         for branch in branches:
             if self.is_chinese(branch):
                 continue
@@ -80,12 +81,12 @@ class Common(Base):
                 continue
             if is_backend and "sprint" in branch and "集群0" in clusters:
                 branch = "stage-global"
-            if is_backend and self.project_build.getBranch(branch) is None:
+            if self.projects.get(project).getBranch(branch) is None:
                 continue
             target = self.get_branch_created_source(branch)
             if target is None:
                 continue
-            if is_backend and self.project_build.getBranch(target) is None:
+            if self.projects.get(project).getBranch(target) is None:
                 continue
             branch_merge[branch] = target
         if len(branch_merge) < 1:
