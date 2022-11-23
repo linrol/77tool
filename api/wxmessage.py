@@ -35,7 +35,7 @@ menu_help = {
   "branch_merge": ">**<font color=\"info\">分支合并（固定值不要删除）</font>** "
                    "\n>来源分支：<font color=\"comment\">输入将被合并的分支名称，例：sprint20220818</font>"
                    "\n>目标分支：<font color=\"comment\">输入需要合并至的分支名称，例：stage</font>"
-                   "\n>工程模块：<font color=\"comment\">输入需要合并的模块或工程(此参数可空,为空时合并所有工程)，例：front-goserver,front-goserver</font>"
+                   "\n>工程模块：<font color=\"comment\">输入需要合并的模块或工程，例：front-goserver,front-goserver,apps,global</font>"
                    "\n>删除来源：<font color=\"comment\">分支合并成功后是否删除来源分支，例：true,false(单选值)</font>"
                    "\n><font color=\"warning\">功能说明，将来源分支合并至目标分支，预检测存在冲突将放弃合并</font>",
   "branch_protect": ">**<font color=\"info\">分支保护（固定值不要删除）</font>** "
@@ -48,7 +48,7 @@ menu_help = {
                            "\n>构建模块：<font color=\"comment\">输入需要构建发布包的模块，例：all,global,apps(单选值)</font>"
                            "\n>前端预制：<font color=\"comment\">输入需要替换的front-apps.reimburse版本号，前端值班提供(此参数可空)</font>"
                            "\n>立即编译：<font color=\"comment\">构建发布包后是否立即编译，例：true,false(单选值)</font>"
-                           "\n><font color=\"warning\">功能说明，将目标分支的对应的工程模块构建release包</font>"
+                           "\n><font color=\"warning\">功能说明，将目标分支的对应的工程模块构建release包并分支保护</font>"
 }
 
 msg = {
@@ -270,6 +270,13 @@ def get_map(lines, filter_chinese=True):
         map[k] = v
     return map
 
+def project_convert(project):
+    if project in ["web", "h5"]:
+        return "front-theory"
+    if project in ["go"]:
+        return "front-goserver"
+    return project
+
 def get_pre_dirt(msg_content):
     pre_data_map = get_map(msg_content.split('\n'), False)
     require_keys = {"环境", "租户", "分支", "列表组"}.difference(pre_data_map.keys())
@@ -283,7 +290,8 @@ def get_branch_dirt(msg_content):
     require_keys = {"来源分支", "目标分支", "工程模块"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
-    return branch_map.get('来源分支'), branch_map.get('目标分支'), branch_map.get('工程模块')
+    projects = list(map(project_convert, branch_map.get('工程模块').split(",")))
+    return branch_map.get('来源分支'), branch_map.get('目标分支'), ",".join(projects)
 
 def get_init_feature_dirt(msg_content):
     init_feature = get_map(msg_content.split('\n'), False)
@@ -301,15 +309,11 @@ def get_move_branch_dirt(msg_content):
 
 def get_merge_branch_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
-    require_keys = {"来源分支", "目标分支", "删除来源"}.difference(branch_map.keys())
+    require_keys = {"来源分支", "目标分支", "工程模块", "删除来源"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     clear_source = branch_map.get('删除来源') == 'true'
-    project_str = branch_map.get("工程模块", '').strip()
-    if len(project_str) > 0:
-        projects = project_str.split(",")
-    else:
-        projects = []
+    projects = branch_map.get("工程模块", '').strip().split(",")
     return branch_map.get("来源分支"), branch_map.get("目标分支"), projects, clear_source
 
 def get_protect_branch_dirt(msg_content):
@@ -318,7 +322,8 @@ def get_protect_branch_dirt(msg_content):
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     is_protect = branch_map.get('是否保护') == 'true'
-    return branch_map.get("目标分支"), branch_map.get("工程模块").split(","), is_protect
+    projects = branch_map.get('工程模块').split(",")
+    return branch_map.get("目标分支"), projects, is_protect
 
 def get_build_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
@@ -347,11 +352,6 @@ def get_build_dirt(msg_content):
     else:
         protect = "none {} {} {}".format("apps", "global", "platform")
     return branch_map.get('目标分支'), " ".join(group_list), protect, is_build
-
-
-if __name__ == '__main__':
-    group_list = build_group_mapping.get("global").copy()
-    print(" ".join(group_list))
 
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
@@ -401,10 +401,13 @@ def build_merge_branch_msg(source, target, modules, cluster, task_id):
     }, {
         "keyname": "目标分支",
         "value": target,
-    }, {
-        "keyname": "工程模块",
-        "value": modules,
     }]
+    is_backend = "apps" in modules or "global" in modules
+    if not is_backend:
+        task_info_list.append({
+            "keyname": "工程模块",
+            "value": modules,
+        })
     msg_content["merge_branch_task"]["main_title"]["title"] = "值班助手-代码合并任务"
     msg_content["merge_branch_task"]["sub_title_text"] = "{}已发布至{}，请求将代码合并至{}".format(source, cluster, target)
     msg_content["merge_branch_task"]["horizontal_content_list"] = task_info_list
