@@ -48,11 +48,15 @@ class Merge(Common):
                 conflict_project.append(p)
                 continue
             cmd = "cd {};git merge-tree {} origin/{} origin/{}".format(path, base_sha, self.source, self.target)
-            [ret, merge_ret] = subprocess.getstatusoutput(cmd)
-            if ret != 0:
-                conflict_project.append(p)
+            try:
+                [ret, merge_ret] = subprocess.getstatusoutput(cmd)
+                if ret != 0:
+                    conflict_project.append(p)
+                    continue
+                if "changed in both" in merge_ret:
+                    conflict_project.append(p)
                 continue
-            if "changed in both" in merge_ret:
+            except Exception as err:
                 conflict_project.append(p)
                 continue
         return conflict_project
