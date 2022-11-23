@@ -79,9 +79,21 @@ class Common(Base):
             branch_prefix, _ = self.get_branch_date(branch)
             if len(duty_branches) > 0 and branch_prefix not in duty_branches:
                 continue
-            if is_backend and "sprint" in branch and "集群0" in clusters:
+            is_sprint = "sprint" in branch
+            push_stage0 = "集群0" in clusters
+            if is_sprint and push_stage0:
+                # 班车推灰度0环境，后端stage-global合并至sprint，前端跳过
+                if not is_backend:
+                    continue
                 branch = "stage-global"
-            if self.projects.get(project).getBranch(branch) is None:
+            prod_clusters = {"集群3", "集群4", "集群5", "集群6", "集群7"}
+            push_prod = len(set(clusters).intersection(prod_clusters)) > 2
+            source_branch = self.projects.get(project).getBranch(branch)
+            if is_sprint and source_branch is None and push_prod:
+                # 班车推生产环境，stage合并至master
+                branch_merge["stage"] = "master"
+                continue
+            if source_branch is None:
                 continue
             target = self.get_branch_created_source(branch)
             if target is None:
