@@ -22,6 +22,8 @@ RUN add-apt-repository ppa:git-core/ppa && \
     apt install git -y
 
 # git clone sourcecode
+ARG GIT_PASSWORD
+ENV GIT_PASSWORD ${GIT_PASSWORD}
 WORKDIR /data/
 COPY ./download.sh ./download.sh
 RUN ./download.sh
