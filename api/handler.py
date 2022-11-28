@@ -189,7 +189,7 @@ class Handler(Base):
             if task_contents is None:
                 f_duty_id, f_name = self.get_duty_info(self.is_test, "front")
                 b_duty_id, b_name = self.get_duty_info(self.is_test, "backend")
-                if self.user_id not in [f_duty_id, b_duty_id]:
+                if not (self.user_id in [f_duty_id, b_duty_id]):
                     raise Exception("仅限当周值班人：{},{}操作".format(f_name, b_name))
                 end = "front" if self.user_id in f_duty_id else "backend"
                 source, target, projects, clear = get_merge_branch_dirt(self.msg_content)
