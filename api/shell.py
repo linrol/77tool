@@ -120,6 +120,7 @@ class Shell(Common):
             cmd = 'cd ../branch;python3 createBranch.py {}.stage {} {}'.format(self.source_branch, self.target_branch, " ".join(projects))
             [_, created_msg] = self.exec(cmd, True)
             self.save_branch_created(self.user_id, self.source_branch, self.target_branch, projects)
+            self.protect_branch(self.target_branch, 'hotfix', projects)
             return True, created_msg
         except Exception as err:
             return False, str(err)
