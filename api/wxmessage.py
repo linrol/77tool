@@ -48,7 +48,7 @@ menu_help = {
                            "\n>构建模块：<font color=\"comment\">输入需要构建发布包的模块，例：all,global,apps(单选值)</font>"
                            "\n>前端预制：<font color=\"comment\">输入需要替换的front-apps.reimburse版本号，前端值班提供(此参数可空)</font>"
                            "\n>立即编译：<font color=\"comment\">构建发布包后是否立即编译，例：true,false(单选值)</font>"
-                           "\n><font color=\"warning\">功能说明，将目标分支的对应的工程模块构建release包并分支保护</font>"
+                           "\n><font color=\"warning\">功能说明，将目标分支的对应的工程模块构建release包并对分支封板</font>"
 }
 
 msg = {
