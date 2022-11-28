@@ -141,7 +141,7 @@ class Merge(Common):
         return str("success")
 
     def created(self, projects):
-        if len(projects) < 1:
+        if len(projects) < 1 or self.source in ["stage", "master"]:
             return
         executor = CreateBranch(self.target, self.source, projects, True)
         executor.execute()
