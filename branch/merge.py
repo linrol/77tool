@@ -152,7 +152,7 @@ class Merge(Common):
             self.checkout_branch(self.end, self.target)
             conflict_projects = self.check_conflict()
             if len(conflict_projects) > 0:
-                print("工程【{}】尝试合并请求发现冲突，需手动合并".format(",".join(conflict_projects)))
+                print("工程【{}】尝试从【{}】合并至【{}】请求发现冲突，需手动合并".format(",".join(conflict_projects), self.source, self.target))
                 sys.exit(1)
             self.merge()
             for project in self.projects.values():
