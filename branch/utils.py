@@ -154,6 +154,19 @@ class ProjectInfo():
       'merge_access_level': mergeAccessLevel,
       'push_access_level': pushAccessLevel
     })
+    if mergeAccessLevel == VISIBILITY_PRIVATE:
+      mergeRole = "No one"
+    elif mergeAccessLevel == DEVELOPER_ACCESS:
+      mergeRole = "Developers + Maintainers"
+    else:
+      mergeRole = "Maintainers"
+    if pushAccessLevel == VISIBILITY_PRIVATE:
+      pushRole = "No one"
+    elif pushAccessLevel == DEVELOPER_ACCESS:
+      pushRole = "Developers + Maintainers"
+    else:
+      pushRole = "Maintainers"
+    return True, mergeRole, pushRole
 
   #创建分支
   def createBranch(self, sourceBranchNames, newBranchName):

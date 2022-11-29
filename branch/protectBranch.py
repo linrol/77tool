@@ -63,8 +63,8 @@ class ProjectBranch:
       print('【{}】【{}】分支保护删除成功'.format(projectName, self.branchName))
       return
 
-    projectInfo.protectBranch(self.branchName, mergeAccessLevel, pushAccessLevel)
-    print('工程【{}】分支【{}】保护成功'.format(projectName, self.branchName))
+    _, mergeRole, pushRole = projectInfo.protectBranch(self.branchName, mergeAccessLevel, pushAccessLevel)
+    print('工程【{}】分支【{}】保护成功，允许【{}】合并,【{}】推送'.format(projectName, self.branchName, mergeRole, pushRole))
 
 
 
