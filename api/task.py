@@ -55,8 +55,8 @@ class Task(Common):
                                        last_version)
 
     def check_new_branch(self, source_branch, target_branch, user_name):
-        tips = "\n是否需要拉特性分支，如需请按以下格式初始化：" + \
-               "\n===================================" + \
+        tips = "\n是否需要拉特性分支，如需请按以下格式初始化(可修改分支版本号，负责人等信息)：" + \
+               "\n=============================================================" + \
                "\n操　　作：初始化特性分支" + \
                "\n来源分支：" + source_branch + \
                "\n目标分支：" + target_branch + \
