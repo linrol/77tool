@@ -89,7 +89,8 @@ class Common(Base):
                 branch = "stage-global"
             prod_clusters = {"集群3", "集群4", "集群5", "集群6", "集群7"}
             push_prod = len(set(clusters).intersection(prod_clusters)) > 2
-            source_branch = self.projects.get(project).getBranch(branch)
+            git_project = self.projects.get(project)
+            source_branch = git_project.getBranch(branch)
             if is_sprint and source_branch is None and push_prod:
                 # 班车推生产环境，stage合并至master
                 branch_merge["stage"] = "master"
@@ -101,14 +102,19 @@ class Common(Base):
             if target is None:
                 error.append("分支【{}】未知的目标分支".format(branch))
                 continue
-            if self.projects.get(project).getBranch(target) is None:
+            if git_project.getBranch(target) is None:
                 error.append("分支【{}】不存在".format(branch))
+                continue
+            is_merge = git_project.checkMerge(branch, target)
+            if (not is_backend) and is_merge:
+                error.append("工程【{}】分支【{}】已合并至【{}】".format(project, branch, target))
                 continue
             branch_merge[branch] = target
         if len(branch_merge) < 1:
             raise Exception("解析合并分支信息失败: {}".format(";".join(error)))
         if len(branch_merge) > 1:
             raise Exception("解析合并分支信息不唯一: {}".format(branch_merge))
+        logger.info("解析合并分支日志内容: {}".format(";".join(error)))
         for k, v in branch_merge.items():
             return k, v
 
