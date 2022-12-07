@@ -1,7 +1,7 @@
 import argparse
 import json
 import datetime
-from flask import Flask, request, make_response
+from flask import Flask, request, make_response, jsonify
 from flask_apscheduler import APScheduler
 from concurrent.futures import ThreadPoolExecutor
 from log import logger
@@ -93,6 +93,21 @@ def branch_correct():
     except Exception as err:
         print(str(err))
         return make_response(str(err))
+
+
+@app.route("/branch/seal", methods=["POST"])
+def branch_seal():
+    response = {}
+    try:
+        body = json.loads(request.data.decode('utf-8'))
+        ret, msg = Task().branch_seal(body)
+        response["ret"] = ret
+        response["msg"] = msg
+    except Exception as err:
+        print(str(err))
+        response["ret"] = False
+        response["msg"] = str(err)
+    return jsonify(response)
 
 
 @scheduler.task('cron', id='job_check_version', week='*', day_of_week='0-6',
