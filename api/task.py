@@ -500,6 +500,7 @@ class Task(Common):
         if is_front:
             access = "none" if is_seal else "hotfix"
             return shell.protect_branch(branch, access, project_list)
+        # self.get_project('parent').getGl().projects.list(search=self.__name)
         # 后端构建发布包操作
         if not is_seal:
             raise Exception(
