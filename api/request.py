@@ -11,6 +11,7 @@ def get(url):
         raise Exception(body.get('errmsg'))
     return body
 
+
 def post(url, params):
     # s = requests.session()
     # s.proxies = {'https': 'socks5://127.0.0.1:1090'}
@@ -20,6 +21,7 @@ def post(url, params):
         logger.error(body.get('errmsg'))
         raise Exception(body.get('errmsg'))
     return body
+
 
 def post_form(url, params):
     response = requests.post(url, data=params)

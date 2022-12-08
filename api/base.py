@@ -24,7 +24,7 @@ class Base:
             body = get(url.format(rd_url, user_name))
             return body.get("data")[0].get("user_id")
         except Exception as err:
-            logger.error("name2userid error: {}".format(str(err)))
+            logger.error("name2user error: {}".format(str(err)), exc_info=True)
             return None
 
     # 获取值班人
@@ -51,8 +51,8 @@ class Base:
             mapping = get_branch_mapping()
             for bs in mapping.values():
                 branches.update(bs.split(","))
-        except Exception as e:
-            logger.error(e)
+        except Exception as err:
+            logger.exception(err)
         return branches
 
     def is_chinese(self, word):
@@ -84,8 +84,8 @@ class Base:
                 params["projects"] = project
             res = post_form(build_url, params)
             return res.get("data").get("taskid")
-        except Exception as e:
-            logger.error(e)
+        except Exception as err:
+            logger.exception(err)
             return "-1"
 
     def save_branch_created(self, user_id, source, target, projects):

@@ -1,7 +1,8 @@
 import re
 import time
+from log import logger
 from concurrent.futures import ThreadPoolExecutor
-from redisclient import append, hget, hmset, hdel
+from redisclient import append, hget, hdel
 from redisclient import redisClient
 from redislock import RedisLock
 from common import Common
@@ -69,6 +70,7 @@ class Shell(Common):
             mr_title = '<数据预置>前端多列表方案预置-{}'.format(self.user_id)
             return self.create_mr(mr_key, opened_mr, temp_branch, self.target_branch, mr_title, mr_user)
         except Exception as err:
+            logger.exception(err)
             self.project_init_data.deleteRemoteBranch(temp_branch)
             return False, str(err)
         finally:
@@ -109,6 +111,7 @@ class Shell(Common):
             created_msg = re.compile('工程.*保护成功.*\n').sub('', created_msg)
             return True, (created_msg + "\n" + version_msg)
         except Exception as err:
+            logger.exception(err)
             return False, str(err)
         finally:
             executor.submit(self.rest_branch_env)
@@ -123,6 +126,7 @@ class Shell(Common):
             self.protect_branch(self.target_branch, 'hotfix', projects)
             return True, created_msg
         except Exception as err:
+            logger.exception(err)
             return False, str(err)
         finally:
             executor.submit(self.rest_branch_env, "front")
@@ -133,6 +137,7 @@ class Shell(Common):
             cmd = 'cd ../branch;python3 checkVersion.py -t compare -b {}'.format(branch_str)
             return self.exec(cmd, level_info=False)
         except Exception as err:
+            logger.exception(err)
             return False, str(err)
 
     def move_branch(self, namespaces):
@@ -146,6 +151,7 @@ class Shell(Common):
             backup_msg = re.compile('工程.*删除分支.*\n').sub('', backup_msg)
             return True, backup_msg
         except Exception as err:
+            logger.exception(err)
             return False, str(err)
         finally:
             executor.submit(self.rest_branch_env)
@@ -169,6 +175,7 @@ class Shell(Common):
             merge_msg = re.compile('工程.*保护成功.*\n').sub('', merge_msg)
             return True, merge_msg
         except Exception as err:
+            logger.exception(err)
             return False, str(err)
         finally:
             executor.submit(self.rest_branch_env)
@@ -187,6 +194,7 @@ class Shell(Common):
             msg = release_version_msg + change_version_msg
             return True, msg.replace("\n", "").replace("工程", "\n工程")
         except Exception as err:
+            logger.exception(err)
             return False, str(err)
         finally:
             executor.submit(self.rest_branch_env)

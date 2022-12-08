@@ -42,8 +42,7 @@ class Handler(Base):
             logger.info("* {} accept response: {}".format(self.user_name, ret))
             return ret
         except Exception as err:
-            logger.info("* {} accept response: {}".format(self.user_name,
-                                                          str(err)))
+            logger.info("* {} accept response: {}".format(self.user_name, str(err)))
             return str(err)
 
     # 消费事件消息
@@ -130,7 +129,7 @@ class Handler(Base):
                 self.crop.send_text_msg(assignee_userid, result)
             return result
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(err)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -154,7 +153,7 @@ class Handler(Base):
             self.crop.send_text_msg(user_ids, str(ret))
             return ret
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(err)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -179,7 +178,7 @@ class Handler(Base):
             self.crop.send_text_msg(self.user_id, str(ret))
             return ret
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(err)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -206,7 +205,7 @@ class Handler(Base):
             self.crop.send_text_msg(self.user_id, str(ret))
             return ret
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(err)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -234,7 +233,7 @@ class Handler(Base):
             self.crop.send_text_msg(self.user_id, str(ret))
             return ret
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(err)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -252,7 +251,7 @@ class Handler(Base):
             self.crop.send_text_msg(self.user_id, str(ret))
             return ret
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(err)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -268,7 +267,7 @@ class Handler(Base):
             _, ret = Task(self.is_test).new_branch_task(self.crop, *task_info)
             return ret
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(err)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
@@ -289,7 +288,7 @@ class Handler(Base):
             self.crop.send_text_msg(self.user_id, "分支初始化成功，请重新发起拉分支请求")
             return "init branch[{}] success".format(target)
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(err)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)

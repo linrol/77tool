@@ -1,15 +1,27 @@
+import datetime
 import logging
+import os
 
 # 创建一个logger实例并设置日志级别
-logger = logging.getLogger('bot')
+logger = logging.getLogger('branch-manage')
 logger.setLevel(logging.DEBUG)
 
-# 配置handler，拟将日志记录输出在控制台
-stdout_handler = logging.StreamHandler()
-
 # 配置formatter
-formatter = logging.Formatter('%(asctime)s %(filename)s [line:%(lineno)d] %(levelname)s %(message)s')
-stdout_handler.setFormatter(formatter)
+formatter = logging.Formatter('%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
+
+# 配置handler，拟将日志记录输出在控制台
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+
+# 配置handler，拟将日志记录输出至文件
+cur_time = datetime.datetime.now()
+file_dir = "/data/logs/"
+if not os.path.exists(file_dir):
+    file_dir = ""
+file_name = "{}branch-manage-{}.log".format(file_dir, cur_time.strftime('%Y%m%d'))
+file_handler = logging.FileHandler(file_name)
+file_handler.setFormatter(formatter)
 
 # 添加handler至logger
-logger.addHandler(stdout_handler)
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)

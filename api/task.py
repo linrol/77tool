@@ -245,7 +245,7 @@ class Task(Common):
             user_id = self.name2userid(username)
             if user_id == "LuoLin":
                 crop.send_text_msg(user_id, clear_branch_msg.format(branch, user_id, branch))
-            print(clear_branch_msg.format(branch, user_id, branch))
+            logger.info(clear_branch_msg.format(branch, user_id, branch))
 
     # 获取可能的脏分支（三个月以上不存在提交记录）
     def get_dirty_branches(self):
@@ -286,7 +286,7 @@ class Task(Common):
                 if username is None:
                     continue
                 branch_created[branch] = username
-            print("保存分支创建信息第{}页面".format(i))
+            logger.info("保存分支创建信息第{}页面".format(i))
             if len(branch_created) < 1:
                 continue
             hmset("q7link-branch-pushed", branch_created)
@@ -434,7 +434,7 @@ class Task(Common):
                 return self.send_branch_action("move", *params)
             return self.send_branch_action("merge", *params)
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(err)
             return str(err)
 
     # 发送前端代码合并任务
@@ -446,7 +446,7 @@ class Task(Common):
             return self.send_branch_action("merge", user_ids, source, target,
                                            modules, clusters, crop)
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(err)
             return str(err)
 
     # 检测分支版本号是否都为发布包（所有模块）
@@ -458,7 +458,7 @@ class Task(Common):
                     return False
             return True
         except Exception as err:
-            logger.error(str(err))
+            logger.exception(err)
             return True
 
     # 发送分支操作（迁移/合并）任务
