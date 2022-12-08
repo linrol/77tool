@@ -6,8 +6,7 @@ import re
 from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
-from wxmessage import build_create_branch__msg, build_merge_branch_msg, \
-    build_move_branch_msg, msg_content, get_build_dirt
+from wxmessage import build_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content, get_build_dirt
 from redisclient import save_user_task, get_branch_mapping, hmset, hget
 from common import Common
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
@@ -492,8 +491,7 @@ class Task(Common):
         return task_id
 
     def branch_seal(self, body):
-        user_id, branch, project_list, is_seal = body.get("user_id"), body.get(
-            "branch"), body.get("projects"), body.get("is_seal") == "true"
+        user_id, branch, project_list, is_seal = body.get("user_id"), body.get("branch"), body.get("projects"), body.get("is_seal") == "true"
         end = self.get_project_end(project_list)
         is_front = end in ["front"]
         shell = Shell(user_id, self.is_test, "master", branch)
@@ -503,8 +501,7 @@ class Task(Common):
         # self.get_project('parent').getGl().projects.list(search=self.__name)
         # 后端构建发布包操作
         if not is_seal:
-            raise Exception(
-                "暂不支持取消封版操作，需后端值班开发手动调整版本号并取消分支保护")
+            return True, "分支保护取消成功，请后端值班开发手动调整版本号"
         tmp = "\n目标分支：{}\n构建模块：{}\n前端预制：{}\n立即编译：{}"
         module = ""
         if len(project_list) == 1:
