@@ -104,7 +104,6 @@ class Crop:
         msg["agentid"] = self.get_agent_id()
         msg[msg_type] = content
         url = '{}/cgi-bin/message/send?access_token={}'
-        logger.info("send message to user:{}".format(to_user))
         return post(url.format(self.work_wx_url, self.get_access_token()), msg)
 
     def send_template_card(self, to_user, content):

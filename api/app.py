@@ -91,7 +91,7 @@ def branch_correct():
         executor.submit(Task().branch_correct, user_id, branch, project, crop)
         return make_response("success")
     except Exception as err:
-        print(str(err))
+        logger.exception(err)
         return make_response(str(err))
 
 
@@ -104,7 +104,7 @@ def branch_seal():
         response["ret"] = ret
         response["msg"] = msg
     except Exception as err:
-        print(str(err))
+        logger.exception(err)
         response["ret"] = False
         response["msg"] = str(err)
     return jsonify(response)
