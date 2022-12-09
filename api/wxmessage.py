@@ -236,22 +236,20 @@ msg_content = {
     "mr_source": "{}\n您发起的工程：{} MR请求，已被{}合并！\n已触发独立编译任务ID:{}，请自行关注编译结果",
     "mr_target": "您收到来自{}的MR请求，请及时合并！\n标题：{}\n工程/分支：{}(分支{}合并到{})\n{}"
 }
-build_group_mapping = {"all": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api', 'global-apps', 'global-apps-api'],
-                       "global": ['framework', 'global-apps', 'global-apps-api'],
-                       "apps": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api']
-                       }
-
 target_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
+
 
 def xml2dirt(raw_xml):
     data = xmltodict.parse(raw_xml).get("xml")
     return data
+
 
 def is_chinese(word):
     for ch in word:
         if '\u4e00' <= ch <= '\u9fff':
             return True
     return False
+
 
 def get_map(lines, filter_chinese=True):
     map = {}
@@ -270,12 +268,14 @@ def get_map(lines, filter_chinese=True):
         map[k] = v
     return map
 
+
 def project_convert(project):
     if project in ["web", "h5"]:
         return "front-theory"
     if project in ["go"]:
         return "front-goserver"
     return project
+
 
 def get_pre_dirt(msg_content):
     pre_data_map = get_map(msg_content.split('\n'), False)
@@ -285,6 +285,7 @@ def get_pre_dirt(msg_content):
     tenant_id = "tenant" + pre_data_map.get('租户')
     return pre_data_map.get('环境'), tenant_id, pre_data_map.get('分支'), pre_data_map.get('列表组'), pre_data_map.get("合并人", None)
 
+
 def get_branch_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
     require_keys = {"来源分支", "目标分支", "工程模块"}.difference(branch_map.keys())
@@ -293,6 +294,7 @@ def get_branch_dirt(msg_content):
     projects = list(map(project_convert, branch_map.get('工程模块').split(",")))
     return branch_map.get('来源分支'), branch_map.get('目标分支'), ",".join(projects)
 
+
 def get_init_feature_dirt(msg_content):
     init_feature = get_map(msg_content.split('\n'), False)
     require_keys = {"来源分支", "目标分支", "分支负责人"}.difference(init_feature.keys())
@@ -300,12 +302,14 @@ def get_init_feature_dirt(msg_content):
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     return init_feature
 
+
 def get_move_branch_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
     require_keys = {"迁移分支", "迁出分支", "迁移模块"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     return branch_map.get("迁移分支"), branch_map.get("迁出分支"), branch_map.get("迁移模块")
+
 
 def get_merge_branch_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
@@ -316,6 +320,7 @@ def get_merge_branch_dirt(msg_content):
     projects = branch_map.get("工程模块", '').strip().split(",")
     return branch_map.get("来源分支"), branch_map.get("目标分支"), projects, clear_source
 
+
 def get_protect_branch_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
     require_keys = {"目标分支", "工程模块", "是否保护"}.difference(branch_map.keys())
@@ -324,6 +329,7 @@ def get_protect_branch_dirt(msg_content):
     is_protect = branch_map.get('是否保护') == 'true'
     projects = branch_map.get('工程模块').split(",")
     return branch_map.get("目标分支"), projects, is_protect
+
 
 def get_build_dirt(msg_content):
     branch_map = get_map(msg_content.split('\n'))
@@ -340,18 +346,15 @@ def get_build_dirt(msg_content):
     if target_date is None or target_name not in ",".join(mapping.values()):
         raise Exception("目标分支非值班系列【{}】".format(",".join(mapping.values())))
     module = branch_map.get('构建模块')
-    if module is None or module not in build_group_mapping.keys():
+    if module is None or module not in ["all", "global", "apps"]:
         raise Exception("构建模块输入错误，必须是all,global,apps其中之一")
     is_build = branch_map.get('立即编译') == 'true'
     front_version = branch_map.get("前端预制", '').strip()
-    group_list = build_group_mapping.get(module).copy()
+    modules = [module]
     if len(front_version) > 0:
-        group_list.append("front-apps=reimburse:{}".format(front_version))
-    if module != 'all':
-        protect = "none {} {} {}".format(module, "platform", "init-data")
-    else:
-        protect = "none {} {} {}".format("apps", "global", "platform")
-    return branch_map.get('目标分支'), " ".join(group_list), protect, is_build
+        modules.append("front-apps=reimburse:{}".format(front_version))
+    protect = "none {}".format(module)
+    return branch_map.get('目标分支'), " ".join(modules), protect, is_build
 
 
 def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):

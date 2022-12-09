@@ -60,11 +60,20 @@ class Common(Base):
 
     # 保护分支
     def protect_branch(self, branch, protect, projects=None):
+        if projects is None:
+            projects = []
+        elif "all" in projects:
+            projects.extend(["apps", "global", "platform"])
+            projects.remove("all")
+        elif "apps" in projects:
+            projects.extend(["platform", "init-data"])
+            projects.remove("apps")
+        elif "global" in projects:
+            projects.extend(["platform", "init-data"])
+            projects.remove("global")
         try:
-            protect_cmd = "cd ../branch;python3 protectBranch.py {} {}".format(branch, protect)
-            if projects is not None:
-                protect_cmd += " {}".format(" ".join(projects))
-            return self.exec(protect_cmd, level_info=False)
+            cmd = "cd ../branch;python3 protectBranch.py {} {} {}".format(branch, protect, " ".join(projects))
+            return self.exec(cmd, level_info=False)
         except Exception as err:
             return False, str(err)
 

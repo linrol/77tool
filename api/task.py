@@ -6,7 +6,7 @@ import re
 from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
-from wxmessage import build_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content, get_build_dirt
+from wxmessage import build_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content
 from redisclient import save_user_task, get_branch_mapping, hmset, hget
 from common import Common
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
@@ -294,10 +294,9 @@ class Task(Common):
     # 校正分支版本号
     def branch_correct(self, user_id, branch, project, crop):
         shell = Shell(self.is_test, user_id, "master", branch)
-        _, msg = shell.build_package("correct={}".format(project), "hotfix",
-                                     True)
-        logger.info("branch correct [{}] [{}] ret[{}]".format(branch, project,
-                                                              msg))
+        params = "none other={}".format(project)
+        _, msg = shell.build_package(params, "hotfix all", True)
+        logger.info("branch correct [{}] [{}] ret[{}]".format(branch, project, msg))
         crop.send_text_msg(user_id, msg)
         return msg
 
@@ -495,21 +494,21 @@ class Task(Common):
         end = self.get_project_end(project_list)
         is_front = end in ["front"]
         shell = Shell(user_id, self.is_test, "master", branch)
+        access = "none" if is_seal else "hotfix"
         if is_front:
-            access = "none" if is_seal else "hotfix"
             return shell.protect_branch(branch, access, project_list)
         # self.get_project('parent').getGl().projects.list(search=self.__name)
         # 后端构建发布包操作
         if not is_seal:
             return True, "分支保护取消成功，请后端值班开发手动调整版本号"
-        tmp = "\n目标分支：{}\n构建模块：{}\n前端预制：{}\n立即编译：{}"
-        module = ""
+        is_build = body.get("is_build", "") == 'true'
+        modules = []
         if len(project_list) == 1:
-            module = project_list[0]
+            modules.append(project_list[0])
         elif len(set(project_list).intersection({"apps", "global"})):
-            module = "all"
-        f_version = body.get("front_version", "")
-        build = body.get("is_build", "")
-        message = tmp.format(branch, module, f_version, build)
-        _, params, access, is_build = get_build_dirt(message)
-        return shell.build_package(params, access, is_build)
+            modules.append("all")
+        front_version = body.get("front_version", "").strip()
+        if len(front_version) > 0:
+            modules.append("front-apps=reimburse:{}".format(front_version))
+        access += " {}".format(modules[0])
+        return shell.build_package(" ".join(modules), access, is_build)
