@@ -170,7 +170,7 @@ class CreateBranch:
       mergeAccessLevel = utils.MAINTAINER_ACCESS
       pushAccessLevel = utils.MAINTAINER_ACCESS
       projectInfo.protectBranch(self.newBranchName, mergeAccessLevel, pushAccessLevel)
-      print('工程【{}】分支【{}】保护成功'.format(projectInfo.getName(), self.newBranchName))
+      # print('工程【{}】分支【{}】保护成功'.format(projectInfo.getName(), self.newBranchName))
     else:
       #其他分支不设置分支保护
       return

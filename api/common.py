@@ -58,6 +58,28 @@ class Common(Base):
         except Exception as err:
             return False, str(err)
 
+    # 获取远端文件
+    def git_file(self, project, branch, file_path):
+        f = project.getProject().files.get(file_path=file_path, ref=branch)
+        return f
+
+    # 清空前端升级脚本
+    def clear_front_upgrade(self, projects, branch, path):
+        try:
+            name = "front-goserver"
+            if name not in projects:
+                raise Exception("当前工程不涉及升级接口文件")
+            project = self.projects.get(name)
+            file = self.git_file(project, branch, path)
+            if file is None:
+                raise Exception("升级接口文件不存在")
+            message = "{}-task-0000-{}".format(branch, "清空升级接口")
+            file.content = ''
+            file.save(branch=branch, commit_message=message)
+            return True, "\n工程【{}】清空升级接口完成".format(name)
+        except Exception as err:
+            return False, str(err)
+
     # 保护分支
     def protect_branch(self, branch, protect, projects=None):
         if projects is None:

@@ -176,7 +176,7 @@ class Task(Common):
 
     # 获取指定分支的版本号
     def get_branch_version(self, branch):
-        config_yaml = self.get_project_build_config(branch)
+        config_yaml = self.get_build_config(branch)
         version = {}
         for group, item in config_yaml.items():
             if type(item) is not dict:
@@ -188,8 +188,8 @@ class Task(Common):
         return version
 
     # 根据工程名称获取指定分支的远程文件
-    def get_project_build_config(self, branch_name):
-        file = self.project_build.getProject().files.get(file_path='config.yaml', ref=branch_name)
+    def get_build_config(self, branch_name):
+        file = self.git_file(self.project_build, branch_name, "config.yaml")
         if file is None:
             raise Exception("工程【build】分支【{}】不存在文件【config.yaml】".format(branch_name))
         config_yaml = yaml.load(file.decode(), Loader=yaml.FullLoader)
