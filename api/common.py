@@ -89,10 +89,8 @@ class Common(Base):
             projects.remove("all")
         elif "apps" in projects:
             projects.extend(["platform", "init-data"])
-            projects.remove("apps")
         elif "global" in projects:
             projects.extend(["platform", "init-data"])
-            projects.remove("global")
         try:
             cmd = "cd ../branch;python3 protectBranch.py {} {} {}".format(branch, protect, " ".join(projects))
             return self.exec(cmd, level_info=False)
