@@ -496,9 +496,10 @@ class Task(Common):
         shell = Shell(user_id, self.is_test, "master", branch)
         access = "none" if is_seal else "hotfix"
         for project in projects:
-            if project in ["apps", "global"]:
+            is_backend = project in ["apps", "global"]
+            if is_backend:
                 modules = [project] if len(modules) == 0 else ["all"]
-            if project not in self.projects.keys():
+            if project not in self.projects.keys() and not is_backend:
                 ret, msg = self.protect_git_branch(branch, project, access)
             else:
                 ret, msg = self.protect_branch(branch, access, [project])
