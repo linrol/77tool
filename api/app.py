@@ -100,9 +100,8 @@ def branch_seal():
     response = {}
     try:
         body = json.loads(request.data.decode('utf-8'))
-        ret, msg = Task().branch_seal(body)
-        response["ret"] = ret
-        response["msg"] = msg
+        response["ret"] = True
+        response["msg"] = Task().branch_seal(body)
     except Exception as err:
         logger.exception(err)
         response["ret"] = False
