@@ -2,15 +2,19 @@ import re
 from request import post_form, get
 from log import logger
 from redisclient import get_branch_mapping, hget, hmset
-date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
-rd_url = "http://10.0.144.51:5000"
 
 
 class Base:
+    stage = "stage"
+    master = "master"
+    stage_global = "stage-global"
+    date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
+    rd_url = "http://10.0.144.51:5000"
+
     # 获取分支前缀和时间
     def get_branch_date(self, branch):
-        if re.search(date_regex, branch):
-            date = re.search(date_regex, branch).group()
+        if re.search(self.date_regex, branch):
+            date = re.search(self.date_regex, branch).group()
             name = branch.replace(date, "")
             return name, date
         return branch, None
@@ -21,7 +25,7 @@ class Base:
             if user_name is None:
                 return None
             url = "{}/api/verify/duty/user_id?user_name={}"
-            body = get(url.format(rd_url, user_name))
+            body = get(url.format(self.rd_url, user_name))
             return body.get("data")[0].get("user_id")
         except Exception as err:
             logger.error("name2user error: {}".format(str(err)), exc_info=True)
@@ -33,7 +37,7 @@ class Base:
             return "LuoLin", "罗林"
         else:
             fixed_userid = hget("q7link_fixed_duty", end).split(",")
-            body = get("{}/api/verify/duty/users".format(rd_url))
+            body = get("{}/api/verify/duty/users".format(self.rd_url))
             role_duty_info = body.get("data").get(end)
             duty_user_ids = []
             duty_user_names = []
@@ -54,6 +58,21 @@ class Base:
         except Exception as err:
             logger.exception(err)
         return branches
+
+    # 判断是否为主干分支
+    def is_trunk(self, branch):
+        return branch in [self.stage, self.master]
+
+    # 删除本地分支
+    def delete_branch(self, branch, projects):
+        if branch is None:
+            return
+        if len(projects) < 1:
+            return
+        if self.is_trunk(branch):
+            return
+        for project in projects:
+            project.deleteLocalBranch(branch)
 
     def is_chinese(self, word):
         for ch in word:
@@ -89,7 +108,7 @@ class Base:
             return "-1"
 
     def save_branch_created(self, user_id, source, target, projects):
-        excludes = ["stage-global"]
+        excludes = [self.stage_global]
         if source in excludes:
             return
         created_value = "{}#{}#{}".format(source, user_id, ",".join(projects))

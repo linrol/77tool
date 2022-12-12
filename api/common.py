@@ -7,7 +7,6 @@ sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/root/data/sourcecode/qiqi/backend/branch-manage")
 sys.path.append("/data/backend/branch-manage")
 from branch import utils
-date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
 
 
 class Common(Base):
@@ -50,7 +49,7 @@ class Common(Base):
         cmd = 'cd ../branch;python3 checkout.py {} {}'.format(end, branch)
         return self.exec(cmd, True, False)
 
-    # 删除分支
+    # 删除远程分支
     def clear_branch(self, branch):
         try:
             cmd = 'cd ../branch;python3 checkanddeleted.py {} none'.format(branch)
@@ -144,14 +143,14 @@ class Common(Base):
                 # 班车推灰度0环境，后端stage-global合并至sprint，前端跳过
                 if not is_backend:
                     continue
-                branch = "stage-global"
+                branch = self.stage_global
             prod_clusters = {"集群3", "集群4", "集群5", "集群6", "集群7"}
             push_prod = len(set(clusters).intersection(prod_clusters)) > 2
             git_project = self.projects.get(project)
             source_branch = git_project.getBranch(branch)
             if is_sprint and source_branch is None and push_prod:
                 # 班车推生产环境，stage合并至master
-                branch_merge["stage"] = "master"
+                branch_merge[self.stage] = self.master
                 continue
             if source_branch is None:
                 error.append("分支【{}】不存在".format(branch))

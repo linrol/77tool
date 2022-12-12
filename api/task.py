@@ -228,7 +228,7 @@ class Task(Common):
         return ret, msg
 
     def clear_dirty_branch(self, user_id, branch_name, crop):
-        if branch_name in ('stage', 'master', 'master1'):
+        if self.is_trunk(branch_name):
             return
         ret, msg = Shell(self.is_test, user_id).clear_branch(branch_name)
         crop.send_text_msg(user_id, msg)
@@ -254,7 +254,7 @@ class Task(Common):
         for branch in git_branches:
             # 过滤特定分支
             branch_name = branch.name
-            if branch_name in ['stage', 'master', 'master1']:
+            if self.is_trunk(branch_name):
                 continue
             # 过滤三个月以上未提交的分支
             today = date.today()
@@ -293,7 +293,7 @@ class Task(Common):
 
     # 校正分支版本号
     def branch_correct(self, user_id, branch, project, crop):
-        shell = Shell(self.is_test, user_id, "master", branch)
+        shell = Shell(self.is_test, user_id, self.master, branch)
         params = "none other={}".format(project)
         _, msg = shell.build_package(params, "hotfix all", True)
         logger.info("branch correct [{}] [{}] ret[{}]".format(branch, project, msg))
@@ -303,8 +303,8 @@ class Task(Common):
     # 拆分项目的来源分支
     def split_multi_source(self, source, target, projects):
         ret = {source: projects.copy()}
-        over_source = "stage-global"
-        if source != 'stage':
+        over_source = self.stage_global
+        if source != self.stage:
             return ret
         branch = self.get_branch_created_source(over_source)
         if branch is None:
@@ -428,7 +428,7 @@ class Task(Common):
                 if self.has_release(source):
                     raise Exception("sprint deploy global,all release not move")
                 # sprint发布到global & 分支未封板，将global模块迁移至stage-global
-                target = "stage-global"
+                target = self.stage_global
                 params[2] = target
                 return self.send_branch_action("move", *params)
             return self.send_branch_action("merge", *params)
@@ -493,7 +493,7 @@ class Task(Common):
         response = {}
         user_id, branch, projects, is_seal = body.get("user_id"), body.get("branch"), body.get("projects"), body.get("is_seal") == "true"
         modules = []
-        shell = Shell(user_id, self.is_test, "master", branch)
+        shell = Shell(user_id, self.is_test, self.master, branch)
         access = "none" if is_seal else "hotfix"
         for project in projects:
             is_backend = project in ["apps", "global"]

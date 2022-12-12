@@ -41,7 +41,7 @@ class Backup(Common):
         self.hset('q7link-branch-created', self.target, created_value)
         print("基于【{}】创建分支【{}】工程【{}】成功".format(self.source, self.target,
                                                         created_projects))
-        if not self.clear or self.source in ['stage', 'master']:
+        if not self.clear or self.is_trunk(self.source):
             return
         executor = DeleteBranch(self.source, self.target, backup_projects, True)
         executor.execute()

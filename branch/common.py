@@ -169,6 +169,10 @@ class Common:
             return True
         return False
 
+    # 判断是否为主干分支
+    def is_trunk(self, branch):
+        return branch in ['stage', 'master']
+
     # 切换本地分支
     def checkout_branch(self, end, branch_name):
         cmd = 'cd ../branch;python3 checkout.py {} {}'.format(end, branch_name)

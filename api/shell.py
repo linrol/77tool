@@ -79,12 +79,12 @@ class Shell(Common):
 
     # 获取从来源分支
     def get_slave_source(self):
-        if self.source_branch in ["stage", "master"]:
+        if self.is_trunk(self.source_branch):
             return self.source_branch
-        branch = self.get_branch_created_source("stage-global")
+        branch = self.get_branch_created_source(self.stage_global)
         if branch in self.source_branch:
-            return "stage-global.stage"
-        return "stage"
+            return "{}.{}".format(self.stage_global, self.stage)
+        return self.stage
 
     # 创建分支
     def create_branch(self, fixed_version, projects):
@@ -167,7 +167,7 @@ class Shell(Common):
             source = self.source_branch + ".clear" if clear else self.source_branch
             cmd = 'cd ../branch;python3 merge.py {} {} {} {}'.format(end, source, self.target_branch, " ".join(projects))
             [_, merge_msg] = self.exec(cmd, True)
-            if self.target_branch in ["stage", "master"]:
+            if self.is_trunk(self.target_branch):
                 access_level = "none"
             else:
                 access_level = "hotfix"
@@ -202,17 +202,14 @@ class Shell(Common):
 
     # 重值值班助手环境，切换到master分支，删除本地的target分支
     def rest_branch_env(self, end="backend"):
-        self.checkout_branch('master', end)
-        if self.target_branch is not None:
-            if self.target_branch not in ['stage', 'master']:
-                for project in self.projects.values():
-                    project.deleteLocalBranch(self.target_branch)
-        if self.source_branch is not None:
-            if self.source_branch not in ['stage', 'master']:
-                for project in self.projects.values():
-                    project.deleteLocalBranch(self.source_branch)
-        if self.lock_value is not None:
-            self.lock.del_lock("lock", self.lock_value)
+        try:
+            self.checkout_branch(self.master, end)
+            self.delete_branch(self.target_branch, self.projects.values())
+            self.delete_branch(self.source_branch, self.projects.values())
+            if self.lock_value is not None:
+                self.lock.del_lock("lock", self.lock_value)
+        except Exception as err:
+            logger.exception(err)
 
     def commit_and_push(self, branch, protect):
         push_cmd = ''

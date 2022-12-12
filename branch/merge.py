@@ -37,9 +37,15 @@ class Merge(Common):
         for p, p_info in self.projects.items():
             branch_source = p_info.getBranch(self.source)
             if branch_source is None:
+                if self.is_front:
+                    print("ERROR:工程【{}】来源分支不存在".format(p, self.target))
+                    sys.exit(1)
                 continue
             branch_target = p_info.getBranch(self.target)
             if branch_target is None:
+                if self.is_front:
+                    print("ERROR:工程【{}】目标分支不存在".format(p, self.target))
+                    sys.exit(1)
                 continue
             path = p_info.getPath()
             cmd = "cd {};git merge-base origin/{} origin/{}".format(path, self.source, self.target)
@@ -82,7 +88,7 @@ class Merge(Common):
         self.push_front(wait_push) if self.is_front else self.push(wait_push)
         self.created(wait_created)
         self.tag()
-        if not self.clear or self.source in ['stage', 'master']:
+        if not self.clear or self.is_trunk(self.source):
             return
         delete_projects = None
         if self.is_front:
@@ -107,18 +113,18 @@ class Merge(Common):
             print("push error:{}".format(msg))
             sys.exit(1)
         for name in paths.keys():
-            print("工程【{}】分支【{}】合并至【{}】成功".format(name, self.source, self.target))
+            print("工程【{}】从分支【{}】合并至【{}】成功".format(name, self.source, self.target))
 
     def tag(self):
         try:
-            if self.target not in ["stage", "master"]:
-                return True, str("ignore")
+            if not self.is_trunk(self.target):
+                return True, str("目标分支非主干，无需打Tag")
             date = datetime.now().strftime("%Y%m%d%H%M")
             if self.is_front:
                 return True, self.create_front_tag()
             executor = CreateTag(self.target, date)
             executor.execute()
-            return True, str("success")
+            return True, str("后端工程打Tag成功")
         except Exception as err:
             return False, str(err)
 
@@ -138,10 +144,13 @@ class Merge(Common):
             p_info.createTag(tag_name, self.target)
             print('工程【{}】分支【{}】打Tag【{}】成功'.format(p_name, self.target,
                                                          tag_name))
-        return str("success")
+        return str("前端工程打Tag成功")
 
     def created(self, projects):
-        if len(projects) < 1 or self.source in ["stage", "master"]:
+        if len(projects) < 1:
+            return
+        if self.is_trunk(self.source):
+            # 从主干分支合并至下游分支时，不创建分支
             return
         executor = CreateBranch(self.target, self.source, projects, True)
         executor.execute()
