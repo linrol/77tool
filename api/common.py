@@ -110,8 +110,8 @@ class Common(Base):
                 push_access = utils.VISIBILITY_PRIVATE
             else:
                 raise Exception("分支保护不支持的权限参数")
-            _p = self.projects.get("parent").getGl().projects.list(search=project)
-            _p_b = _p.protectedbranches.get(branch)
+            _p_list = self.projects.get("parent").getGl().projects.list(search=project)
+            _p_b = _p_list.get(0).protectedbranches.get(branch)
             _p_b.delete()
             _p_b.create({
                 'name': branch,
