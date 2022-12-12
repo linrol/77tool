@@ -490,25 +490,25 @@ class Task(Common):
         return task_id
 
     def branch_seal(self, body):
-        user_id, branch, project_list, is_seal = body.get("user_id"), body.get("branch"), body.get("projects"), body.get("is_seal") == "true"
-        end = self.get_project_end(project_list)
-        is_front = end in ["front"]
+        response = {}
+        user_id, branch, projects, is_seal = body.get("user_id"), body.get("branch"), body.get("projects"), body.get("is_seal") == "true"
+        modules = []
         shell = Shell(user_id, self.is_test, "master", branch)
         access = "none" if is_seal else "hotfix"
-        if is_front:
-            return shell.protect_branch(branch, access, project_list)
-        # self.get_project('parent').getGl().projects.list(search=self.__name)
-        # 后端构建发布包操作
-        if not is_seal:
-            return True, "分支保护取消成功，请后端值班开发手动调整版本号"
-        is_build = body.get("is_build", "") == 'true'
-        modules = []
-        if len(project_list) == 1:
-            modules.append(project_list[0])
-        elif len(set(project_list).intersection({"apps", "global"})):
-            modules.append("all")
+        for project in projects:
+            if project in ["apps", "global"]:
+                modules = [project] if len(modules) == 0 else ["all"]
+            if project not in self.projects.keys():
+                ret, msg = self.protect_git_branch(branch, project, access)
+            else:
+                ret, msg = self.protect_branch(branch, access, [project])
+            response[project] = {"ret": ret, "msg": msg}
         front_version = body.get("front_version", "").strip()
         if len(front_version) > 0:
             modules.append("front-apps=reimburse:{}".format(front_version))
-        access += " {}".format(modules[0])
-        return shell.build_package(" ".join(modules), access, is_build)
+        if is_seal and len(modules) > 0:
+            # 后端封版，模块包含apps，global则构建发布包
+            access += " " + modules[0]
+            is_build = body.get("is_build", "") == 'true'
+            shell.build_package(" ".join(modules), access, is_build)
+        return response
