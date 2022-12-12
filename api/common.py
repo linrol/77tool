@@ -97,6 +97,35 @@ class Common(Base):
         except Exception as err:
             return False, str(err)
 
+    # 保护分支(直接调用git)
+    def protect_git_branch(self, branch, project, access):
+        try:
+            tmp_msg = ""
+            if access == "hotfix":
+                mr_access = utils.MAINTAINER_ACCESS
+                push_access = utils.VISIBILITY_PRIVATE
+                tmp_msg = "取消"
+            elif access == "none":
+                mr_access = utils.VISIBILITY_PRIVATE
+                push_access = utils.VISIBILITY_PRIVATE
+            else:
+                raise Exception("分支保护不支持的权限参数")
+            _p = self.projects.get("parent").getGl().projects.list(search=project)[0]
+            _p_list = _p.protectedbranches
+            try:
+                _p_b = _p_list.get(branch).delete()
+            except Exception as err:
+                logger.warn(err)
+            _p_list.create({
+                'name': branch,
+                'merge_access_level': mr_access,
+                'push_access_level': push_access
+            })
+            return True, "工程【{}】分支【{}】{}保护成功".format(project, branch, tmp_msg)
+        except Exception as err:
+            logger.exception(err)
+            return False, str(err)
+
     # 获取合并代码的分支
     def get_merge_branch(self, branches, clusters, project):
         duty_branches = self.get_duty_branches()
