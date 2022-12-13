@@ -10,6 +10,9 @@ class Base:
     stage_global = "stage-global"
     date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
     rd_url = "http://10.0.144.51:5000"
+    project_category = {}
+    category_mapping = {"global": ['framework', 'global-apps', 'global-apps-api'],
+                        "apps": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api']}
 
     # 获取分支前缀和时间
     def get_branch_date(self, branch):

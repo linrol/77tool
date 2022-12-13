@@ -100,7 +100,23 @@ def branch_seal():
     response = {}
     try:
         body = json.loads(request.data.decode('utf-8'))
-        return Task().branch_seal(body)
+        response = Task().branch_seal(body)
+    except Exception as err:
+        logger.exception(err)
+        response["ret"] = False
+        response["msg"] = str(err)
+    return jsonify(response)
+
+
+@app.route("/branch/release/check", methods=["POST"])
+def branch_release_check():
+    response = {}
+    try:
+        body = json.loads(request.data.decode('utf-8'))
+        branch = body.get("branch")
+        projects = body.get("projects")
+        response["ret"] = True
+        response["msg"] = Task().release_check(branch, projects)
     except Exception as err:
         logger.exception(err)
         response["ret"] = False

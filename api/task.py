@@ -182,6 +182,7 @@ class Task(Common):
             if type(item) is not dict:
                 continue
             for k, v in item.items():
+                self.project_category[k] = group
                 version[k] = v
         if len(version) < 1:
             raise Exception("根据分支【{}】获取工程版本号失败".format(branch))
@@ -513,3 +514,19 @@ class Task(Common):
             is_build = body.get("is_build", "") == 'true'
             shell.build_package(" ".join(modules), access, is_build)
         return response
+
+    # 检查是否为发布包
+    def release_check(self, branch, projects):
+        for project in projects:
+            if project not in ["apps", "global"]:
+                continue
+            check_categories = self.category_mapping.get(project)
+            branch_versions = self.get_branch_version(branch)
+            for p, v in branch_versions.items():
+                category = self.project_category.get(p)
+                if category not in check_categories:
+                    continue
+                if "SNAPSHOT" not in v:
+                    continue
+                raise Exception("工程【{}】还未构建发布包，当前版本号【{}】".format(p, v))
+        return "发布包版本号检查通过"
