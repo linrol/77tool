@@ -109,13 +109,20 @@ class Common(Base):
                 push_access = utils.VISIBILITY_PRIVATE
             else:
                 raise Exception("分支保护不支持的权限参数")
-            _p = self.projects.get("parent").getGl().projects.list(search=project)[0]
-            _p_list = _p.protectedbranches
+            _p_list = self.projects.get("parent").getGl().projects.list(search=project)
+            _p = None
+            for temp in _p_list:
+                if temp.name == project:
+                    _p = temp
+                    break
+            if _p is None:
+                raise Exception("工程【】在gitlab未找到".format(project))
+            _protect_list = _p.protectedbranches
             try:
-                _p_b = _p_list.get(branch).delete()
+                _p_b = _protect_list.get(branch).delete()
             except Exception as err:
                 logger.warn(err)
-            _p_list.create({
+            _protect_list.create({
                 'name': branch,
                 'merge_access_level': mr_access,
                 'push_access_level': push_access
