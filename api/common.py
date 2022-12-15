@@ -109,7 +109,7 @@ class Common(Base):
                 push_access = utils.VISIBILITY_PRIVATE
             else:
                 raise Exception("分支保护不支持的权限参数")
-            _p_list = self.projects.get("parent").getGl().projects.list(search=project)
+            _p_list = self.projects.get("parent").getGl().projects.list(search=project, min_access_level=40)
             _p = None
             for temp in _p_list:
                 if temp.name == project:
