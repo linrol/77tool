@@ -39,7 +39,7 @@ class Shell(Common):
             return False, msg
         if opened_mr is not None:
             return True, opened_mr.web_url
-        mr = self.project_init_data.createMrRequest(temp_branch, branch, title, assignee)
+        mr = self.project_init_data.createMr(temp_branch, branch, title, assignee)
         append("q7link-mr-log", mr_key, mr.web_url.rsplit("/", 1)[1])
         return True, mr.web_url
 

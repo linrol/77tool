@@ -284,7 +284,7 @@ class ProjectInfo():
       return branchs
 
   # 创建合并
-  def createMrRequest(self, source, target, title, assignee):
+  def createMr(self, source, target, title, assignee):
     data = {
     'source_branch': source,
     'target_branch': target,
@@ -295,6 +295,18 @@ class ProjectInfo():
     if member is not None:
       data['assignee_id'] = member.id
     return self.getProject().mergerequests.create(data)
+
+  # 接受合并
+  def acceptMr(self, mr):
+    project_full = mr.references.get("full").split("!")[0]
+    _, project = project_full.rsplit("/", 1)
+    source = mr.source_branch
+    target = mr.target_branch
+    if mr.merged_at is not None or mr.merged_by is not None:
+      raise Exception("工程【】从【】已合并至【】，请不要重复合并", project, source, target)
+    if mr.has_conflicts or mr.merge_status != "can_be_merged":
+      raise Exception("工程【】从【】合并至【】存在冲突", project, source, target)
+    return mr.merge()
 
   # 获取项目成员
   def getProjectMember(self, query):
