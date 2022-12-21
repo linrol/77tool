@@ -395,3 +395,14 @@ temp30:
     multiList: X0S2JU50K7W0007
     uiconfig: X0S2JU50K7W0007
     reset: X0S2JU50K7W0007
+
+test-tx-1:
+  host: postgres.test-tx-1.e7link.com
+  port: 5432
+  user: postgres
+  pwd: stet44{czars
+  branch: feature-purchase-invoice
+  tenantId:
+    multiList: X0S2JU50K7W0007
+    uiconfig: X0S2JU50K7W0007
+    reset: X0S2JU50K7W0007
