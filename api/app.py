@@ -129,7 +129,7 @@ def branch_release_check():
 def job_check_version():
     cur_time = datetime.datetime.now()
     branch = 'sprint' + cur_time.strftime('%Y%m%d')
-    Task().check_version(branch, crop)
+    Task(True).check_version(branch, crop)
 
 
 @scheduler.task('interval', id='job_mr_request_notify', seconds=60,
