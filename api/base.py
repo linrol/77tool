@@ -11,7 +11,8 @@ class Base:
     stage_global = "stage-global"
     date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
     rd_url = "http://10.0.144.51:5000"
-    group_web_hook_url = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=f28f65f5-c28d-46e5-8006-5f777f02dc71"
+    web_hook = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=f28f65f5-c28d-46e5-8006-5f777f02dc71"
+    backend_web_hook = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=6bc35c7b-c884-4707-98ba-722dae243d1f"
     project_category = {}
     category_mapping = {"global": ['framework', 'global-apps', 'global-apps-api'],
                         "apps": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api']}
@@ -127,7 +128,7 @@ class Base:
         return created_value.split("#")[0]
 
     # 发送群消息通知
-    def send_group_notify(self, source, target, modules, ret, user):
+    def send_group_notify(self, source, target, modules, ret, user, end):
         try:
             ret_msg = "成功" if ret == 0 else "失败（分支代码存在冲突需手动合并）"
             content = msg_content["merge_branch_result"]
@@ -136,7 +137,9 @@ class Base:
                    "text": {
                        "content": content.format(source, target, module_str,
                                                  ret_msg, user)}}
-            post(self.group_web_hook_url, msg)
+            post(self.web_hook, msg)
+            if end == "backend":
+                post(self.backend_web_hook, msg)
         except Exception as err:
             logger.exception(err)
             return "-1"

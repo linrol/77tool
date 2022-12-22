@@ -174,7 +174,7 @@ class Shell(Common):
             self.protect_branch(self.target_branch, access_level, projects)
             merge_msg = re.compile('WARNNING：.*目标分支.*已存在.*\n').sub('', merge_msg)
             merge_msg = re.compile('工程.*保护成功.*\n').sub('', merge_msg)
-            self.send_group_notify(self.source_branch, self.target_branch, projects, ret, user_name)
+            self.send_group_notify(self.source_branch, self.target_branch, projects, ret, user_name, end)
             return True, merge_msg
         except Exception as err:
             logger.exception(err)
