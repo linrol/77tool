@@ -131,9 +131,11 @@ class Base:
         try:
             ret_msg = "成功" if ret == 0 else "失败（分支代码存在冲突需手动合并）"
             content = msg_content["merge_branch_result"]
+            module_str = ",".join(modules)
             msg = {"msgtype": "text",
-                   "text": content.format(source, target, ",".join(modules),
-                                          ret_msg, user)}
+                   "text": {
+                       "content": content.format(source, target, module_str,
+                                                 ret_msg, user)}}
             post(self.group_web_hook_url, msg)
         except Exception as err:
             logger.exception(err)
