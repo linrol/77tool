@@ -157,7 +157,7 @@ class Shell(Common):
         finally:
             executor.submit(self.rest_branch_env)
 
-    def merge_branch(self, end, projects, clear):
+    def merge_branch(self, end, projects, clear, user_name):
         try:
             if end == "backend":
                 projects = []
@@ -166,7 +166,7 @@ class Shell(Common):
             self.protect_branch(self.target_branch, 'release', projects)
             source = self.source_branch + ".clear" if clear else self.source_branch
             cmd = 'cd ../branch;python3 merge.py {} {} {} {}'.format(end, source, self.target_branch, " ".join(projects))
-            [_, merge_msg] = self.exec(cmd, True)
+            [ret, merge_msg] = self.exec(cmd, True)
             if self.is_trunk(self.target_branch):
                 access_level = "none"
             else:
@@ -174,6 +174,7 @@ class Shell(Common):
             self.protect_branch(self.target_branch, access_level, projects)
             merge_msg = re.compile('WARNNING：.*目标分支.*已存在.*\n').sub('', merge_msg)
             merge_msg = re.compile('工程.*保护成功.*\n').sub('', merge_msg)
+            self.send_group_notify(self.source_branch, self.target_branch, projects, ret, user_name)
             return True, merge_msg
         except Exception as err:
             logger.exception(err)

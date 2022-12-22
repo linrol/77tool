@@ -200,7 +200,7 @@ class Handler(Base):
                 end = self.get_project_end(projects)
                 clear = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
             shell = Shell(self.user_id, self.is_test, source, target)
-            _, ret = shell.merge_branch(end, projects, clear)
+            _, ret = shell.merge_branch(end, projects, clear, self.user_name)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(ret))
             return ret

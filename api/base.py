@@ -1,7 +1,8 @@
 import re
-from request import post_form, get
+from request import post_form, get, post
 from log import logger
 from redisclient import get_branch_mapping, hget, hmset
+from wxmessage import msg_content
 
 
 class Base:
@@ -10,6 +11,7 @@ class Base:
     stage_global = "stage-global"
     date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
     rd_url = "http://10.0.144.51:5000"
+    group_web_hook_url = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=f28f65f5-c28d-46e5-8006-5f777f02dc71"
     project_category = {}
     category_mapping = {"global": ['framework', 'global-apps', 'global-apps-api'],
                         "apps": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api']}
@@ -123,3 +125,17 @@ class Base:
         if created_value is None:
             return None
         return created_value.split("#")[0]
+
+    # 发送群消息通知
+    def send_group_notify(self, source, target, modules, ret, user):
+        try:
+            ret_msg = "成功" if ret == 0 else "失败（分支代码存在冲突需手动合并）"
+            content = msg_content["merge_branch_result"]
+            msg = {"msgtype": "text",
+                   "text": content.format(source, target, ",".join(modules),
+                                          ret_msg, user)}
+            post(self.group_web_hook_url, msg)
+        except Exception as err:
+            logger.exception(err)
+            return "-1"
+
