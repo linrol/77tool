@@ -130,15 +130,15 @@ class Base:
     # 发送群消息通知
     def send_group_notify(self, source, target, modules, ret, user, end):
         try:
-            ret_msg = "成功" if ret == 0 else "失败（分支代码存在冲突需手动合并）"
-            content = msg_content["merge_branch_result"]
-            module_str = ",".join(modules)
-            msg = {"msgtype": "text",
-                   "text": {
-                       "content": content.format(source, target, module_str,
-                                                 ret_msg, user)}}
+            is_backend = end == "backend"
+            ret_msg = "成功" if ret else "失败（分支代码存在冲突需手动合并）"
+            content_template = msg_content["merge_branch_result"]
+            module_str = "apps,global" if is_backend else ",".join(modules)
+            content = content_template.format(source, target, module_str,
+                                              ret_msg, user)
+            msg = {"msgtype": "text", "text": {"content": content}}
             post(self.web_hook, msg)
-            if end == "backend":
+            if is_backend:
                 post(self.backend_web_hook, msg)
         except Exception as err:
             logger.exception(err)
