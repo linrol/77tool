@@ -32,10 +32,10 @@ class GenVersion(Common):
         self.fixed_version = version
         self.source = source
         self.target = target
-        self.project_names = self.project_convert(project_names)
         self.source_version = self.get_branch_version(source)
+        self.target_version = self.get_branch_version(target)
+        self.project_names = self.project_convert(project_names)
         if self.fixed_version is None:
-            self.target_version = self.get_branch_version(target)
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
             self.weights = self.hgetall("q7link-branch-weight")
@@ -48,7 +48,7 @@ class GenVersion(Common):
             is_platform = name in project_platform
             if is_platform:
                 name = "framework"
-                framework_version = self.source_version.get(name)
+                framework_version = self.target_version.get(name)
                 if self.fixed_version is not None:
                     if not self.is_release(framework_version):
                         continue

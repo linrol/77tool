@@ -149,6 +149,8 @@ class Common:
 
     # 更新版本号
     def update_build_version(self, branch_name, project_versions):
+        if len(project_versions) < 1:
+            return
         self.project_build.checkout(branch_name)
         path = '../../apps/build/config.yaml'
         config_path = os.path.join(os.curdir, path).replace("\\", "/")
