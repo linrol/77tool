@@ -177,3 +177,23 @@ class Common:
     def checkout_branch(self, end, branch_name):
         cmd = 'cd ../branch;python3 checkout.py {} {}'.format(end, branch_name)
         return subprocess.getstatusoutput(cmd)
+
+    # 版本号比较
+    def equals_version(self, vs1, vs2):
+        if vs1 is None or vs2 is None:
+            return False
+        if len(vs1) != len(vs2):
+            return False
+        for v1, v2 in zip(vs1, vs2):
+            if v1 != v2:
+                return False
+        return True
+
+    # 判断版本号是否为布包版
+    def is_release(self, versions):
+        for v in versions:
+            if "SNAPSHOT" not in v:
+                continue
+            return False
+        return True
+

@@ -7,10 +7,10 @@ from checkVersion import CheckVersion
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 
-project_framework = ["app-build-plugins", "app-common", "baseapp-api",
-                     "common-base", "common-base-api", "graphql-api",
-                     "graphql-impl", "json-schema-plugin", "mbg-plugins",
-                     "metadata-api", "metadata-impl", "sql-parser"]
+project_platform = ["app-build-plugins", "app-common", "baseapp-api",
+                    "common-base", "common-base-api", "graphql-api",
+                    "graphql-impl", "json-schema-plugin", "mbg-plugins",
+                    "metadata-api", "metadata-impl", "sql-parser"]
 
 
 def usage():
@@ -45,8 +45,13 @@ class GenVersion(Common):
     def project_convert(self, project_names):
         result = set()
         for name in project_names:
-            if name in project_framework:
+            is_platform = name in project_platform
+            if is_platform:
                 name = "framework"
+                framework_version = self.source_version.get(name)
+                if self.fixed_version is not None:
+                    if not self.is_release(framework_version):
+                        continue
             result.add(name)
         if self.force and self.source not in ["stage-global"]:
             compare_dict = {self.target: True, self.source: False}
