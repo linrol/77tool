@@ -113,10 +113,8 @@ def branch_release_check():
     response = {}
     try:
         body = json.loads(request.data.decode('utf-8'))
-        branch = body.get("branch")
-        projects = body.get("projects")
         response["ret"] = True
-        response["msg"] = Task().release_check(branch, projects)
+        response["msg"] = Task().release_check(body)
     except Exception as err:
         logger.exception(err)
         response["ret"] = False
