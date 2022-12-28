@@ -49,10 +49,6 @@ class ProjectBranch:
       mergeAccessLevel = utils.MAINTAINER_ACCESS
       pushAccessLevel = utils.MAINTAINER_ACCESS
     elif self.access == 'hotfix' or self.access == 'emergency':
-      if projectName == 'build' or projectName == 'init-data':
-        mergeAccessLevel = utils.MAINTAINER_ACCESS
-        pushAccessLevel = utils.MAINTAINER_ACCESS
-      else:
         mergeAccessLevel = utils.MAINTAINER_ACCESS
         pushAccessLevel = utils.VISIBILITY_PRIVATE
     elif self.access == 'none':

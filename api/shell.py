@@ -229,7 +229,8 @@ class Shell(Common):
             return
         self.protect_branch(branch, 'release')
         self.exec(push_cmd.replace(';', '', 1), True, False)
-        self.protect_branch(branch, protect)
+        modules = None if len(protect.split(",")) < 2 else [protect.split(",")[1]]
+        self.protect_branch(branch, protect.split(",")[0], modules)
 
 
 

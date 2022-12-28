@@ -354,7 +354,7 @@ def get_build_dirt(msg_content):
     modules = [module]
     if len(front_version) > 0:
         modules.append("front-apps=reimburse:{}".format(front_version))
-    protect = "none {}".format(module)
+    protect = "none,{}".format(module)
     return branch_map.get('目标分支'), " ".join(modules), protect, is_build
 
 

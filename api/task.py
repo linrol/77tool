@@ -296,7 +296,7 @@ class Task(Common):
     def branch_correct(self, user_id, branch, project, crop):
         shell = Shell(self.is_test, user_id, self.master, branch)
         params = "none other={}".format(project)
-        _, msg = shell.build_package(params, "hotfix all", True)
+        _, msg = shell.build_package(params, "hotfix,all", True)
         logger.info("branch correct [{}] [{}] ret[{}]".format(branch, project, msg))
         crop.send_text_msg(user_id, msg)
         return msg
@@ -511,9 +511,9 @@ class Task(Common):
             modules.append("front-apps=reimburse:{}".format(front_version))
         if is_seal and len(modules) > 0:
             # 后端封版，模块包含apps，global则构建发布包
-            access += " " + modules[0]
+            protect = access + "," + modules[0]
             is_build = body.get("is_build", "") == 'true'
-            shell.build_package(" ".join(modules), access, is_build)
+            shell.build_package(" ".join(modules), protect, is_build)
         return response
 
     # 检查是否为发布包
