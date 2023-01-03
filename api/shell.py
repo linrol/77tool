@@ -117,14 +117,14 @@ class Shell(Common):
             executor.submit(self.rest_branch_env)
 
     # 创建前端分支
-    def create_front_branch(self, projects):
+    def create_front_branch(self, is_feature, projects):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             cmd = 'cd ../branch;python3 createBranch.py {}.stage {} {}'.format(self.source_branch, self.target_branch, " ".join(projects))
             [_, created_msg] = self.exec(cmd, True)
             self.save_branch_created(self.user_id, self.source_branch, self.target_branch, projects)
             [_, clear_upgrade] = self.clear_front_upgrade(projects, self.target_branch, "upgrade/release.json")
-            [_, protect_msg] = self.protect_branch(self.target_branch, 'hotfix', projects)
+            [_, protect_msg] = self.protect_branch(self.target_branch, 'd' if is_feature else 'hotfix', projects)
             return True, created_msg + clear_upgrade + "\n" + protect_msg
         except Exception as err:
             logger.exception(err)

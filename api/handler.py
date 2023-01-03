@@ -145,7 +145,8 @@ class Handler(Base):
             shell = Shell(req_id, self.is_test, source, target)
             end = self.get_project_end(projects)
             if end == "front":
-                _, ret = shell.create_front_branch(projects)
+                is_feature = fixed_version != "None"
+                _, ret = shell.create_front_branch(is_feature, projects)
             else:
                 _, ret = shell.create_branch(fixed_version, projects)
             # 发送消息通知
