@@ -142,7 +142,21 @@ class Base:
             post(self.web_hook, msg)
             if is_backend:
                 post(self.backend_web_hook, msg)
+            return True
         except Exception as err:
             logger.exception(err)
-            return "-1"
+            return False
+
+    # 代码合并后回调通知rd平台
+    def notify_rd(self, target, merge_msg):
+        try:
+            is_global = "identity" in merge_msg or "reconcile" in merge_msg
+            if not is_global:
+                return True
+            params = {"branch": target, "projects": ["backend/global"]}
+            url = "{}/api/verify/dev/branch-merge"
+            post(url.format(self.rd_url), params)
+        except Exception as err:
+            logger.exception(err)
+            return False
 

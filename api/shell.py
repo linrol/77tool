@@ -176,6 +176,7 @@ class Shell(Common):
             merge_msg = re.compile('WARNNING：.*目标分支.*已存在.*\n').sub('', merge_msg)
             merge_msg = re.compile('工程.*保护成功.*\n').sub('', merge_msg)
             self.send_group_notify(self.source_branch, self.target_branch, projects, ret, user_name, end)
+            self.notify_rd(self.target_branch, merge_msg)
             return True, merge_msg
         except Exception as err:
             logger.exception(err)

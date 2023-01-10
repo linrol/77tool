@@ -92,7 +92,7 @@ class Common(Base):
             projects.extend(["platform", "init-data"])
         try:
             cmd = "cd ../branch;python3 protectBranch.py {} {} {}".format(branch, protect, " ".join(projects))
-            return self.exec(cmd, level_info=True)
+            return self.exec(cmd, level_info=False)
         except Exception as err:
             return False, str(err)
 
