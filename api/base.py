@@ -117,12 +117,14 @@ class Base:
         excludes = [self.stage_global]
         if source in excludes:
             return
+        end = self.get_project_end(projects)
         created_value = "{}#{}#{}".format(source, user_id, ",".join(projects))
-        created_mapping = {target: created_value}
+        created_mapping = {end + "@" + target: created_value}
         hmset('q7link-branch-created', created_mapping)
 
-    def get_branch_created_source(self, target):
-        created_value = hget("q7link-branch-created", target)
+    def get_branch_created_source(self, end, target):
+        key = end + "@" + target
+        created_value = hget("q7link-branch-created", key)
         if created_value is None:
             return None
         return created_value.split("#")[0]

@@ -136,7 +136,8 @@ class Common(Base):
     def get_merge_branch(self, branches, clusters, project):
         duty_branches = self.get_duty_branches()
         branch_merge = {}
-        is_backend = self.get_project_end([project]) == "backend"
+        end = self.get_project_end([project])
+        is_backend = end == "backend"
         error = []
         for branch in branches:
             if self.is_chinese(branch):
@@ -162,7 +163,7 @@ class Common(Base):
             if source_branch is None:
                 error.append("分支【{}】不存在".format(branch))
                 continue
-            target = self.get_branch_created_source(branch)
+            target = self.get_branch_created_source(end, branch)
             if target is None:
                 error.append("分支【{}】未知的目标分支".format(branch))
                 continue

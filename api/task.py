@@ -307,7 +307,8 @@ class Task(Common):
         over_source = self.stage_global
         if source != self.stage:
             return ret
-        branch = self.get_branch_created_source(over_source)
+        end = "backend"
+        branch = self.get_branch_created_source(end, over_source)
         if branch is None:
             return ret
         if target != branch:

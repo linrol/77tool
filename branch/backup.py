@@ -38,7 +38,8 @@ class Backup(Common):
         gl_user_name = self.get_gl_user_name()
         created_value = "{}#{}#{}".format(self.source, gl_user_name,
                                           created_projects)
-        self.hset('q7link-branch-created', self.target, created_value)
+        key = "backend" + "@" + self.target
+        self.hset('q7link-branch-created', key, created_value)
         print("基于【{}】创建分支【{}】工程【{}】成功".format(self.source, self.target,
                                                         created_projects))
         if not self.clear or self.is_trunk(self.source):

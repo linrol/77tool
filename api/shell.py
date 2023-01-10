@@ -81,7 +81,8 @@ class Shell(Common):
     def get_slave_source(self):
         if self.is_trunk(self.source_branch):
             return self.source_branch
-        branch = self.get_branch_created_source(self.stage_global)
+        end = "backend"
+        branch = self.get_branch_created_source(end, self.stage_global)
         if branch in self.source_branch:
             return "{}.{}".format(self.stage_global, self.stage)
         return self.stage
