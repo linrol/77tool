@@ -83,7 +83,7 @@ class Shell(Common):
             return self.source_branch
         end = "backend"
         branch = self.get_branch_created_source(end, self.stage_global)
-        if branch in self.source_branch:
+        if branch is not None and branch in self.source_branch:
             return "{}.{}".format(self.stage_global, self.stage)
         return self.stage
 
