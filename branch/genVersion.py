@@ -2,6 +2,7 @@
 import sys
 import getopt
 import utils
+import re
 from common import Common
 from checkVersion import CheckVersion
 from datetime import datetime, timedelta
@@ -219,7 +220,10 @@ class GenVersion(Common):
             replace_version = {}
             for project_name in self.project_names:
                 if self.fixed_version is not None:
-                    replace_version[project_name] = self.fixed_version
+                    source_version = self.source_version.get(project_name)
+                    version = re.compile("\\d.\\d").sub(source_version[0],
+                                                         self.fixed_version)
+                    replace_version[project_name] = version
                     continue
                 version = self.get_replace_version(project_name)
                 if version is None:
