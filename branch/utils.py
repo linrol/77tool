@@ -189,7 +189,7 @@ class ProjectInfo():
   #获取tag，如果未指定tag，则获取最新tag
   def getTag(self, tagName=None):
     if tagName is None or len(tagName) == 0:
-      tags = self.getProject().tags.list();
+      tags = self.getProject().tags.list()
       if len(tags) > 0:
         return tags[0]
       else:
@@ -240,6 +240,16 @@ class ProjectInfo():
       if result != 0:
         print(msg)
         return False
+      return True
+
+  # 检出指定分支
+  def checkoutTag(self, tagName):
+    self.fetch()
+    [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git checkout ' + tagName)
+    if result != 0:
+      print("WARNNING: 在路径【{}】检出分支【{}】失败！！！".format(self.__path, tagName))
+      return False
+    else:
       return True
 
   # 将分支分类
