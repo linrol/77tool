@@ -81,7 +81,7 @@ class Task(Common):
             error = "目标分支非值班系列【{}】{}"
             tips = tips.format(self.gen_feature_version(source_branch))
             raise Exception(error.format(",".join(match_target), tips))
-        week_later = (datetime.now() + timedelta(days=-7)).strftime("%Y%m%d")
+        week_later = (datetime.now() + timedelta(days=-15)).strftime("%Y%m%d")
         if int(week_later) > int(target_date):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
 
