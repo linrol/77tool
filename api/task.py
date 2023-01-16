@@ -424,7 +424,7 @@ class Task(Common):
         try:
             user_ids, _ = self.get_duty_info(self.is_test)
             source, target = self.get_merge_branch(branches, clusters, "build")
-            is_global = "global" in modules and "global" in clusters
+            is_global = "global" in modules
             params = [user_ids, source, target, modules, clusters, crop]
             if is_global and "sprint" in source:
                 if self.has_release(source):
