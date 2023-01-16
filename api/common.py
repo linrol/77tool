@@ -146,13 +146,14 @@ class Common(Base):
             if len(duty_branches) > 0 and branch_prefix not in duty_branches:
                 continue
             is_sprint = "sprint" in branch
-            push_stage0 = "集群0" in clusters
+            push_stage0 = "宁夏灰度集群0" in clusters
             if is_sprint and push_stage0:
                 # 班车推灰度0环境，后端stage-global合并至sprint，前端跳过
                 if not is_backend:
                     continue
                 branch = self.stage_global
-            prod_clusters = {"集群3", "集群4", "集群5", "集群6", "集群7"}
+            prod_clusters = {"宁夏生产集群3", "宁夏生产集群4", "宁夏生产集群5", "宁夏生产集群6",
+                             "宁夏生产集群7"}
             push_prod = len(set(clusters).intersection(prod_clusters)) > 2
             git_project = self.projects.get(project)
             source_branch = git_project.getBranch(branch)
@@ -161,14 +162,14 @@ class Common(Base):
                 branch_merge[self.stage] = self.master
                 continue
             if source_branch is None:
-                error.append("分支【{}】不存在".format(branch))
+                error.append("来源分支【{}】不存在".format(branch))
                 continue
             target = self.get_branch_created_source(end, branch)
             if target is None:
                 error.append("分支【{}】未知的目标分支".format(branch))
                 continue
             if git_project.getBranch(target) is None:
-                error.append("分支【{}】不存在".format(branch))
+                error.append("目标分支【{}】不存在".format(target))
                 continue
             is_merge = git_project.checkMerge(branch, target)
             if (not is_backend) and is_merge:
