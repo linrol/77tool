@@ -25,7 +25,6 @@ class Checout:
       sys.exit(1)
 
     projectMap = {}
-
     if "tag@" in self.branchNames:
       project_build = projectInfoMap.get("build")
       project_parent = projectInfoMap.get("parent")
@@ -92,9 +91,8 @@ class Checout:
     if project_name == "build":
       tag_name = build_tag
     else:
-      tag_name = project_tags.get(project_name, "")
-    project_tag = projectInfo.getTag(tag_name)
-    if project_tag is not None:
+      tag_name = project_tags.get(project_name)
+    if tag_name is not None and projectInfo.getTag(tag_name) is not None:
       projectInfo.checkoutTag(tag_name)
       print('工程【{}】检出标签【{}】成功'.format(projectInfo.getName(), tag_name))
       return projectInfo
