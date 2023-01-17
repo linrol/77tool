@@ -5,6 +5,7 @@ import gitlab
 import sys
 import subprocess
 import re
+import xml.dom.minidom
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
@@ -397,6 +398,20 @@ def print_list(title, list):
 def camel(s):
   s = re.sub(r"(\s|_|-)+", " ", s).title().replace(" ", "")
   return s[0].lower() + s[1:]
+
+def yaml_parse(bytes):
+  return yaml.load(bytes, Loader=yaml.FullLoader)
+
+def pom_parse(bytes):
+  return xml.dom.minidom.parseString(bytes)
+
+def get_project_file(project, branch, file_path, parser):
+  f = project.getProject().files.get(file_path=file_path, ref=branch)
+  if f is None:
+    raise Exception("工程【{}】分支【{}】不存在文件【{}】".format(project,
+                                                            branch,
+                                                            file_path))
+  return parser(f.decode())
 
 if __name__ == "__main__":
   print(camel("project-api"))
