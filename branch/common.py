@@ -1,18 +1,7 @@
 import os
-import yaml
 import ruamel.yaml
 import redis
 import subprocess
-
-
-def get_project_branch_file(project, branch_name, file_path):
-    f = project.getProject().files.get(file_path=file_path, ref=branch_name)
-    if f is None:
-        raise Exception(
-            "工程【{}】分支【{}】不存在文件【{}】".format(project, branch_name,
-                                                    file_path))
-    config_yaml = yaml.load(f.decode(), Loader=yaml.FullLoader)
-    return config_yaml
 
 
 class Node(object):
@@ -132,8 +121,9 @@ class Common:
         project_build_branch = self.project_build.getBranch(branch)
         if project_build_branch is None:
             raise Exception("工程【build】不存在分支【{}】".format(branch))
-        config_yaml = get_project_branch_file(self.project_build, branch,
-                                                   'config.yaml')
+        yaml_parse = self.utils.yaml_parse
+        config_yaml = self.utils.get_project_file(self.project_build, branch,
+                                                  'config.yaml', yaml_parse)
         branch_version = {}
         for group, item in config_yaml.items():
             if type(item) is dict:
