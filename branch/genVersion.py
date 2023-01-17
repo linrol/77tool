@@ -128,7 +128,7 @@ class GenVersion(Common):
         return factory
 
     def get_replace_version(self, project_name):
-        if self.target_name in ['sprint']:
+        if self.target_name in ['sprint', 'release']:
             factory = self.factory_week()
         else:
             factory = self.factory_day()
