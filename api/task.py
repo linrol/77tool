@@ -433,7 +433,8 @@ class Task(Common):
                 target = self.stage_global
                 params[2] = target
                 return self.send_branch_action("move", *params)
-            return self.send_branch_action("merge", *params)
+            task_id = self.send_branch_action("merge", *params)
+            return task_id
         except Exception as err:
             logger.exception(err)
             return str(err)
@@ -535,3 +536,9 @@ class Task(Common):
                     continue
                 raise Exception("工程【{}】还未构建发布包，当前版本号【{}】".format(p, v))
         return "发布包版本号检查通过"
+
+    # 对比两个分支的版本号
+    def compare_branch_version(self, left, right):
+        left_versions = self.get_branch_version(left)
+        right_versions = self.get_branch_version(right)
+        return left_versions == right_versions
