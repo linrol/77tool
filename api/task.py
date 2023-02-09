@@ -1,7 +1,6 @@
 import random
 import string
 import time
-import yaml
 import re
 from datetime import datetime, date, timedelta
 from log import logger
@@ -26,10 +25,23 @@ class Task(Common):
         project = self.get_project(project_name)
         return project.getBranch(branch)
 
-    def get_feature_branch(self, source_branch, target_branch, crop):
+    def get_feature_branch(self, source_branch, target_branch):
         feature_info = hget("q7link-branch-feature", target_branch)
         if feature_info is None:
-            return None
+            sql = "select * from zt_project where code = '{}'".format(target_branch)
+            zt_project_info = self.zt_fetchone(sql)
+            if zt_project_info is None:
+                return None
+            account = zt_project_info.get("app").replace(",", "")
+            sql = "select * from zt_user where account = '{}'".format(account)
+            zt_user_info = self.zt_fetchone(sql)
+            if zt_project_info is None:
+                return None
+            leader_user = zt_user_info.get("realname")
+            version = self.gen_feature_version(source_branch)
+            self.save_branch_feature(target_branch, source_branch, version,
+                                     leader_user)
+            return version, self.name2userid(leader_user), leader_user
         source = feature_info.split("@")[0]
         if source != source_branch:
             raise Exception("ERROR: 特性分支初始化的来源分支必须为【{}】".format(source))
@@ -88,7 +100,7 @@ class Task(Common):
     # 创建拉值班分支的任务
     def new_branch_task(self, crop, req_id, req_name, duty_id, duty_name,
         source, target, project_names):
-        feature_info = self.get_feature_branch(source, target, crop)
+        feature_info = self.get_feature_branch(source, target)
         if feature_info is not None:
             return self.new_feature_branch_task(crop, req_id, req_name, source,
                                                 target, project_names,
@@ -174,27 +186,9 @@ class Task(Common):
                 ret[k] = "({},{})".format(left, v)
         return ret
 
-    # 获取指定分支的版本号
-    def get_branch_version(self, branch):
-        config_yaml = self.get_build_config(branch)
-        version = {}
-        for group, item in config_yaml.items():
-            if type(item) is not dict:
-                continue
-            for k, v in item.items():
-                self.project_category[k] = group
-                version[k] = v
-        if len(version) < 1:
-            raise Exception("根据分支【{}】获取工程版本号失败".format(branch))
-        return version
 
-    # 根据工程名称获取指定分支的远程文件
-    def get_build_config(self, branch_name):
-        file = self.git_file(self.project_build, branch_name, "config.yaml")
-        if file is None:
-            raise Exception("工程【build】分支【{}】不存在文件【config.yaml】".format(branch_name))
-        config_yaml = yaml.load(file.decode(), Loader=yaml.FullLoader)
-        return config_yaml
+
+
 
     # 检查版本号
     def check_version(self, branch, crop):

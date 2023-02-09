@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import yaml
 from base import Base
 from log import logger
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
@@ -184,5 +185,26 @@ class Common(Base):
         for k, v in branch_merge.items():
             return k, v
 
+    # 获取指定分支的版本号
+    def get_branch_version(self, branch):
+        config_yaml = self.get_build_config(branch)
+        version = {}
+        for group, item in config_yaml.items():
+            if type(item) is not dict:
+                continue
+            for k, v in item.items():
+                self.project_category[k] = group
+                version[k] = v
+        if len(version) < 1:
+            raise Exception("根据分支【{}】获取工程版本号失败".format(branch))
+        return version
+
+    # 根据工程名称获取指定分支的远程文件
+    def get_build_config(self, branch_name):
+        file = self.git_file(self.project_build, branch_name, "config.yaml")
+        if file is None:
+            raise Exception("工程【build】分支【{}】不存在文件【config.yaml】".format(branch_name))
+        config_yaml = yaml.load(file.decode(), Loader=yaml.FullLoader)
+        return config_yaml
 
 

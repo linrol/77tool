@@ -276,16 +276,13 @@ class Handler(Base):
     def init_feature_branch(self):
         try:
             init_feature = get_init_feature_dirt(self.msg_content)
-            target = init_feature.get("目标分支")
             source = init_feature.get("来源分支")
-            prefix = Task().get_branch_version(source).get("framework")
-            last_version = ''.join(random.sample(string.ascii_letters, 6))
-            version = "{}.{}-SNAPSHOT".format(prefix.replace("-SNAPSHOT", ""),
-                                              last_version)
+            target = init_feature.get("目标分支")
+            version = Task().gen_feature_version(source)
             feature_version = init_feature.get("分支版本号", version)
             approve_user = init_feature.get("分支负责人")
-            value = "{}@{}@{}".format(source, feature_version, approve_user)
-            hmset("q7link-branch-feature", {target: value})
+            self.save_branch_feature(target, source, feature_version,
+                                     approve_user)
             self.crop.send_text_msg(self.user_id, "分支初始化成功，请重新发起拉分支请求")
             return "init branch[{}] success".format(target)
         except Exception as err:

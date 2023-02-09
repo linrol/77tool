@@ -38,7 +38,7 @@ class Checout:
       if result is not None:
         projectMap[result.getName()] = result
 
-    if close and len(projectMap) > 0:
+    if self.close and len(projectMap) > 0:
       closeGit.close_git(projectMap)
 
   #检查是否有分支，如果有则检出分支
