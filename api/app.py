@@ -130,8 +130,8 @@ def job_check_version():
     Task(True).check_version(branch, crop)
 
 
-# @scheduler.task('interval', id='job_mr_request_notify', seconds=60,
-#                 timezone='Asia/Shanghai')
+@scheduler.task('interval', id='job_mr_request_notify', seconds=60,
+                timezone='Asia/Shanghai', max_instances=4)
 def job_mr_request_notify():
     Task().send_mr_notify(crop)
 
