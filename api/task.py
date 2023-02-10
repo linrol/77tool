@@ -39,9 +39,9 @@ class Task(Common):
             account = zt_project_info.get("app").replace(",", "")
             sql = "select * from zt_user where account = '{}'".format(account)
             zt_user_info = self.zt_fetchone(sql)
-            if zt_project_info is None:
+            if zt_user_info is None:
                 return None
-            leader_user = zt_user_info.get("realname")
+            leader_user = zt_user_info.get("realname", None)
             version = self.gen_feature_version(source_branch)
             self.save_branch_feature(target_branch, source_branch, version,
                                      leader_user)
