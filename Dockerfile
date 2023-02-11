@@ -52,4 +52,4 @@ ENV LC_ALL zh_CN.UTF-8
 # run
 RUN mkdir -p /data/logs
 WORKDIR /data/backend/branch-manage/api/
-CMD git config --global user.email "backend-ci@77hub.com" && git config --global user.name "backend-ci" && service postgresql start && python3 app.py -p=8076 -i="wwcba5faed367cdeee" -s="d8x9pOUynLxggWIrxWecj9oupX59EwFH9teCkC9J1H4" -t="UNn2blWtjouEPUSeMsVS5A9eTjy5Z" -k="VpPjRfzYsddGOlSVJRVvUQeOaS6hjrAVYb3bobmWapw"
+CMD git config --global user.email "backend-ci@77hub.com" && git config --global user.name "backend-ci" && service postgresql start && python3 app.py -p=8049 -i="wwcba5faed367cdeee" -s="d8x9pOUynLxggWIrxWecj9oupX59EwFH9teCkC9J1H4" -t="UNn2blWtjouEPUSeMsVS5A9eTjy5Z" -k="VpPjRfzYsddGOlSVJRVvUQeOaS6hjrAVYb3bobmWapw"
