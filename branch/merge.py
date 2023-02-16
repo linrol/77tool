@@ -80,7 +80,7 @@ class Merge(Common):
                 continue
             path = project.getPath()
             if self.source == "stage" and self.target == "master":
-                option = "-X theirs"
+                option = "-X theirs -m 'merge {} into {} & accept {}'".format(self.source, self.target, self.source)
             else:
                 option = ""
             ret, merge_msg = subprocess.getstatusoutput('cd {};git merge {} origin/{}'.format(path, option, self.source))
