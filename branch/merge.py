@@ -79,7 +79,11 @@ class Merge(Common):
                 wait_created.append(name)
                 continue
             path = project.getPath()
-            ret, merge_msg = subprocess.getstatusoutput('cd {};git merge origin/{}'.format(path, self.source))
+            if self.source == "stage" and self.target == "master":
+                option = "-X theirs"
+            else:
+                option = ""
+            ret, merge_msg = subprocess.getstatusoutput('cd {};git merge {} origin/{}'.format(path, option, self.source))
             if ret != 0:
                 _, abort_msg = subprocess.getstatusoutput('cd {};git merge --abort'.format(path))
                 print("工程【{}】分支【{}】合并至分支【{}】失败【{}】".format(name, self.source, self.target, merge_msg))
