@@ -80,10 +80,10 @@ class Merge(Common):
                 continue
             path = project.getPath()
             if self.source == "stage" and self.target == "master":
-                option = "-X theirs -m 'merge {} into {} & accept {}'".format(self.source, self.target, self.source)
+                option = "-X theirs -m 'Merge branch {} into {} & accept {}' origin/{}".format(self.source, self.target, self.source, self.source)
             else:
-                option = ""
-            ret, merge_msg = subprocess.getstatusoutput('cd {};git merge {} origin/{}'.format(path, option, self.source))
+                option = "-m 'Merge branch {} into {}' origin/{} --no-ff".format(self.source, self.target, self.source)
+            ret, merge_msg = subprocess.getstatusoutput('cd {};git merge {}'.format(path, option))
             if ret != 0:
                 _, abort_msg = subprocess.getstatusoutput('cd {};git merge --abort'.format(path))
                 print("工程【{}】分支【{}】合并至分支【{}】失败【{}】".format(name, self.source, self.target, merge_msg))
