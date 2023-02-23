@@ -466,6 +466,8 @@ CREATE TABLE "baseapp_list_column"
     "colspan" INTEGER DEFAULT 0 NOT NULL,
     "prefix" VARCHAR(128) DEFAULT '',
     "suffix" VARCHAR(128) DEFAULT '',
+    "is_search" BOOLEAN DEFAULT false NOT NULL,
+    "search_match_type_id" VARCHAR(64),
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
