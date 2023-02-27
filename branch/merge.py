@@ -47,6 +47,11 @@ class Merge(Common):
                     print("ERROR:工程【{}】目标分支不存在".format(p, self.target))
                     sys.exit(1)
                 continue
+            if self.source == "stage" and self.target == "master":
+                continue
+            # title = "Merge branch {} into {}".format(self.source, self.target)
+            # if not p_info.checkConflicts(self.source, self.target, title):
+            #     continue
             path = p_info.getPath()
             cmd = "cd {};git merge-base origin/{} origin/{}".format(path, self.source, self.target)
             [ret, base_sha] = subprocess.getstatusoutput(cmd)
