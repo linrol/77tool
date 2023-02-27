@@ -5,6 +5,7 @@ import gitlab
 import sys
 import subprocess
 import re
+import time
 import xml.dom.minidom
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
@@ -306,6 +307,28 @@ class ProjectInfo():
     if member is not None:
       data['assignee_id'] = member.id
     return self.getProject().mergerequests.create(data)
+
+  def getMr(self, mr_iid):
+    return self.getProject().mergerequests.get(mr_iid)
+
+  # 检查合并冲突，借助gitlab的发起mr来判断
+  def checkConflicts(self, source, target, title):
+    mr = self.createMr(source, target, title, None)
+    elapsed = 0
+    while True:
+      mr = self.getMr(mr.iid)
+      status = mr.merge_status
+      if status == 'can_be_merged':
+        mr.delete()
+        return False
+      if status in ['cannot_be_merged', 'cannot_be_merged_recheck']:
+        mr.delete()
+        return True
+      if elapsed > 30:
+        mr.delete()
+        return True
+      elapsed += 3
+      time.sleep(3)
 
   # 接受合并
   def acceptMr(self, mr):
