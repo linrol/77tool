@@ -131,7 +131,8 @@ class Task(Common):
                                                                task_id,
                                                                priority,
                                                                target,
-                                                               project_str)
+                                                               project_str,
+                                                               False)
             # 发送值班人审核通知
             body = crop.send_template_card(duty_id, notify_duty)
             # 记录任务
@@ -156,7 +157,8 @@ class Task(Common):
                                                               task_id,
                                                               source,
                                                               target,
-                                                              project_str)
+                                                              project_str,
+                                                              True)
         # 发送分支负责人审核通知
         body = crop.send_template_card(approve_id, notify_approve)
         # 记录任务

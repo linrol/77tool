@@ -232,7 +232,7 @@ msg_content = {
             }
         ]
     },
-    "create_branch_task_response": "本次拉取分支的任务已发送到值班人：{}，请等待值班审批同意后将开始执行",
+    "create_branch_task_response": "本次创建分支的任务已发送到{}：{}，请等待值班审批同意后将开始执行",
     "mr_source": "{}\n您发起的工程：{} MR请求，已被{}合并！\n已触发独立编译任务ID:{}，请自行关注编译结果",
     "mr_target": "您收到来自{}的MR请求，请及时合并！\n标题：{}\n工程/分支：{}(分支{}合并到{})\n{}",
     "merge_branch_result": "【代码合并通知】\n来源分支：{}\n目标分支：{}\n合并模块：{}\n合并结果：{}\n操  作  人：{}"
@@ -358,7 +358,7 @@ def get_build_dirt(msg_content):
     return branch_map.get('目标分支'), " ".join(modules), protect, is_build
 
 
-def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
+def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names, is_feature_branch=False):
     task_info_list = [{
         "type": 3,
         "keyname": "申请人",
@@ -379,7 +379,7 @@ def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id
     msg_content["create_branch_task"]["task_id"] = task_id
     msg_content["create_branch_task"]["button_list"][0]["key"] = "deny@" + task_id
     msg_content["create_branch_task"]["button_list"][1]["key"] = "agree@" + task_id
-    return msg_content["create_branch_task"], str(msg_content["create_branch_task_response"].format(duty_user_name))
+    return msg_content["create_branch_task"], str(msg_content["create_branch_task_response"].format("特性分支负责人" if is_feature_branch else "值班分支负责人").format(duty_user_name))
 
 def build_change_branch_version_msg(task_id, source, target, project_info):
     task_info_list = [{
