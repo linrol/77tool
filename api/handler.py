@@ -191,7 +191,7 @@ class Handler(Base):
                 b_duty_id, b_name = self.get_duty_info(self.is_test, "backend")
                 if self.user_id not in f_duty_id + b_duty_id:
                     raise Exception("仅限当周值班人：{},{}操作".format(f_name, b_name))
-                end = "front" if self.user_id in f_duty_id else "backend"
+                end = "backend" if self.user_id in b_duty_id else "front"
                 source, target, projects, clear = get_merge_branch_dirt(self.msg_content)
                 self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等!")
             else:
