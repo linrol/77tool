@@ -32,11 +32,13 @@ class Task(Common):
             return None
         feature_info = hget("q7link-branch-feature", target_branch)
         if feature_info is None:
-            sql = "select * from zt_project where code = '{}'".format(target_branch)
+            sql = "select * from zt_project where code = '{}' and type='sprint'".format(target_branch)
             zt_project_info = self.zt_fetchone(sql)
             if zt_project_info is None:
                 return None
-            account = zt_project_info.get("app").replace(",", "")
+            app = zt_project_info.get("app")
+            pm = zt_project_info.get("PM")
+            account = (pm if (app is None or app.isspace()) else app).replace(",", "")
             sql = "select * from zt_user where account = '{}'".format(account)
             zt_user_info = self.zt_fetchone(sql)
             if zt_user_info is None:
