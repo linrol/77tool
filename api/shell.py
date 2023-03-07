@@ -32,11 +32,12 @@ class Shell(Common):
         hdel("q7link-mr-log", mr_key)
         return None, temp_branch
 
-    def create_mr(self, mr_key, opened_mr, temp_branch, branch, title, assignee):
+    def create_mr(self, mr_key, temp_branch, branch, title, assignee):
         cmd = 'cd {};git push origin {}'.format(self.project_init_data.getPath(), temp_branch)
         ret, msg = self.exec(cmd, level_info=False)
         if not ret:
             return False, msg
+        opened_mr, _ = self.get_open_mr_branch(mr_key, self.target_branch)
         if opened_mr is not None:
             return True, opened_mr.web_url
         mr = self.project_init_data.createMr(temp_branch, branch, title, assignee)
@@ -68,7 +69,7 @@ class Shell(Common):
             if not ret:
                 raise Exception(msg + "\n预制失败，请检查输出日志")
             mr_title = '<数据预置>前端多列表方案预置-{}'.format(self.user_id)
-            return self.create_mr(mr_key, opened_mr, temp_branch, self.target_branch, mr_title, mr_user)
+            return self.create_mr(mr_key, temp_branch, self.target_branch, mr_title, mr_user)
         except Exception as err:
             logger.exception(err)
             self.project_init_data.deleteRemoteBranch(temp_branch)
