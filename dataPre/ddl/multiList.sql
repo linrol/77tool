@@ -76,7 +76,7 @@ CREATE TABLE "baseapp_query_definition_group"
     "external_system_code" VARCHAR(128) DEFAULT '',
     "external_object_type" VARCHAR(128) DEFAULT '',
     "external_object_id" VARCHAR(128) DEFAULT '',
-    "title" VARCHAR(32) DEFAULT '',
+    "title" VARCHAR(64) DEFAULT '',
     "object_type" VARCHAR(64),
     "suppress_show_dialog" BOOLEAN DEFAULT false NOT NULL,
     "is_mobile" BOOLEAN DEFAULT false NOT NULL,
