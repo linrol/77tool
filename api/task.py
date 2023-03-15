@@ -329,11 +329,11 @@ class Task(Common):
 
     # 发送mr提醒通知
     def send_mr_notify(self, crop):
-        before_five_min = (datetime.now() - timedelta(minutes=600)).isoformat()
+        before_min = (datetime.now() - timedelta(minutes=180)).isoformat()
         group = self.get_project('parent').getGroup('backend')
         # 发送待合并通知
-        opened_mr_list = group.mergerequests.list(state='opened',
-                                                  created_after=before_five_min)
+        opened_mr_list = group.mergerequests.list(state='opened', all=True,
+                                                  created_after=before_min)
         for mr in opened_mr_list:
             if mr.assignee is None:
                 continue
@@ -365,8 +365,8 @@ class Task(Common):
             hmset("q7link-branch-merge", {mr_key: assignee_name})
 
         # 发送已合并通知
-        merged_mr_list = group.mergerequests.list(state='merged',
-                                                  created_after=before_five_min)
+        merged_mr_list = group.mergerequests.list(state='merged', all=True,
+                                                  created_after=before_min)
         for mr in merged_mr_list:
             if mr.merged_by is None:
                 continue
