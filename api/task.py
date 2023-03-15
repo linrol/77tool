@@ -329,7 +329,7 @@ class Task(Common):
 
     # 发送mr提醒通知
     def send_mr_notify(self, crop):
-        before_min = (datetime.now() - timedelta(minutes=180)).isoformat()
+        before_min = (datetime.now() - timedelta(minutes=600)).isoformat()
         group = self.get_project('parent').getGroup('backend')
         # 发送待合并通知
         opened_mr_list = group.mergerequests.list(state='opened', all=True,
