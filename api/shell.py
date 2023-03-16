@@ -22,7 +22,7 @@ class Shell(Common):
 
     # 获取目标分支+当前人是否还存在未合并的mr分支
     def get_open_mr_branch(self, mr_key, branch):
-        temp_branch = branch + str(int(time.time()))
+        temp_branch = branch + "_" + str(int(time.time()))
         mr_ids = hget("q7link-mr-log", mr_key)
         if mr_ids is None:
             return None, temp_branch
