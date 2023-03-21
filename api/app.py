@@ -32,6 +32,7 @@ def parse_args():
 args = parse_args()
 crop = Crop(args)
 crypt = crop.get_crypt()
+task = Task(True)
 # crop.create_button()
 # Task().clear_dirty_branch_notice(crop)
 
@@ -127,13 +128,13 @@ def branch_release_check():
 def job_check_version():
     cur_time = datetime.datetime.now()
     branch = 'sprint' + cur_time.strftime('%Y%m%d')
-    Task(True).check_version(branch, crop)
+    task.check_version(branch, crop)
 
 
 @scheduler.task('interval', id='job_mr_request_notify', seconds=60,
                 timezone='Asia/Shanghai', max_instances=4)
 def job_mr_request_notify():
-    Task().send_mr_notify(crop)
+    task.send_mr_notify(crop)
 
 
 @app.route("/callback/<action>", methods=["GET"])
