@@ -199,10 +199,6 @@ class Task(Common):
                 ret[k] = "({},{})".format(left, v)
         return ret
 
-
-
-
-
     # 检查版本号
     def check_version(self, branch, crop):
         branch_name = None

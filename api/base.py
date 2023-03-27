@@ -40,22 +40,41 @@ class Base:
             logger.error("name2user error: {}".format(str(err)), exc_info=True)
             return None
 
+    # 获取只读权限的值班人
+    def get_readonly_duties(self):
+        ids = []
+        try:
+            body = get("{}/api/verify/duty/users".format(self.rd_url))
+            sqa_duties = body.get("data").get("sqa")
+            # sqa值班人（仅接受消息）
+            for duty in sqa_duties:
+                ids.append(duty.get("user_id"))
+        except Exception as err:
+            logger.error("get readonly user error: {}".format(str(err)), exc_info=True)
+        return ids
+
     # 获取值班人
     def get_duty_info(self, is_test, end="backend"):
         if is_test:
             return "LuoLin", "罗林"
         else:
-            fixed_userid = hget("q7link_fixed_duty", end).split(",")
             body = get("{}/api/verify/duty/users".format(self.rd_url))
-            role_duty_info = body.get("data").get(end)
-            duty_user_ids = []
-            duty_user_names = []
-            for duty in role_duty_info:
-                duty_user_ids.append(duty.get("user_id"))
-                duty_user_names.append(duty.get("user_name"))
+            end_duties = body.get("data").get(end)
+            user_ids = []
+            user_names = []
+            # 所属端值班人
+            for duty in end_duties:
+                user_ids.append(duty.get("user_id"))
+                user_names.append(duty.get("user_name"))
+            # 固定值班人
+            fixed_userid = hget("q7link_fixed_duty", end).split(",")
             if len(fixed_userid) > 0:
-                duty_user_ids.extend(fixed_userid)
-            return "|".join(duty_user_ids), ",".join(duty_user_names)
+                user_ids.extend(fixed_userid)
+            # 只读值班人（仅接受消息，sqa）
+            readonly_ids = self.get_readonly_duties()
+            if len(readonly_ids) > 0:
+                user_ids.extend(readonly_ids)
+            return "|".join(user_ids), ",".join(user_names)
 
     # 获取值班目标分支集合
     def get_duty_branches(self):

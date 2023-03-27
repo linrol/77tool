@@ -55,6 +55,11 @@ class Handler(Base):
 
     # 消费事件任务类消息
     def accept_event_task(self):
+        read_ids = self.get_readonly_duties()
+        if self.user_id is not None and self.user_id in read_ids:
+            msg = "您无权限操作！"
+            self.crop.send_text_msg(self.user_id, msg)
+            return msg
         action = self.event_key.split("@")[0]
         action_type = self.event_key.split("@")[1]
         if action == 'deny':
