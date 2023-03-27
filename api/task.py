@@ -56,11 +56,11 @@ class Task(Common):
         return version, self.name2userid(approve), approve
 
     def get_new_project(self, target, project_names):
+        exclude_projects = ["build", "parent", "testapp"]
         projects = list(filter(
-            lambda name: self.get_project_branch(name, target) is None,
-            project_names.split(",")))
-        if "build" in projects:
-            projects.remove("build")
+            lambda name:
+            self.get_project_branch(name, target) is None
+            and name not in exclude_projects, project_names.split(",")))
         if len(projects) < 1:
             raise Exception("ERROR: \n" + "工程【{}】目标分支【{}】已存在!!!".format(
                 project_names, target))
