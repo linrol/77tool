@@ -52,6 +52,8 @@ class ProjectInfo():
         projects = self.__gl.projects.list(search=self.__name) # 此处是模糊查询
         if len(projects) > 0:
           for project in projects:
+            if project.name_with_namespace.startswith("backend / apps") and self.__name == "baseapp-api":
+              continue
             if project.name_with_namespace.startswith("backend") and project.name == self.__name:
               self.__project = project
               break
