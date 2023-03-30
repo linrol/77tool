@@ -212,7 +212,7 @@ class VersionUtils():
             update = True
             print("工程【{}】【{}】版本修改为【{}】".format(projectInfo.getName(), targetProjectName, newVersion))
         else:
-          print("ERROR: 工程【{}】【{}】的版本未找到！！！".format(projectInfo.getName(), targetProjectName, newVersion))
+          print("ERROR: 工程【{}】依赖的【{}】版本号未找到！！！".format(projectInfo.getName(), targetProjectName))
           sys.exit(1)
     return update
 
