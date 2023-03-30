@@ -1,4 +1,6 @@
 import re
+import pymysql
+import pymysql.cursors
 from request import post_form, get, post
 from log import logger
 from redisclient import get_branch_mapping, hget, hmset
@@ -11,6 +13,7 @@ class Base:
     stage_global = "stage-global"
     date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
     rd_url = "http://10.0.144.51:5000"
+    build_url = "http://ops.q7link.com:8000/qqdeploy/projectbuild/"
     web_hook = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=f28f65f5-c28d-46e5-8006-5f777f02dc71"
     backend_web_hook = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=6bc35c7b-c884-4707-98ba-722dae243d1f"
     project_category = {}
@@ -37,22 +40,41 @@ class Base:
             logger.error("name2user error: {}".format(str(err)), exc_info=True)
             return None
 
+    # 获取只读权限的值班人
+    def get_readonly_duties(self):
+        ids = []
+        try:
+            body = get("{}/api/verify/duty/users".format(self.rd_url))
+            sqa_duties = body.get("data").get("sqa")
+            # sqa值班人（仅接受消息）
+            for duty in sqa_duties:
+                ids.append(duty.get("user_id"))
+        except Exception as err:
+            logger.error("get readonly user error: {}".format(str(err)), exc_info=True)
+        return ids
+
     # 获取值班人
     def get_duty_info(self, is_test, end="backend"):
         if is_test:
             return "LuoLin", "罗林"
         else:
-            fixed_userid = hget("q7link_fixed_duty", end).split(",")
             body = get("{}/api/verify/duty/users".format(self.rd_url))
-            role_duty_info = body.get("data").get(end)
-            duty_user_ids = []
-            duty_user_names = []
-            for duty in role_duty_info:
-                duty_user_ids.append(duty.get("user_id"))
-                duty_user_names.append(duty.get("user_name"))
+            end_duties = body.get("data").get(end)
+            user_ids = []
+            user_names = []
+            # 所属端值班人
+            for duty in end_duties:
+                user_ids.append(duty.get("user_id"))
+                user_names.append(duty.get("user_name"))
+            # 固定值班人
+            fixed_userid = hget("q7link_fixed_duty", end).split(",")
             if len(fixed_userid) > 0:
-                duty_user_ids.extend(fixed_userid)
-            return "|".join(duty_user_ids), ",".join(duty_user_names)
+                user_ids.extend(fixed_userid)
+            # 只读值班人（仅接受消息，sqa）
+            readonly_ids = self.get_readonly_duties()
+            if len(readonly_ids) > 0:
+                user_ids.extend(readonly_ids)
+            return "|".join(user_ids), ",".join(user_names)
 
     # 获取值班目标分支集合
     def get_duty_branches(self):
@@ -98,7 +120,6 @@ class Base:
     # 触发ops编译
     def ops_build(self, branch, skip=False, project=None, call_name=None):
         try:
-            build_url = "http://ops.q7link.com:8000/qqdeploy/projectbuild/"
             if skip:
                 return
             caller = "值班助手"
@@ -107,7 +128,7 @@ class Base:
             params = {"branch": branch, "byCaller": caller}
             if project is not None:
                 params["projects"] = project
-            res = post_form(build_url, params)
+            res = post_form(self.build_url, params)
             return res.get("data").get("taskid")
         except Exception as err:
             logger.exception(err)
@@ -159,4 +180,31 @@ class Base:
         except Exception as err:
             logger.exception(err)
             return False
+
+    # 保存特性分支信息
+    def save_branch_feature(self, target, source, version, leader_user):
+        value = "{}@{}@{}".format(source, version, leader_user)
+        hmset("q7link-branch-feature", {target: value})
+
+    # 禅道sql查询
+    def zt_fetchone(self, sql):
+        try:
+            db = pymysql.connect(host="pro-qiqizentao-202302011450-slave.clrq7smojqgq.rds.cn-northwest-1.amazonaws.com.cn",
+                                 user="dev",
+                                 password="Qqrddev666%",
+                                 port=3306,
+                                 database="zentao")
+            cursor = db.cursor(pymysql.cursors.DictCursor)
+            # 执行SQL语句
+            cursor.execute(sql)
+            # 获取所有记录列表
+            results = cursor.fetchone()
+            # 关闭数据库连接
+            db.close()
+            return results
+        except Exception as err:
+            logger.exception(err)
+            return None
+
+
 

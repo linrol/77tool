@@ -3,7 +3,6 @@
 import utils
 import sys
 import closeGit
-import yaml
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class Checout:
@@ -26,12 +25,12 @@ class Checout:
       sys.exit(1)
 
     projectMap = {}
-
     if "tag@" in self.branchNames:
       project_build = projectInfoMap.get("build")
+      project_parent = projectInfoMap.get("parent")
       build_tag = self.branchNames.replace("tag@", "")
-      build_versions = self.get_branch_version(project_build, build_tag)
-      tasks = [self.pool.submit(self.checkoutTag, projectInfo, build_versions) for projectInfo in projectInfoMap.values()]
+      project_tags = self.get_build_tags(project_build, project_parent, build_tag)
+      tasks = [self.pool.submit(self.checkoutTag, projectInfo, project_tags) for projectInfo in projectInfoMap.values()]
     else:
       tasks = [self.pool.submit(self.checkoutBranch, projectInfo) for projectInfo in projectInfoMap.values()]
     for future in as_completed(tasks):
@@ -39,7 +38,7 @@ class Checout:
       if result is not None:
         projectMap[result.getName()] = result
 
-    if close and len(projectMap) > 0:
+    if self.close and len(projectMap) > 0:
       closeGit.close_git(projectMap)
 
   #检查是否有分支，如果有则检出分支
@@ -53,39 +52,47 @@ class Checout:
       return projectInfo
     return None
 
-  def get_project_tag_file(self, project, tag_name, file_path):
-    f = project.getProject().files.get(file_path=file_path, ref=tag_name)
-    if f is None:
-      raise Exception("工程【{}】分支【{}】不存在文件【{}】".format(project,
-                                                              tag_name,
-                                                              file_path))
-    config_yaml = yaml.load(f.decode(), Loader=yaml.FullLoader)
-    return config_yaml
-
-    # 获取build工程指定tag的版本号
-  def get_branch_version(self, project_build, tag_name):
+  # 获取build工程指定tag的版本号
+  def get_build_tags(self, project_build, project_parent, tag_name):
       project_build_tag = project_build.getTag(tag_name)
       if project_build_tag is None:
         raise Exception("工程【build】不存在标签【{}】".format(tag_name))
-      config_yaml = self.get_project_tag_file(project_build, tag_name,
-                                              'config.yaml')
-      branch_version = {}
-      for group, item in config_yaml.items():
+      tag_suffix = tag_name.rsplit("-")[1]
+      yaml = utils.get_project_file(project_build, tag_name,
+                                    'config.yaml', utils.yaml_parse)
+      project_tags = {}
+      for group, item in yaml.items():
         if type(item) is dict:
           for k, v in item.items():
-            branch_version[k] = v.rsplit(".", 1)
-      return branch_version
+            project_tags[k] = v + "-" + tag_suffix
+      parent_tag = project_tags.get("framework")
+      for k, v in self.get_platform_version(project_parent, parent_tag).items():
+        project_tags[k] = v + "-" + tag_suffix
+      project_tags["parent"] = parent_tag
+      return project_tags
 
-  def checkoutTag(self, projectInfo, versions):
+  # 获取parent工程下的版本号
+  def get_platform_version(self, project_parent, tag_name):
+    pom = utils.get_project_file(project_parent, tag_name,
+                                 'pom.xml', utils.pom_parse)
+    # 获取properties节点
+    properties = pom.getElementsByTagName('properties')[0]
+    platform_version = {}
+    for node in properties.childNodes:
+      nodeName = node.nodeName
+      if nodeName.startswith("version.framework.") and node.nodeType == 1:
+        k = nodeName.replace("version.framework.", "")
+        platform_version[k] = node.firstChild.data
+    return platform_version
+
+  def checkoutTag(self, projectInfo, project_tags):
     project_name = projectInfo.getName()
     build_tag = self.branchNames.replace("tag@", "")
-    tag_suffix = build_tag.rsplit("-")[1]
     if project_name == "build":
       tag_name = build_tag
     else:
-      tag_name = ".".join(versions.get(project_name, "")) + "-" + tag_suffix
-    project_tag = projectInfo.getTag(tag_name)
-    if project_tag is not None:
+      tag_name = project_tags.get(project_name)
+    if tag_name is not None and projectInfo.getTag(tag_name) is not None:
       projectInfo.checkoutTag(tag_name)
       print('工程【{}】检出标签【{}】成功'.format(projectInfo.getName(), tag_name))
       return projectInfo

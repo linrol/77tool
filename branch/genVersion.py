@@ -128,7 +128,7 @@ class GenVersion(Common):
         return factory
 
     def get_replace_version(self, project_name):
-        if self.target_name in ['sprint']:
+        if self.target_name in ['sprint', 'release']:
             factory = self.factory_week()
         else:
             factory = self.factory_day()
@@ -221,8 +221,7 @@ class GenVersion(Common):
             for project_name in self.project_names:
                 if self.fixed_version is not None:
                     source_version = self.source_version.get(project_name)
-                    version = re.compile("\\d.\\d").sub(source_version[0],
-                                                         self.fixed_version)
+                    version = "{}.{}".format(source_version[0], self.fixed_version[4:])
                     replace_version[project_name] = version
                     continue
                 version = self.get_replace_version(project_name)

@@ -1,7 +1,6 @@
 import random
 import string
 import time
-import yaml
 import re
 from datetime import datetime, date, timedelta
 from log import logger
@@ -26,10 +25,29 @@ class Task(Common):
         project = self.get_project(project_name)
         return project.getBranch(branch)
 
-    def get_feature_branch(self, source_branch, target_branch, crop):
+    def get_feature_branch(self, source_branch, target_branch):
+        s_not, t_not, _, _ = self.not_duty_branch(source_branch, target_branch)
+        if (not s_not) and (not t_not):
+            # 值班分支
+            return None
         feature_info = hget("q7link-branch-feature", target_branch)
         if feature_info is None:
-            return None
+            sql = "select * from zt_project where code = '{}' and type='sprint'".format(target_branch)
+            zt_project_info = self.zt_fetchone(sql)
+            if zt_project_info is None:
+                return None
+            app = zt_project_info.get("app")
+            pm = zt_project_info.get("PM")
+            account = (pm if (app is None or app.isspace()) else app).replace(",", "")
+            sql = "select * from zt_user where account = '{}'".format(account)
+            zt_user_info = self.zt_fetchone(sql)
+            if zt_user_info is None:
+                return None
+            leader_user = zt_user_info.get("realname", None)
+            version = self.gen_feature_version(source_branch)
+            self.save_branch_feature(target_branch, source_branch, version,
+                                     leader_user)
+            return version, self.name2userid(leader_user), leader_user
         source = feature_info.split("@")[0]
         if source != source_branch:
             raise Exception("ERROR: 特性分支初始化的来源分支必须为【{}】".format(source))
@@ -38,11 +56,11 @@ class Task(Common):
         return version, self.name2userid(approve), approve
 
     def get_new_project(self, target, project_names):
+        exclude_projects = ["build", "parent", "testapp"]
         projects = list(filter(
-            lambda name: self.get_project_branch(name, target) is None,
-            project_names.split(",")))
-        if "build" in projects:
-            projects.remove("build")
+            lambda name:
+            self.get_project_branch(name, target) is None
+            and name not in exclude_projects, project_names.split(",")))
         if len(projects) < 1:
             raise Exception("ERROR: \n" + "工程【{}】目标分支【{}】已存在!!!".format(
                 project_names, target))
@@ -54,41 +72,48 @@ class Task(Common):
         return "{}.{}-SNAPSHOT".format(prefix.replace("-SNAPSHOT", ""),
                                        last_version)
 
-    def check_new_branch(self, source_branch, target_branch, user_name):
-        tips = "\n是否需要拉特性分支，如需请按以下格式初始化(可修改分支版本号，负责人等信息)：" + \
-               "\n=============================================================" + \
-               "\n操　　作：初始化特性分支" + \
-               "\n来源分支：" + source_branch + \
-               "\n目标分支：" + target_branch + \
-               "\n分支版本号：{}" + \
-               "\n分支负责人：" + user_name
-
+    # 判断非值班分支
+    def not_duty_branch(self, source, target):
         mapping = get_branch_mapping()
         match_source = None
         match_target = []
         for k, v in mapping.items():
-            match = re.match("^{}$".format(k), source_branch)
+            match = re.match("^{}$".format(k), source)
             if not match:
                 continue
             match_source = match.group()
             match_target = v.split(",")
-        if match_source is None:
+        s_not_duty = match_source is None
+        target_name, target_date = self.get_branch_date(target)
+        t_not_duty = target_date is None or target_name not in match_target
+        return s_not_duty, t_not_duty, mapping.keys(), match_target
+
+    def check_new_branch(self, source, target, user_name):
+        tips = "\n是否需要拉特性分支，如需请按以下格式初始化(可修改分支版本号，负责人等信息)：" + \
+               "\n=============================================================" + \
+               "\n操　　作：初始化特性分支" + \
+               "\n来源分支：" + source + \
+               "\n目标分支：" + target + \
+               "\n分支版本号：{}" + \
+               "\n分支负责人：" + user_name
+        s_not, t_not, sources, targets = self.not_duty_branch(source, target)
+        if s_not:
             error = "来源分支非值班系列【{}】{}"
-            tips = tips.format(self.gen_feature_version(source_branch))
-            raise Exception(error.format(",".join(mapping.keys()), tips))
-        target_name, target_date = self.get_branch_date(target_branch)
-        if target_date is None or target_name not in match_target:
+            tips = tips.format(self.gen_feature_version(source))
+            raise Exception(error.format(",".join(sources), tips))
+        target_name, target_date = self.get_branch_date(target)
+        if t_not:
             error = "目标分支非值班系列【{}】{}"
-            tips = tips.format(self.gen_feature_version(source_branch))
-            raise Exception(error.format(",".join(match_target), tips))
-        week_later = (datetime.now() + timedelta(days=-15)).strftime("%Y%m%d")
+            tips = tips.format(self.gen_feature_version(source))
+            raise Exception(error.format(",".join(targets), tips))
+        week_later = (datetime.now() + timedelta(days=-7)).strftime("%Y%m%d")
         if int(week_later) > int(target_date):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
 
     # 创建拉值班分支的任务
     def new_branch_task(self, crop, req_id, req_name, duty_id, duty_name,
         source, target, project_names):
-        feature_info = self.get_feature_branch(source, target, crop)
+        feature_info = self.get_feature_branch(source, target)
         if feature_info is not None:
             return self.new_feature_branch_task(crop, req_id, req_name, source,
                                                 target, project_names,
@@ -173,28 +198,6 @@ class Task(Common):
             if int(right_min) - int(left_min) < 3:
                 ret[k] = "({},{})".format(left, v)
         return ret
-
-    # 获取指定分支的版本号
-    def get_branch_version(self, branch):
-        config_yaml = self.get_build_config(branch)
-        version = {}
-        for group, item in config_yaml.items():
-            if type(item) is not dict:
-                continue
-            for k, v in item.items():
-                self.project_category[k] = group
-                version[k] = v
-        if len(version) < 1:
-            raise Exception("根据分支【{}】获取工程版本号失败".format(branch))
-        return version
-
-    # 根据工程名称获取指定分支的远程文件
-    def get_build_config(self, branch_name):
-        file = self.git_file(self.project_build, branch_name, "config.yaml")
-        if file is None:
-            raise Exception("工程【build】分支【{}】不存在文件【config.yaml】".format(branch_name))
-        config_yaml = yaml.load(file.decode(), Loader=yaml.FullLoader)
-        return config_yaml
 
     # 检查版本号
     def check_version(self, branch, crop):
@@ -322,11 +325,11 @@ class Task(Common):
 
     # 发送mr提醒通知
     def send_mr_notify(self, crop):
-        before_five_min = (datetime.now() - timedelta(minutes=600)).isoformat()
+        before_min = (datetime.now() - timedelta(minutes=600)).isoformat()
         group = self.get_project('parent').getGroup('backend')
         # 发送待合并通知
-        opened_mr_list = group.mergerequests.list(state='opened',
-                                                  created_after=before_five_min)
+        opened_mr_list = group.mergerequests.list(state='opened', all=True,
+                                                  created_after=before_min)
         for mr in opened_mr_list:
             if mr.assignee is None:
                 continue
@@ -358,8 +361,8 @@ class Task(Common):
             hmset("q7link-branch-merge", {mr_key: assignee_name})
 
         # 发送已合并通知
-        merged_mr_list = group.mergerequests.list(state='merged',
-                                                  created_after=before_five_min)
+        merged_mr_list = group.mergerequests.list(state='merged', all=True,
+                                                  created_after=before_min)
         for mr in merged_mr_list:
             if mr.merged_by is None:
                 continue
@@ -388,7 +391,7 @@ class Task(Common):
             _, project = project_full.rsplit("/", 1)
             build_id = "-1"
             if project in self.projects.keys():
-                build_id = self.ops_build(mr.target_branch, self.is_test,
+                build_id = self.ops_build(mr.target_branch, False,
                                           project_full, author_name)
             mr_source_msg = msg_content["mr_source"].format(mr.web_url,
                                                             project,
@@ -433,7 +436,8 @@ class Task(Common):
                 target = self.stage_global
                 params[2] = target
                 return self.send_branch_action("move", *params)
-            return self.send_branch_action("merge", *params)
+            task_id = self.send_branch_action("merge", *params)
+            return task_id
         except Exception as err:
             logger.exception(err)
             return str(err)
@@ -535,3 +539,9 @@ class Task(Common):
                     continue
                 raise Exception("工程【{}】还未构建发布包，当前版本号【{}】".format(p, v))
         return "发布包版本号检查通过"
+
+    # 对比两个分支的版本号
+    def compare_branch_version(self, left, right):
+        left_versions = self.get_branch_version(left)
+        right_versions = self.get_branch_version(right)
+        return left_versions == right_versions

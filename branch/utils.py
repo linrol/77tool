@@ -5,6 +5,8 @@ import gitlab
 import sys
 import subprocess
 import re
+import time
+import xml.dom.minidom
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
@@ -308,6 +310,28 @@ class ProjectInfo():
       data['assignee_id'] = member.id
     return self.getProject().mergerequests.create(data)
 
+  def getMr(self, mr_iid):
+    return self.getProject().mergerequests.get(mr_iid)
+
+  # 检查合并冲突，借助gitlab的发起mr来判断
+  def checkConflicts(self, source, target, title):
+    mr = self.createMr(source, target, title, None)
+    elapsed = 0
+    while True:
+      mr = self.getMr(mr.iid)
+      status = mr.merge_status
+      if status == 'can_be_merged':
+        mr.delete()
+        return False
+      if status in ['cannot_be_merged', 'cannot_be_merged_recheck']:
+        mr.delete()
+        return True
+      if elapsed > 30:
+        mr.delete()
+        return True
+      elapsed += 3
+      time.sleep(3)
+
   # 接受合并
   def acceptMr(self, mr):
     project_full = mr.references.get("full").split("!")[0]
@@ -399,6 +423,20 @@ def print_list(title, list):
 def camel(s):
   s = re.sub(r"(\s|_|-)+", " ", s).title().replace(" ", "")
   return s[0].lower() + s[1:]
+
+def yaml_parse(bytes):
+  return yaml.load(bytes, Loader=yaml.FullLoader)
+
+def pom_parse(bytes):
+  return xml.dom.minidom.parseString(bytes)
+
+def get_project_file(project, branch, file_path, parser):
+  f = project.getProject().files.get(file_path=file_path, ref=branch)
+  if f is None:
+    raise Exception("工程【{}】分支【{}】不存在文件【{}】".format(project,
+                                                            branch,
+                                                            file_path))
+  return parser(f.decode())
 
 if __name__ == "__main__":
   print(camel("project-api"))

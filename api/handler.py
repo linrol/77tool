@@ -55,6 +55,11 @@ class Handler(Base):
 
     # 消费事件任务类消息
     def accept_event_task(self):
+        read_ids = self.get_readonly_duties()
+        if self.user_id is not None and self.user_id in read_ids:
+            msg = "您无权限操作！"
+            self.crop.send_text_msg(self.user_id, msg)
+            return msg
         action = self.event_key.split("@")[0]
         action_type = self.event_key.split("@")[1]
         if action == 'deny':
@@ -191,7 +196,7 @@ class Handler(Base):
                 b_duty_id, b_name = self.get_duty_info(self.is_test, "backend")
                 if self.user_id not in f_duty_id + b_duty_id:
                     raise Exception("仅限当周值班人：{},{}操作".format(f_name, b_name))
-                end = "front" if self.user_id in f_duty_id else "backend"
+                end = "backend" if self.user_id in b_duty_id else "front"
                 source, target, projects, clear = get_merge_branch_dirt(self.msg_content)
                 self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等!")
             else:
@@ -276,16 +281,13 @@ class Handler(Base):
     def init_feature_branch(self):
         try:
             init_feature = get_init_feature_dirt(self.msg_content)
-            target = init_feature.get("目标分支")
             source = init_feature.get("来源分支")
-            prefix = Task().get_branch_version(source).get("framework")
-            last_version = ''.join(random.sample(string.ascii_letters, 6))
-            version = "{}.{}-SNAPSHOT".format(prefix.replace("-SNAPSHOT", ""),
-                                              last_version)
+            target = init_feature.get("目标分支")
+            version = Task().gen_feature_version(source)
             feature_version = init_feature.get("分支版本号", version)
             approve_user = init_feature.get("分支负责人")
-            value = "{}@{}@{}".format(source, feature_version, approve_user)
-            hmset("q7link-branch-feature", {target: value})
+            self.save_branch_feature(target, source, feature_version,
+                                     approve_user)
             self.crop.send_text_msg(self.user_id, "分支初始化成功，请重新发起拉分支请求")
             return "init branch[{}] success".format(target)
         except Exception as err:

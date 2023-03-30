@@ -212,7 +212,7 @@ class VersionUtils():
             update = True
             print("工程【{}】【{}】版本修改为【{}】".format(projectInfo.getName(), targetProjectName, newVersion))
         else:
-          print("ERROR: 工程【{}】【{}】的版本未找到！！！".format(projectInfo.getName(), targetProjectName, newVersion))
+          print("ERROR: 工程【{}】依赖的【{}】版本号未找到！！！".format(projectInfo.getName(), targetProjectName))
           sys.exit(1)
     return update
 
@@ -241,9 +241,9 @@ class VersionUtils():
     update = self.updateParent(projectName, myroot, projectVersionMap['framework'])
     for k,v in projectVersionMap.items():
       propertieName = utils.camel(k) + 'Version'
-      if projectName != 'testapp' or propertieName != 'initDataVersion':
+      # if projectName != 'testapp' or propertieName != 'initDataVersion':
         # testapp的initData版本不修改
-        update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, k) or update
+      update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, k) or update
 
     if projectName == 'parent':
       for change in changes:
