@@ -66,7 +66,7 @@ def listener_deploy():
     modules = deploy_group.intersection({"apps", "global", "web", "trek", "h5", "front-theory", "front-goserver"})
     if len(modules) < 1:
         return make_response("ignore")
-    branches = body.get("project_desc").split(",")
+    branches = body.get("branch", body.get("project_desc")).split(",")
     clusters = body.get("cluster").split(",")
     ret = Task().build_branch_task(branches, modules, clusters, crop)
     return make_response(ret)
