@@ -198,7 +198,7 @@ class VersionUtils():
           targetProjectName = targetProjectName[:-8]
           # print(targetProjectName)
 
-        if targetProjectName in ['testapp','testapp-api','baseapp-api']:
+        if targetProjectName in ['testapp','testapp-api','app-common-api']:
           targetProjectName = 'framework'
 
         if targetProjectName in projectVersionMap:
@@ -250,6 +250,8 @@ class VersionUtils():
       for change in changes:
         propertieName = 'version.framework.' + change.getName()
         update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, 'framework') or update
+        if propertieName == 'version.framework.app-common-api':
+          update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework.baseapp-api', 'framework') or update
       update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework', 'framework') or update
     update = self.updateDependencies(projectInfo, myroot, projectVersionMap, updateTest) or update
 
