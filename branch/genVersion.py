@@ -8,7 +8,7 @@ from checkVersion import CheckVersion
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 
-project_platform = ["app-build-plugins", "app-common", "baseapp-api",
+project_platform = ["app-build-plugins", "app-common", "app-common-api",
                     "common-base", "common-base-api", "graphql-api",
                     "graphql-impl", "json-schema-plugin", "mbg-plugins",
                     "metadata-api", "metadata-impl", "sql-parser"]

@@ -10,7 +10,9 @@ git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/arap-api
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/arap.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/asset-api.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/asset.git
+git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/baseapp-api.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/baseapp.git
+git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/base-common.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/basebi-api.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/basebi.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/biz-common.git
@@ -74,7 +76,7 @@ git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/platform/grap
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/platform/common-base-api.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/platform/common-base.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/platform/app-common.git
-git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/platform/baseapp-api.git
+git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/platform/app-common-api.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/platform/app-build-plugins.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/platform/app-archetype.git
 
