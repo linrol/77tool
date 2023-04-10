@@ -49,9 +49,12 @@ class GenVersion(Common):
             is_platform = name in project_platform
             if is_platform:
                 name = "framework"
-                framework_version = self.target_version.get(name)
+                ftv = self.target_version.get(name)
                 if self.fixed_version is not None:
-                    if not self.is_release(framework_version):
+                    fsv = self.source_version.get(name)
+                    is_same = self.equals_version(ftv, fsv)
+                    if not self.is_release(fsv) and not is_same:
+                        # 当目标工程为快照版本号且和来源版本号不形同时，则无需更新版本号
                         continue
             result.add(name)
         if self.force and self.source not in ["stage-global"]:
