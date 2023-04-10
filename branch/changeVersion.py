@@ -68,8 +68,8 @@ class ChangeVersion:
           f = open(filename, encoding='utf-8')
           config = yaml.load(f, Loader=yaml.FullLoader)
 
-          projectVersionMap={'baseapp-api':'${version.framework.baseapp-api}'}
-          # projectVersionMap={'app-common-api':'${version.framework.app-common-api}'}
+          projectVersionMap={'baseapp-api':'${version.framework.baseapp-api}',
+                             'app-common-api':'${version.framework.app-common-api}'}
           for item in config.values():
             if type(item) is dict:
               for k,v in item.items():
