@@ -6,7 +6,7 @@ import redis
 class RedisClient(object):
     def __init__(self):
         self.password = os.environ.get("REDIS_PASSWORD")
-        self.pool = redis.ConnectionPool(host="linrol.cn", port=6379,
+        self.pool = redis.ConnectionPool(host="redis", port=6379,
                                          password=self.password, db=2,
                                          decode_responses=True,
                                          max_connections=16)
