@@ -395,7 +395,7 @@ def check_upgrade():
     raise Exception("分支管理工具必须更新版本后可用")
 
 def project_path(names=None):
-  check_upgrade()
+  # check_upgrade()
   # 获取path.yaml
   projectConfigs = project_config(get_project_end(names))
 
