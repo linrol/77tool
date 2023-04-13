@@ -6,7 +6,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED
 import utils
 
-EXCLUDE_PROJECT=['other','jsf','docs','finance','finance-api', 'dbtools', 'branch-manage', 'chrome-extension-backend']
+EXCLUDE_PROJECT=['other','jsf','docs','finance','finance-api', 'dbtools', 'branch-manage', 'chrome-extension-backend', 'chrome-extension-backend-build']
 
 class Refresh():
   # def __del__(self):
