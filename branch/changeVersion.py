@@ -67,13 +67,15 @@ class ChangeVersion:
           filename = os.path.join(os.curdir, buildPath + '/config.yaml').replace("\\", "/")
           f = open(filename, encoding='utf-8')
           config = yaml.load(f, Loader=yaml.FullLoader)
-
-          projectVersionMap={'baseapp-api':'${version.framework.baseapp-api}',
-                             'app-common-api':'${version.framework.app-common-api}'}
+          projectVersionMap={}
           for item in config.values():
             if type(item) is dict:
               for k,v in item.items():
                 projectVersionMap[k] = v
+          projectVersionMap['base-common-test'] = projectVersionMap.get('base-common')
+          projectVersionMap['base-common-test-api'] = projectVersionMap.get('base-common')
+          projectVersionMap['testapp'] = projectVersionMap.get('framework')
+          projectVersionMap['testapp-api'] = projectVersionMap.get('framework')
           return projectVersionMap
     else:
       print('ERROR: 请在path.yaml文件中指定build工程的路径')
@@ -198,8 +200,8 @@ class VersionUtils():
           targetProjectName = targetProjectName[:-8]
           # print(targetProjectName)
 
-        if targetProjectName in ['testapp','testapp-api','app-common-api']:
-          targetProjectName = 'framework'
+        # if targetProjectName in ['testapp','testapp-api','app-common-api']:
+        #   targetProjectName = 'framework'
 
         if targetProjectName in projectVersionMap:
           newVersion = projectVersionMap[targetProjectName]

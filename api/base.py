@@ -3,7 +3,7 @@ import pymysql
 import pymysql.cursors
 from request import post_form, get, post
 from log import logger
-from redisclient import get_branch_mapping, hget, hmset
+from redisclient import get_branch_mapping, hget, hmset, get_version
 from wxmessage import msg_content
 
 
@@ -185,6 +185,10 @@ class Base:
     def save_branch_feature(self, target, source, version, leader_user):
         value = "{}@{}@{}".format(source, version, leader_user)
         hmset("q7link-branch-feature", {target: value})
+
+    # 获取校验升级的版本号信息
+    def get_upgrade_version(self):
+        return get_version()
 
     # 禅道sql查询
     def zt_fetchone(self, sql):

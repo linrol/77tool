@@ -2,11 +2,10 @@
 import sys
 import getopt
 import utils
-import re
+import traceback
 from common import Common
 from checkVersion import CheckVersion
 from datetime import datetime, timedelta
-from concurrent.futures import ThreadPoolExecutor
 
 project_platform = ["app-build-plugins", "app-common", "app-common-api",
                     "common-base", "common-base-api", "graphql-api",
@@ -49,9 +48,12 @@ class GenVersion(Common):
             is_platform = name in project_platform
             if is_platform:
                 name = "framework"
-                framework_version = self.target_version.get(name)
+                ftv = self.target_version.get(name)
                 if self.fixed_version is not None:
-                    if not self.is_release(framework_version):
+                    fsv = self.source_version.get(name)
+                    is_same = self.equals_version(ftv, fsv)
+                    if not self.is_release(fsv) and not is_same:
+                        # 当目标工程为快照版本号且和来源版本号不形同时，则无需更新版本号
                         continue
             result.add(name)
         if self.force and self.source not in ["stage-global"]:
@@ -221,6 +223,8 @@ class GenVersion(Common):
             for project_name in self.project_names:
                 if self.fixed_version is not None:
                     source_version = self.source_version.get(project_name)
+                    if source_version is None:
+                        raise Exception("look {} version by config.yaml[{}] not fount".format(project_name, self.source))
                     version = "{}.{}".format(source_version[0], self.fixed_version[4:])
                     replace_version[project_name] = version
                     continue
@@ -231,6 +235,7 @@ class GenVersion(Common):
             self.update_build_version(self.target, replace_version)
             return replace_version
         except Exception as e:
+            traceback.print_exc()
             print(str(e))
             sys.exit(1)
 

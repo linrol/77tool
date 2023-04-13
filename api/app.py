@@ -162,6 +162,16 @@ def callback():
     return make_response("success")
 
 
+@app.route("/check/upgrade", methods=["GET"])
+def check_upgrade():
+    version = request.args.get('version')
+    new_version = task.get_upgrade_version()
+    response = {"ret": True}
+    if version != new_version:
+        response["ret"] = False
+    return jsonify(response)
+
+
 if __name__ == "__main__":
     app.config.from_object(Config())
     # it is also possible to enable the API directly

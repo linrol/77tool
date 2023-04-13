@@ -86,7 +86,7 @@ class Common:
         self.projects = utils.project_path(self.get_module(end))
         self.project_build = self.projects.get('build')
         self.password = os.environ.get("REDIS_PASSWORD")
-        self.redis_pool = redis.ConnectionPool(host="linrol.cn", port=6379,
+        self.redis_pool = redis.ConnectionPool(host="redis", port=6379,
                                                password=self.password, db=2,
                                                decode_responses=True,
                                                max_connections=16)
