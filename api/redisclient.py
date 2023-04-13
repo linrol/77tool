@@ -74,3 +74,7 @@ def get_user_task(key):
 
 def get_branch_mapping():
     return redisClient.get_connection().hgetall("q7link-branch-mapping")
+
+
+def get_version():
+    return redisClient.get_connection().get("q7link-branch-manage-version")
