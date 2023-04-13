@@ -8,6 +8,7 @@ import re
 import time
 import xml.dom.minidom
 import requests
+import json
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
@@ -390,12 +391,20 @@ def get_project_end(projects):
   return "backend"
 
 def check_upgrade():
-  response = requests.get("http://branch.q7link.com/check/upgrade?version=" + VERSION)
-  if response.status_code != 200:
-    raise Exception("分支管理工具必须更新版本后可用")
+  try:
+    response = requests.get("http://branch.q7link.com/check/upgrade?version=" + VERSION)
+    if response.status_code != 200:
+      return
+    body = json.loads(response.text)
+    ret = body.get('ret')
+  except Exception:
+    return
+  if not ret:
+    raise Exception("分支管理工具必须更新后可用")
+
 
 def project_path(names=None):
-  # check_upgrade()
+  check_upgrade()
   # 获取path.yaml
   projectConfigs = project_config(get_project_end(names))
 
