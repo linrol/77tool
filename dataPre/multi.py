@@ -265,9 +265,18 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
   print("本次预制多列表方案操作为：")
   print("预制租户: " + source)
   print("分支: " + branch)
-
+  return True
 
 
 
 if __name__ == "__main__":
-  pre_multi_list('localhost', 'testapp', 'feature-platform-q4', 'ztb', 'name in (\'ProjectSchedule_list\', \'ProjectTask_mobile_list\',\'projectScheduleTemplate_list\')')
+  if len(sys.argv) != 6:
+    print("ERROR: 输入参数错误, 正确的参数为：<env> <tenantId> <branch> <commitUser> <condition>")
+    sys.exit(1)
+  else:
+    condition = ""
+    def_names = sys.argv[5].split(',')
+    for def_name in def_names:
+      condition += " or name='{}'".format(def_name)
+    condition = condition.replace(" or ", "", 1)
+    pre_multi_list(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], condition)

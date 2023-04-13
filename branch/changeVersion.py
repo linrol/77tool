@@ -42,7 +42,7 @@ class ChangeVersion:
       if self.needClear and ('build' in projectInfoMap):
         self.clear_script(projectInfoMap['build'].getPath())
         self.clear_interface(projectInfoMap['build'].getPath())
-        print('清空脚本完成')
+        print('工程【build】清空脚本完成')
 
     else:
       print('ERROR: 请在path.yaml文件配置各项目路径！！！')
@@ -65,10 +65,11 @@ class ChangeVersion:
         else:
           # 获取config.yaml
           filename = os.path.join(os.curdir, buildPath + '/config.yaml').replace("\\", "/")
-          f = open(filename)
+          f = open(filename, encoding='utf-8')
           config = yaml.load(f, Loader=yaml.FullLoader)
 
-          projectVersionMap={'baseapp-api':'${version.framework.baseapp-api}'}
+          projectVersionMap={'baseapp-api':'${version.framework.baseapp-api}',
+                             'app-common-api':'${version.framework.app-common-api}'}
           for item in config.values():
             if type(item) is dict:
               for k,v in item.items():
@@ -100,17 +101,21 @@ class ChangeVersion:
       for filename in fileNames:
         if (filename.lower().find('identity') != -1) or (filename.lower().find('reconcile') != -1) or (filename.lower().find('tenantallin') != -1) :
           #清空文件内容
-          file=open(filePath+"/" + filename, "r+")
-          file.truncate()
+          self.clearFile(filePath, [filename])
         else:
           #删除文件
           os.remove(filePath+"/" + filename)
 
   #清空接口调用文件
   def clear_interface(self, buildPath):
-    filePath = buildPath + "/upgrade"
-    file=open(filePath+"/upgrade_Readme.md", "r+")
-    file.truncate()
+    self.clearFile(buildPath, ["upgrade/upgrade_Readme.md", "upgrade/4_apiUpgrade/global_api.json", "upgrade/4_apiUpgrade/tenantallin_api.json"])
+
+  def clearFile(self, buildPath, filePaths):
+    for filePath in filePaths:
+      path = os.path.join(buildPath, filePath)
+      if os.path.exists(path):
+        file=open(path, "r+")
+        file.truncate()
 
 
 class CommentedTreeBuilder(ET.TreeBuilder):
@@ -193,7 +198,7 @@ class VersionUtils():
           targetProjectName = targetProjectName[:-8]
           # print(targetProjectName)
 
-        if targetProjectName in ['testapp','testapp-api','baseapp-api']:
+        if targetProjectName in ['testapp','testapp-api','app-common-api']:
           targetProjectName = 'framework'
 
         if targetProjectName in projectVersionMap:
@@ -208,7 +213,7 @@ class VersionUtils():
             update = True
             print("工程【{}】【{}】版本修改为【{}】".format(projectInfo.getName(), targetProjectName, newVersion))
         else:
-          print("ERROR: 工程【{}】【{}】的版本未找到！！！".format(projectInfo.getName(), targetProjectName, newVersion))
+          print("ERROR: 工程【{}】依赖的【{}】版本号未找到！！！".format(projectInfo.getName(), targetProjectName))
           sys.exit(1)
     return update
 
@@ -237,14 +242,16 @@ class VersionUtils():
     update = self.updateParent(projectName, myroot, projectVersionMap['framework'])
     for k,v in projectVersionMap.items():
       propertieName = utils.camel(k) + 'Version'
-      if projectName != 'testapp' or propertieName != 'initDataVersion':
+      # if projectName != 'testapp' or propertieName != 'initDataVersion':
         # testapp的initData版本不修改
-        update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, k) or update
+      update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, k) or update
 
     if projectName == 'parent':
       for change in changes:
         propertieName = 'version.framework.' + change.getName()
         update = self.updateProperties(projectName,myroot, projectVersionMap, propertieName, 'framework') or update
+        if propertieName == 'version.framework.app-common-api':
+          update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework.baseapp-api', 'framework') or update
       update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework', 'framework') or update
     update = self.updateDependencies(projectInfo, myroot, projectVersionMap, updateTest) or update
 

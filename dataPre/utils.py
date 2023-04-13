@@ -140,7 +140,7 @@ def analysisYaml(yamlFile=None):
   if(yamlFile != None and len(yamlFile) > 0):
     fileName = yamlFile
   else:
-    fileName = os.path.join(os.curdir, 'dbConfig.yaml').replace("\\", "/");
+    fileName = os.path.join(os.curdir, 'dbConfig.yaml').replace("\\", "/")
   f = open(fileName)
   dbConfigs = yaml.load(f, Loader=yaml.FullLoader)
   return dbConfigs
@@ -170,12 +170,21 @@ def getPgSql(dbInfo, dbConfigs):
   database = dbInfos[1]
   pgConfig = dbConfigs.get(envName,None)
   if pgConfig == None:
-    print("ERROR:请配置PG数据库【{}】".format(envName))
-    sys.exit(1)
+    pgConfig = genDbConfig(envName)
+    # print("ERROR:请配置PG数据库【{}】".format(envName))
+    # sys.exit(1)
 
   con = psycopg2.connect(database=database, user=pgConfig['user'], password=pgConfig['pwd'], host=pgConfig['host'], port=pgConfig['port'])
   return con
 
+# 生成默认的数据库连接信息
+def genDbConfig(env):
+  return {
+    "host": "postgres.{}.e7link.com".format(env),
+    "port": 5432,
+    "user": "postgres",
+    "pwd": "stet44{czars"
+  }
 
 #重置本地库
 # tableType: 需要恢复的表类型（multiList）

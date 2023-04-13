@@ -1,7 +1,7 @@
 # amyTools
 
 #### 介绍
-企企使用python工具
+企企分支管理python使用工具
 
 #### 软件架构
 软件架构说明
@@ -9,9 +9,9 @@
 
 #### 安装教程
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1.  安装最新的python并运行根目录的install.sh脚本安装包依赖
+2.  配置环境变量GIT_TOKEN=xxx，从gitlab获取token
+3.  检查branch-manage目录结构是否和apps，global平级
 
 #### 使用说明
 
@@ -45,12 +45,12 @@ python3 checkanddeleted.py hotfix master
 python3 checkanddeleted.py hotfix none
 不检查分支是否合并，直接删除所有工程的hotfix分支
 
-python3 checkanddeleted.py hotfix master finance basebi
-检查finance、basebi工程hotfix分支是否已合并至master分支，若已合并则删除finance、basebi的hotfix分支
+python3 checkanddeleted.py hotfix master project basebi budget
+检查project、basebi、budget工程hotfix分支是否已合并至master分支，若已合并则删除project、basebi、budget的hotfix分支
 
 ##3.createBranch.py
 ####功能
-根据来源分支创建目标分支，创建出来的分支，如果分支是hotfix/release/emergency/stage-emergency/hotfix-inte/dev，则会自动创建分支保护，所有工程只有管理员有全权限（mr、push）
+根据来源分支创建目标分支，创建出来的分支，如果分支是sprint|emergency|stage-patch|release+日期，则会自动创建分支保护，所有工程只有管理员有全权限（mr、push）
 ####命令
 python3 createBranch.py 来源分支1.来源分支2.来源分支3 目标分支[.检查目标分支是否存在] [工程名称...]
 以来源分支为模板创建目标分支，只创建来源分支存在的工程，如果工程不存在来源分支，则不创建目标分支
@@ -60,11 +60,11 @@ python3 createBranch.py 来源分支1.来源分支2.来源分支3 目标分支[.
 python3 createBranch.py master hotfix
 基于master分支创建hotfix分支，并将hotfix进行分支保护，如果有工程存在hotfix分支则报错，并且所有工程均不创建目标分支
 
-python3 createBranch.py master feature-xxx build finance
-将build和finance工程，由master分支创建feature-xxx分支，如果build或finance存在hotfix分支则报错，并且不做创建操作
+python3 createBranch.py master feature-xxx build project
+基于master分支创建feature-xxx分支的build和project，如果build或finance存在hotfix分支则报错，并且不做创建操作
 
 python3 createBranch.py master hotfix.false
-基于master分支创建hotfix分支，并将hotfix进行分支保护，如果工程存在hotfix分支则忽略，工程不存在hotfix分支则创建hotfix分支
+基于master分支创建hotfix分支所有工程，如果工程存在hotfix分支则忽略，工程不存在hotfix分支则创建hotfix分支
 
 python3 createBranch.py stage-global.stage sprint20220929 app-common init-data
 基于stage-global或stage分支创建sprint20220929分支，并将sprint20220929进行分支保护，如果工程不存在来源分支stage则基于stage-global创建
@@ -85,14 +85,14 @@ python3 createBranch.py stage-global.stage sprint20220929 app-common init-data
 ####命令
 python3 protectBranch.py 分支 权限 [工程名称...]
 ########例：
-python3 protectBranch.py hotfix release
-将hotfix分支设置为release权限，一般在改版本号时修改为此权限
+python3 protectBranch.py sprint20220929 release
+将sprint20220929分支的所有工程设置为release权限，一般在改版本号时修改为此权限
 
-python3 protectBranch.py hotfix hotfix project budget
-将project和budget工程的hotfix分支设置为hotfix权限，
+python3 protectBranch.py sprint20220929 hotfix project budget
+将sprint20220929分支的project和budget工程设置为hotfix权限
 
-python3 protectBranch.py hotfix d
-将hotfix分支的分支保护删除
+python3 protectBranch.py sprint20220929 d
+将sprint20220929分支的分支保护删除
 
 ##5.checkcommit.py
 ####功能
@@ -123,6 +123,9 @@ python3 checkout.py hotfix true
 
 python3 checkout.py sprint20220929.stage
 检出sprint20220929分支到本地，当工程不存在sprint20220929分支时，检出工程的stage分支
+
+python3 checkout.py sprint20220929 stage true
+检出sprint20220929分支和stage分支都存在的工程到本地并关闭git管理。用于在idea进行代码合并时使用common branch合并
 
 ##7.closeGit.py
 ####功能

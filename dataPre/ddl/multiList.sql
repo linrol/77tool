@@ -76,7 +76,7 @@ CREATE TABLE "baseapp_query_definition_group"
     "external_system_code" VARCHAR(128) DEFAULT '',
     "external_object_type" VARCHAR(128) DEFAULT '',
     "external_object_id" VARCHAR(128) DEFAULT '',
-    "title" VARCHAR(32) DEFAULT '',
+    "title" VARCHAR(64) DEFAULT '',
     "object_type" VARCHAR(64),
     "suppress_show_dialog" BOOLEAN DEFAULT false NOT NULL,
     "is_mobile" BOOLEAN DEFAULT false NOT NULL,
@@ -344,6 +344,7 @@ CREATE TABLE "baseapp_query_list_definition"
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
     "customized_fields" JSONB,
+    "apply_scenario_names" JSONB,
     PRIMARY KEY ("id")
 );
 COMMENT ON COLUMN "baseapp_query_list_definition"."entry_src_system_id" IS '数据来源类型';
@@ -379,6 +380,7 @@ COMMENT ON COLUMN "baseapp_query_list_definition"."last_request_id" IS '最后�
 COMMENT ON COLUMN "baseapp_query_list_definition"."last_modified_user_id" IS '最后修改人';
 COMMENT ON COLUMN "baseapp_query_list_definition"."last_modified_time" IS '最后修改时间';
 COMMENT ON COLUMN "baseapp_query_list_definition"."customized_fields" IS '自定义属性';
+COMMENT ON COLUMN "baseapp_query_list_definition"."apply_scenario_names" IS '使用场景';
 COMMENT ON TABLE "baseapp_query_list_definition" IS '查询列表方案';
 
 DROP TABLE IF EXISTS "baseapp_query_schema" CASCADE;
@@ -464,6 +466,8 @@ CREATE TABLE "baseapp_list_column"
     "colspan" INTEGER DEFAULT 0 NOT NULL,
     "prefix" VARCHAR(128) DEFAULT '',
     "suffix" VARCHAR(128) DEFAULT '',
+    "is_search" BOOLEAN DEFAULT false NOT NULL,
+    "search_match_type_id" VARCHAR(64),
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),

@@ -5,6 +5,8 @@ import gitlab
 import sys
 import subprocess
 import re
+import time
+import xml.dom.minidom
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
@@ -20,10 +22,18 @@ class ProjectInfo():
     self.__name = name
     self.__path = path
     self.__module = module
+    self.__group = None
     self.__project = None
+    self.__gl = self.getGl()
     self.__checkPath()
     # self.fetch()# TODO 是否fetch
 
+  def getToken(self):
+    return os.environ.get("GIT_TOKEN", TOKEN)
+  def getGl(self):
+    gl = gitlab.Gitlab(URL, self.getToken())
+    gl.auth()
+    return gl
   def getName(self):
     return self.__name
   def getPath(self):
@@ -40,13 +50,14 @@ class ProjectInfo():
   # 获取git仓库的项目信息
   def getProject(self):
     if self.__project is None:
-      gl = gitlab.Gitlab(URL, TOKEN)
       try:
-        gl.auth()
-        projects = gl.projects.list(search=self.__name) # 此处是模糊查询
+        projects = self.__gl.projects.list(search=self.__name) # 此处是模糊查询
         if len(projects) > 0:
           for project in projects:
             if project.name_with_namespace.startswith("backend") and project.name == self.__name:
+              self.__project = project
+              break
+            if project.name_with_namespace.startswith("front") and project.name == self.__name:
               self.__project = project
               break
       except Exception:
@@ -58,6 +69,26 @@ class ProjectInfo():
       sys.exit(1)
     return self.__project
 
+  def getGroup(self, group_name=None):
+    if group_name is None:
+      group_name = self.__module
+    if self.__group is None:
+      try:
+        groups = self.__gl.groups.list(search=group_name) # 此处是模糊查询
+        if len(groups) > 0:
+          for group in groups:
+            if group.full_path.startswith("backend") and group.name == group_name:
+              self.__group = group
+              break
+      except Exception:
+        print("群组：{}".format(self.__group))
+        raise
+
+    if self.__group is None:
+      print("ERROR: 群组【{}】不存在!!!".format(group_name))
+      sys.exit(1)
+    return self.__group
+
   # 获取远端git仓库的分支信息
   def getBranch(self, branchNames):
     for branch in branchNames.split("."):
@@ -67,6 +98,14 @@ class ProjectInfo():
       except gitlab.exceptions.GitlabGetError:
         pass
     return None
+
+  # 获取分支是否存在交集
+  def branchIntersection(self, branchNames):
+    for branch in branchNames:
+      if self.getBranch(branch) is None:
+        return False
+    return True
+
 
   # 删除分支保护
   def deleteBranchProtect(self, branchName):
@@ -117,6 +156,19 @@ class ProjectInfo():
       'merge_access_level': mergeAccessLevel,
       'push_access_level': pushAccessLevel
     })
+    if mergeAccessLevel == VISIBILITY_PRIVATE:
+      mergeRole = "No one"
+    elif mergeAccessLevel == DEVELOPER_ACCESS:
+      mergeRole = "Developers + Maintainers"
+    else:
+      mergeRole = "Maintainers"
+    if pushAccessLevel == VISIBILITY_PRIVATE:
+      pushRole = "No one"
+    elif pushAccessLevel == DEVELOPER_ACCESS:
+      pushRole = "Developers + Maintainers"
+    else:
+      pushRole = "Maintainers"
+    return True, mergeRole, pushRole
 
   #创建分支
   def createBranch(self, sourceBranchNames, newBranchName):
@@ -139,7 +191,7 @@ class ProjectInfo():
   #获取tag，如果未指定tag，则获取最新tag
   def getTag(self, tagName=None):
     if tagName is None or len(tagName) == 0:
-      tags = self.getProject().tags.list();
+      tags = self.getProject().tags.list()
       if len(tags) > 0:
         return tags[0]
       else:
@@ -149,6 +201,12 @@ class ProjectInfo():
         return self.getProject().tags.get(tagName)
       except gitlab.exceptions.GitlabGetError:
         return None
+
+  def getLastTag(self):
+    tags = self.getProject().tags.list()
+    if len(tags) > 0:
+      return tags[0]
+    return None
 
   #给指定分支打tag
   def createTag(self, tagName, branchName):
@@ -184,6 +242,16 @@ class ProjectInfo():
       if result != 0:
         print(msg)
         return False
+      return True
+
+  # 检出指定分支
+  def checkoutTag(self, tagName):
+    self.fetch()
+    [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git checkout ' + tagName)
+    if result != 0:
+      print("WARNNING: 在路径【{}】检出分支【{}】失败！！！".format(self.__path, tagName))
+      return False
+    else:
       return True
 
   # 将分支分类
@@ -227,6 +295,61 @@ class ProjectInfo():
       print('ERROR: 工程【{}】无法获取远程信息!!!'.format(self.__name))
       return branchs
 
+  # 创建合并
+  def createMr(self, source, target, title, assignee):
+    data = {
+    'source_branch': source,
+    'target_branch': target,
+    'title': title,
+    'remove_source_branch': True
+    }
+    member = self.getProjectMember(assignee)
+    if member is not None:
+      data['assignee_id'] = member.id
+    return self.getProject().mergerequests.create(data)
+
+  def getMr(self, mr_iid):
+    return self.getProject().mergerequests.get(mr_iid)
+
+  # 检查合并冲突，借助gitlab的发起mr来判断
+  def checkConflicts(self, source, target, title):
+    mr = self.createMr(source, target, title, None)
+    elapsed = 0
+    while True:
+      mr = self.getMr(mr.iid)
+      status = mr.merge_status
+      if status == 'can_be_merged':
+        mr.delete()
+        return False
+      if status in ['cannot_be_merged', 'cannot_be_merged_recheck']:
+        mr.delete()
+        return True
+      if elapsed > 30:
+        mr.delete()
+        return True
+      elapsed += 3
+      time.sleep(3)
+
+  # 接受合并
+  def acceptMr(self, mr):
+    project_full = mr.references.get("full").split("!")[0]
+    _, project = project_full.rsplit("/", 1)
+    source = mr.source_branch
+    target = mr.target_branch
+    if mr.merged_at is not None or mr.merged_by is not None:
+      raise Exception("工程【】从【】已合并至【】，请不要重复合并", project, source, target)
+    if mr.has_conflicts or mr.merge_status != "can_be_merged":
+      raise Exception("工程【】从【】合并至【】存在冲突", project, source, target)
+    return mr.merge()
+
+  # 获取项目成员
+  def getProjectMember(self, query):
+    if query is None:
+      return None
+    members = self.getProject().members_all.list(query=query)
+    if members is not None and len(members) > 0:
+      return members[0]
+    return None
 
 class LocalBranch():
   def __init__(self, name, current, originBranchName, originDeleted, hasCommit, hasPull):
@@ -250,11 +373,24 @@ class LocalBranch():
   def hasPull(self):
     return self.__hasPull
 
+# 获取项目所属端
+def get_project_end(projects):
+  if projects is None:
+    return "backend"
+  if len(projects) < 1:
+    return "backend"
+  if projects in ["backend", "front"]:
+    return projects
+  front_projects = {"front-theory", "front-goserver", "front"}
+  intersection = set(projects).intersection(front_projects)
+  if len(intersection) > 0:
+    return "front"
+  return "backend"
 
 
 def project_path(names=None):
   # 获取path.yaml
-  projectConfigs = project_config()
+  projectConfigs = project_config(get_project_end(names))
 
   projectInfos = {}
   for module,v in projectConfigs.items():
@@ -267,8 +403,11 @@ def project_path(names=None):
   return projectInfos
 
 # 获取本地工程路径配置信息
-def project_config():
-  filename = os.path.join(os.curdir, 'path.yaml').replace("\\", "/")
+def project_config(end=None):
+  file = "path.yaml"
+  if end is not None and end == "front":
+    file = "path_front.yaml"
+  filename = os.path.join(os.curdir, file).replace("\\", "/")
   f = open(filename)
   return yaml.load(f, Loader=yaml.FullLoader)
 
@@ -282,6 +421,20 @@ def print_list(title, list):
 def camel(s):
   s = re.sub(r"(\s|_|-)+", " ", s).title().replace(" ", "")
   return s[0].lower() + s[1:]
+
+def yaml_parse(bytes):
+  return yaml.load(bytes, Loader=yaml.FullLoader)
+
+def pom_parse(bytes):
+  return xml.dom.minidom.parseString(bytes)
+
+def get_project_file(project, branch, file_path, parser):
+  f = project.getProject().files.get(file_path=file_path, ref=branch)
+  if f is None:
+    raise Exception("工程【{}】分支【{}】不存在文件【{}】".format(project,
+                                                            branch,
+                                                            file_path))
+  return parser(f.decode())
 
 if __name__ == "__main__":
   print(camel("project-api"))

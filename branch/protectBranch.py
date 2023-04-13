@@ -49,22 +49,18 @@ class ProjectBranch:
       mergeAccessLevel = utils.MAINTAINER_ACCESS
       pushAccessLevel = utils.MAINTAINER_ACCESS
     elif self.access == 'hotfix' or self.access == 'emergency':
-      if projectName == 'build' or projectName == 'init-data':
-        mergeAccessLevel = utils.MAINTAINER_ACCESS
-        pushAccessLevel = utils.MAINTAINER_ACCESS
-      else:
         mergeAccessLevel = utils.MAINTAINER_ACCESS
         pushAccessLevel = utils.VISIBILITY_PRIVATE
     elif self.access == 'none':
-        mergeAccessLevel = utils.VISIBILITY_PRIVATE
-        pushAccessLevel = utils.VISIBILITY_PRIVATE
+      mergeAccessLevel = utils.VISIBILITY_PRIVATE
+      pushAccessLevel = utils.VISIBILITY_PRIVATE
     elif self.access == 'd' or self.access =='delete':
       projectInfo.deleteBranchProtect(self.branchName)
       print('【{}】【{}】分支保护删除成功'.format(projectName, self.branchName))
       return
 
-    projectInfo.protectBranch(self.branchName, mergeAccessLevel, pushAccessLevel)
-    print('工程【{}】分支【{}】保护成功'.format(projectName, self.branchName))
+    _, mergeRole, pushRole = projectInfo.protectBranch(self.branchName, mergeAccessLevel, pushAccessLevel)
+    print('工程【{}】分支【{}】保护成功，允许【{}】合并,【{}】推送'.format(projectName, self.branchName, mergeRole, pushRole))
 
 
 
