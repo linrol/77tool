@@ -165,7 +165,7 @@ def callback():
 @app.route("/check/upgrade", methods=["GET"])
 def check_upgrade():
     return make_response("升级检查通过")
-    version = request.args.get('version')
+    # version = request.args.get('version')
     # new_version = task.get_upgrade_version()
     # if version != new_version:
     #     return make_response("强制更新代码升级后使用", 500)
