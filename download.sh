@@ -13,6 +13,7 @@ git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/asset.gi
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/baseapp-api.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/baseapp.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/base-common.git
+git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/base-common-test.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/basebi-api.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/basebi.git
 git clone http://linrol:${GIT_PASSWORD}@gitlab.q7link.com//backend/apps/biz-common.git

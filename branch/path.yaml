@@ -8,6 +8,7 @@ apps:
   baseapp: ../../apps/baseapp
   baseapp-api: ../../apps/baseapp-api
   base-common: ../../apps/base-common
+  base-common-test: ../../apps/base-common-test
   basebi: ../../apps/basebi
   basebi-api: ../../apps/basebi-api
   biz-common: ../../apps/biz-common

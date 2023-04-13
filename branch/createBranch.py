@@ -10,6 +10,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed, wait, ALL_COMPL
 MUST_PROJECT={'apps': ['build']}
 #拉各模块工程时，必须要拉取的工程
 MODULE_PROJECT = {'platform': ['parent', 'testapp']}
+#拉工程时，依赖要拉取的工程
+DEPEND_PROJECT = {'base-common': ['base-common-test']}
 
 BRANCH_REGEX=r'^(sprint|emergency|stage-patch|release)20[2-9][0-9][0-1][0-9][0-3][0-9]$'
 
@@ -75,7 +77,7 @@ class CreateBranch:
   def get_add_project(self, projectInfoMap):
     error=[]
     adds=[]
-    relatedModule={''}
+    relatedModule=set()
     tasks = [self.pool.submit(self.check_project, projectInfo, self.existCheck) for projectInfo in projectInfoMap.values()]
     for future in as_completed(tasks):
       result = future.result()
@@ -109,6 +111,25 @@ class CreateBranch:
     for module,projectNames in MODULE_PROJECT.items():
       if module in relatedModule:
         for projectName in projectNames:
+          if not (projectName in projectInfoMap):
+            path = projectConfigs.get(module, {}).get(projectName, None)
+          else:
+            continue
+          projectInfo = utils.ProjectInfo(projectName, path, module)
+          result = self.check_project(projectInfo, False)
+          if result.isAdd():
+            adds.append(projectInfo)
+            relatedModule.add(projectInfo.getModule())
+          elif result.skip():
+            print(result.getMessage())
+          else:
+            error.append(result.getMessage())
+
+    # 拉取某个工程时，自动拉依赖的工程
+    for project,projectNames in DEPEND_PROJECT.items():
+      if project in list(map(lambda p: p.getName(), adds)):
+        for projectName in projectNames:
+          module = "apps"
           if not (projectName in projectInfoMap):
             path = projectConfigs.get(module, {}).get(projectName, None)
           else:
