@@ -2,11 +2,10 @@
 import sys
 import getopt
 import utils
-import re
+import traceback
 from common import Common
 from checkVersion import CheckVersion
 from datetime import datetime, timedelta
-from concurrent.futures import ThreadPoolExecutor
 
 project_platform = ["app-build-plugins", "app-common", "app-common-api",
                     "common-base", "common-base-api", "graphql-api",
@@ -224,6 +223,8 @@ class GenVersion(Common):
             for project_name in self.project_names:
                 if self.fixed_version is not None:
                     source_version = self.source_version.get(project_name)
+                    if source_version is None:
+                        raise Exception("look {} version by config.yaml[{}] not fount".format(project_name, self.source))
                     version = "{}.{}".format(source_version[0], self.fixed_version[4:])
                     replace_version[project_name] = version
                     continue
@@ -234,6 +235,7 @@ class GenVersion(Common):
             self.update_build_version(self.target, replace_version)
             return replace_version
         except Exception as e:
+            traceback.print_exc()
             print(str(e))
             sys.exit(1)
 
