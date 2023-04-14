@@ -86,7 +86,7 @@ class Common:
         self.projects = utils.project_path(self.get_module(end))
         self.project_build = self.projects.get('build')
         self.password = os.environ.get("REDIS_PASSWORD")
-        self.redis_pool = redis.ConnectionPool(host="redis", port=6379,
+        self.redis_pool = redis.ConnectionPool(host="linrol.cn", port=6379,
                                                password=self.password, db=2,
                                                decode_responses=True,
                                                max_connections=16)
@@ -171,7 +171,9 @@ class Common:
         return subprocess.getstatusoutput(cmd)
 
     # 版本号比较
-    def equals_version(self, vs1, vs2):
+    def equals_version(self, b1, b2, p):
+        vs1 = self.get_branch_version(b1).get(p)
+        vs2 = self.get_branch_version(b2).get(p)
         if vs1 is None or vs2 is None:
             return False
         if len(vs1) != len(vs2):
@@ -188,4 +190,21 @@ class Common:
                 continue
             return False
         return True
+
+    # 获取分支权重
+    def get_branch_weight(self, source, target, project):
+        target_date = target[-8:]
+        target_name = target.replace(target_date, "")
+        key = "{}_{}_{}".format(source, target_name, project)
+        weights = self.hgetall("q7link-branch-weight")
+        weight = weights.get(key)
+        if weight is not None:
+            return int(weight)
+        key1 = "{}_{}_*".format(source, target_name)
+        weight = weights.get(key1)
+        if weight is not None:
+            return int(weight)
+        key2 = "*_{}_*".format(target_name)
+        weight = weights.get(key2)
+        return int(weight)
 

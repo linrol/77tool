@@ -38,7 +38,6 @@ class GenVersion(Common):
         if self.fixed_version is None:
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
-            self.weights = self.hgetall("q7link-branch-weight")
             self.last_target_version = self.get_adjacent_branch_version(-7)
             self.next_target_version = self.get_adjacent_branch_version(7)
 
@@ -48,10 +47,9 @@ class GenVersion(Common):
             is_platform = name in project_platform
             if is_platform:
                 name = "framework"
-                ftv = self.target_version.get(name)
                 if self.fixed_version is not None:
                     fsv = self.source_version.get(name)
-                    is_same = self.equals_version(ftv, fsv)
+                    is_same = self.equals_version(self.target, self.source, name)
                     if not self.is_release(fsv) and not is_same:
                         # 当目标工程为快照版本号且和来源版本号不形同时，则无需更新版本号
                         continue
@@ -62,19 +60,6 @@ class GenVersion(Common):
             if len(force_project) > 0:
                 result.update(force_project)
         return list(result)
-
-    def get_branch_weight(self, project):
-        key = "{}_{}_{}".format(self.source, self.target_name, project)
-        weight = self.weights.get(key)
-        if weight is not None:
-            return int(weight)
-        key1 = "{}_{}_*".format(self.source, self.target_name)
-        weight = self.weights.get(key1)
-        if weight is not None:
-            return int(weight)
-        key2 = "*_{}_*".format(self.target_name)
-        weight = self.weights.get(key2)
-        return int(weight)
 
     def get_adjacent_branch_version(self, days):
         if self.target_name != "sprint":
@@ -88,21 +73,15 @@ class GenVersion(Common):
             print(str(err))
             return {}
 
-    def get_branch_offset(self, project_name, target_prefix, target_min):
-        if self.target_name != "stage-patch":
+    def get_branch_offset(self, project_name):
+        if self.target_name not in ["stage-patch", "release"]:
             return 0
         try:
-            offset_branch = "emergency" + self.target_date
-            offset_version = self.get_branch_version(offset_branch, True)
-            if project_name not in offset_version.keys():
-                return 0
-            opv = offset_version.get(project_name)
-            if target_prefix != opv[0]:
-                return 0
-            opv_min = int(opv[1].replace("-SNAPSHOT", ""))
-            if target_min > opv_min:
-                return 0
-            return opv_min - target_min + 5
+            if self.target_name == "release":
+                return -1
+            elif self.equals_version(self.source, self.target, project_name):
+                return 1
+            return 0
         except Exception as e:
             print(str(e))
             return 0
@@ -134,7 +113,7 @@ class GenVersion(Common):
             factory = self.factory_week()
         else:
             factory = self.factory_day()
-        weight = self.get_branch_weight(project_name)
+        weight = self.get_branch_weight(self.source, self.target, project_name)
         if weight is None:
             raise Exception("工程【{}】分支【{}】获取权重值失败".format(project_name,
                                                                   self.target))
@@ -145,6 +124,10 @@ class GenVersion(Common):
             raise Exception(
                 "工程【{}】获取来源分支【{}】版本号失败".format(project_name,
                                                             self.source))
+        if target_version is None:
+            raise Exception(
+                "工程【{}】获取目标分支【{}】版本号失败".format(project_name,
+                                                            self.target))
         source_prefix = source_version[0]
         target_prefix = target_version[0]
         source_min = source_version[1]
@@ -179,12 +162,15 @@ class GenVersion(Common):
                                                         source_prefix,
                                                         source_min, False)
         target_min = source_min + inc_version
-        offset = self.get_branch_offset(project_name, target_prefix, target_min)
-        target_min = target_min + offset
+        target_min = target_min + self.get_branch_offset(project_name)
         if last_target_min is None and next_target_min is None:
-            return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
+            ret = "{}.{}-SNAPSHOT".format(target_prefix, target_min)
+            print("{}({}->{})".format(project_name, ".".join(source_version), ret))
+            return ret
         if self.source == "stage-global":
-            return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
+            ret = "{}.{}-SNAPSHOT".format(target_prefix, target_min)
+            print("{}({}->{})".format(project_name, ".".join(source_version), ret))
+            return ret
         if last_target_min is not None and next_target_min is not None:
             inc_version = (next_target_min - last_target_min) // 2
             target_min = last_target_min + inc_version
@@ -198,7 +184,9 @@ class GenVersion(Common):
             target_min = source_min + weight
             print("工程【{}】目标分支【{}】增量版本号小于2请确认下个班车版本号".
                   format(project_name, self.target))
-        return "{}.{}-SNAPSHOT".format(target_prefix, target_min)
+        ret = "{}.{}-SNAPSHOT".format(target_prefix, target_min)
+        print("{}({}->{})".format(project_name, ".".join(source_version), ret))
+        return ret
 
     def get_adjacent_min_version(self, project_name, prefix, s_min, is_last):
         if is_last:
