@@ -41,19 +41,23 @@ class GenVersion(Common):
             self.last_target_version = self.get_adjacent_branch_version(-7)
             self.next_target_version = self.get_adjacent_branch_version(7)
 
+    def is_feature(self):
+        return self.fixed_version is not None
+
     def project_convert(self, project_names):
         result = set()
         for name in project_names:
-            is_platform = name in project_platform
-            if is_platform:
-                name = "framework"
-                if self.fixed_version is not None:
-                    fsv = self.source_version.get(name)
-                    is_same = self.equals_version(self.target, self.source, name)
-                    if not self.is_release(fsv) and not is_same:
-                        # 当目标工程为快照版本号且和来源版本号不形同时，则无需更新版本号
-                        continue
+            is_apps = name not in project_platform
+            if is_apps:
+                result.add(name)
+            name = "framework"
+            if not self.is_feature():
+                result.add(name)
+            if not self.equals_version(self.target, self.source, name):
+                # 当目标工程的目标版本号和来源版本号不一致时，无需更新版本号
+                continue
             result.add(name)
+
         if self.force and self.source not in ["stage-global"]:
             compare_dict = {self.target: True, self.source: False}
             force_project = CheckVersion().compare_version(compare_dict, False)
@@ -69,8 +73,8 @@ class GenVersion(Common):
         last_branch = self.target_name + last_week_date.strftime("%Y%m%d")
         try:
             return self.get_branch_version(last_branch)
-        except Exception as err:
-            print(str(err))
+        except Exception as e:
+            print(str(e))
             return {}
 
     def get_branch_offset(self, project_name):
@@ -78,12 +82,14 @@ class GenVersion(Common):
             return 0
         try:
             if self.target_name == "release":
-                return -1
-            elif self.equals_version(self.source, self.target, project_name):
+                num = datetime.strptime(self.target_date, "%Y%m%d").isoweekday()
+                return num - 4
+            elif self.equals_version("master", self.target, project_name):
                 return 1
             return 0
         except Exception as e:
             print(str(e))
+            traceback.print_exc()
             return 0
 
     def factory_day(self):
@@ -115,52 +121,37 @@ class GenVersion(Common):
             factory = self.factory_day()
         weight = self.get_branch_weight(self.source, self.target, project_name)
         if weight is None:
-            raise Exception("工程【{}】分支【{}】获取权重值失败".format(project_name,
-                                                                  self.target))
+            raise Exception("工程【{}】分支【{}】获取权重值失败".format(project_name, self.target))
         inc_version = factory * weight
         source_version = self.source_version.get(project_name)
         target_version = self.target_version.get(project_name)
         if source_version is None:
-            raise Exception(
-                "工程【{}】获取来源分支【{}】版本号失败".format(project_name,
-                                                            self.source))
+            raise Exception("工程【{}】获取来源分支【{}】版本号失败".format(project_name, self.source))
         if target_version is None:
-            raise Exception(
-                "工程【{}】获取目标分支【{}】版本号失败".format(project_name,
-                                                            self.target))
+            raise Exception("工程【{}】获取目标分支【{}】版本号失败".format(project_name, self.target))
         source_prefix = source_version[0]
         target_prefix = target_version[0]
         source_min = source_version[1]
         target_min = target_version[1]
         if source_prefix != target_prefix:
-            err_info = "{}({}),{}({})".format(self.source, source_prefix,
-                                              self.target, target_prefix)
-            print("工程【{}】来源和目标分支版本号前缀不一致【{}】".format(
-                project_name, err_info))
+            err_info = "{}({}),{}({})".format(self.source, source_prefix, self.target, target_prefix)
+            print("工程【{}】来源和目标分支版本号前缀不一致【{}】".format(project_name, err_info))
             source_inc = int(source_min.replace("-SNAPSHOT", "")) + inc_version
             return "{}.{}-SNAPSHOT".format(source_prefix, source_inc)
         if "SNAPSHOT" in target_min and not self.force:
-            print("工程【{}】目标分支【{}】已为快照版本【{}】".format(project_name,
-                                                                self.target,
-                                                                target_version))
+            print("工程【{}】目标分支【{}】已为快照版本【{}】".format(project_name, self.target, target_version))
             return None
         source_min = source_min.replace("-SNAPSHOT", "")
         target_min = target_min.replace("-SNAPSHOT", "")
         if not (source_min.isdigit() and target_min.isdigit()):
-            err_info = "{}({}),{}({})".format(self.source, source_min,
-                                              self.target, target_min)
-            print("工程【{}】来源和目标分支最小版本号非数字【{}】".format(
-                project_name, err_info))
+            err_info = "{}({}),{}({})".format(self.source, source_min, self.target, target_min)
+            print("工程【{}】来源和目标分支最小版本号非数字【{}】".format(project_name, err_info))
             return None
         source_min = int(source_min)
         # target_min = int(target_min)
         # 上一班车分支版本号+weight<=sprint增量的版本号需<=下一班车分支版本号+weight
-        last_target_min = self.get_adjacent_min_version(project_name,
-                                                        source_prefix,
-                                                        source_min, True)
-        next_target_min = self.get_adjacent_min_version(project_name,
-                                                        source_prefix,
-                                                        source_min, False)
+        last_target_min = self.get_adjacent_min_version(project_name, source_prefix, source_min, True)
+        next_target_min = self.get_adjacent_min_version(project_name, source_prefix, source_min, False)
         target_min = source_min + inc_version
         target_min = target_min + self.get_branch_offset(project_name)
         if last_target_min is None and next_target_min is None:
@@ -182,8 +173,7 @@ class GenVersion(Common):
             target_min = last_target_min + weight if less_weight else target_min
         if target_min - source_min < 2:
             target_min = source_min + weight
-            print("工程【{}】目标分支【{}】增量版本号小于2请确认下个班车版本号".
-                  format(project_name, self.target))
+            print("工程【{}】目标分支【{}】增量版本号小于2请确认下个班车版本号".format(project_name, self.target))
         ret = "{}.{}-SNAPSHOT".format(target_prefix, target_min)
         print("{}({}->{})".format(project_name, ".".join(source_version), ret))
         return ret
@@ -223,8 +213,8 @@ class GenVersion(Common):
             self.update_build_version(self.target, replace_version)
             return replace_version
         except Exception as e:
-            traceback.print_exc()
             print(str(e))
+            traceback.print_exc()
             sys.exit(1)
 
 
@@ -244,5 +234,6 @@ if __name__ == "__main__":
                    projects).execute()
     except getopt.GetoptError as err:
         print(err)
+        traceback.print_exc()
         usage()
         sys.exit(1)
