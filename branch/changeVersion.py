@@ -216,7 +216,7 @@ class VersionUtils():
             print("工程【{}】【{}】版本修改为【{}】".format(projectInfo.getName(), targetProjectName, newVersion))
         else:
           print("ERROR: 工程【{}】依赖的【{}】版本号未找到！！！".format(projectInfo.getName(), targetProjectName))
-          sys.exit(1)
+          # sys.exit(1)
     return update
 
   def updatePlugin(self, projectName, myroot, projectVersionMap):
