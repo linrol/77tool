@@ -103,7 +103,7 @@ class Shell(Common):
             cmd = 'cd ../branch;python3 createBranch.py {}.{} {}.false {}'.format(self.source_branch, slave_source, self.target_branch, " ".join(projects))
             [_, created_msg] = self.exec(cmd, True)
             cmd = 'cd ../branch;python3 genVersion.py {} -s {} -t {} -p {}'.format(gen_params, self.source_branch, self.target_branch, ",".join(projects))
-            self.exec(cmd, True, False)
+            self.exec(cmd, True, True)
             cmd = 'cd ../branch;python3 changeVersion.py {} {}'.format(self.target_branch, clear_build_params)
             [_, version_msg] = self.exec(cmd, True)
             self.commit_and_push(self.target_branch, 'd' if is_feature_branch else 'hotfix')
