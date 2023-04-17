@@ -50,9 +50,11 @@ class GenVersion(Common):
             is_apps = name not in project_platform
             if is_apps:
                 result.add(name)
+                continue
             name = "framework"
             if not self.is_feature():
                 result.add(name)
+                continue
             if not self.equals_version(self.target, self.source, name):
                 # 当目标工程的目标版本号和来源版本号不一致时，无需更新版本号
                 continue
