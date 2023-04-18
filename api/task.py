@@ -69,8 +69,8 @@ class Task(Common):
     def gen_feature_version(self, branch):
         prefix = self.get_branch_version(branch).get("framework")
         last_version = ''.join(random.sample(string.ascii_letters, 6))
-        return "{}.{}-SNAPSHOT".format(prefix.replace("-SNAPSHOT", ""),
-                                       last_version)
+        prefix = re.match("[0-9][0-9.]*", prefix).group()
+        return "{}.{}-SNAPSHOT".format(prefix, last_version).replace("..", ".")
 
     # 判断非值班分支
     def not_duty_branch(self, source, target):

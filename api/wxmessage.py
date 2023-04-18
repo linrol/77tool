@@ -257,7 +257,7 @@ def get_map(lines, filter_chinese=True):
     for line in lines:
         line = ucd.normalize('NFKC', line)
         separator = ":" if ":" in line else "："
-        kv = line.replace(" ", "").split(separator)
+        kv = line.replace(" ", "").replace("\t", "").split(separator)
         if len(kv) != 2:
             continue
         k = kv[0]
