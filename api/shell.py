@@ -95,6 +95,7 @@ class Shell(Common):
             return True, (created_msg + "\n" + version_msg)
         except Exception as err:
             logger.exception(err)
+            self.clear_branch(self.target_branch, " ".join(projects))
             return False, str(err)
         finally:
             executor.submit(self.rest_branch_env)

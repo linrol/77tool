@@ -51,9 +51,9 @@ class Common(Base):
         return self.exec(cmd, True, False)
 
     # 删除远程分支
-    def clear_branch(self, branch):
+    def clear_branch(self, branch, projects=""):
         try:
-            cmd = 'cd ../branch;python3 checkanddeleted.py {} none'.format(branch)
+            cmd = 'cd ../branch;python3 checkanddeleted.py {} none {}'.format(branch, projects)
             return self.exec(cmd, level_info=False)
         except Exception as err:
             return False, str(err)
