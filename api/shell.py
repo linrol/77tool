@@ -2,7 +2,6 @@ import re
 import time
 from log import logger
 from concurrent.futures import ThreadPoolExecutor
-from redisclient import append, hget, hdel
 from redisclient import redisClient
 from redislock import RedisLock
 from common import Common
@@ -20,38 +19,20 @@ class Shell(Common):
         self.lock_value = None
         # self.rest_branch_env()
 
-    # 获取目标分支+当前人是否还存在未合并的mr分支
-    def get_open_mr_branch(self, mr_key, branch):
-        temp_branch = branch + "_" + str(int(time.time()))
-        mr_ids = hget("q7link-mr-log", mr_key)
-        if mr_ids is None:
-            return None, temp_branch
-        mr_list = self.project_init_data.getProject().mergerequests.list(state='opened', iids=mr_ids.split(","))
-        if mr_list is not None and len(mr_list) > 0:
-            return mr_list[0], mr_list[0].source_branch
-        hdel("q7link-mr-log", mr_key)
-        return None, temp_branch
-
-    def create_mr(self, mr_key, temp_branch, branch, title, assignee):
+    def create_mr(self, temp_branch, branch, title, assignee):
         cmd = 'cd {};git push origin {}'.format(self.project_init_data.getPath(), temp_branch)
         ret, msg = self.exec(cmd, level_info=False)
         if not ret:
             return False, msg
-        opened_mr, _ = self.get_open_mr_branch(mr_key, self.target_branch)
-        if opened_mr is not None:
-            return True, opened_mr.web_url
         mr = self.project_init_data.createMr(temp_branch, branch, title, assignee)
-        append("q7link-mr-log", mr_key, mr.web_url.rsplit("/", 1)[1])
         return True, mr.web_url
 
     def exec_data_pre(self, data_type, env, tenant_id, target_branch, condition_value, mr_user):
-        mr_key = self.user_id + env + tenant_id + self.target_branch
-        opened_mr, temp_branch = self.get_open_mr_branch(mr_key, self.target_branch)
+        temp_branch = self.target_branch + "_" + str(int(time.time()))
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
-            # 仅当不存在待合并的分支才创建远程分支
-            if opened_mr is None:
-                self.project_init_data.createBranch(self.target_branch, temp_branch)
+            # 创建远程分支
+            self.project_init_data.createBranch(self.target_branch, temp_branch)
             # 删除本地分支
             self.project_init_data.deleteLocalBranch(temp_branch)
             # 在本地将新分支拉取出来
@@ -69,7 +50,7 @@ class Shell(Common):
             if not ret:
                 raise Exception(msg + "\n预制失败，请检查输出日志")
             mr_title = '<数据预置>前端多列表方案预置-{}'.format(self.user_id)
-            return self.create_mr(mr_key, temp_branch, self.target_branch, mr_title, mr_user)
+            return self.create_mr(temp_branch, self.target_branch, mr_title, mr_user)
         except Exception as err:
             logger.exception(err)
             self.project_init_data.deleteRemoteBranch(temp_branch)
