@@ -172,6 +172,15 @@ def check_upgrade():
     return jsonify(response)
 
 
+# 接受编译结果通知
+@app.route("/build/notify", methods=["GET"])
+def build_notify():
+    task_id = request.args.get('id')
+    ret = request.args.get('ret')
+    print("task_id={}, ret={}".format(task_id, ret))
+    return make_response("success")
+
+
 if __name__ == "__main__":
     app.config.from_object(Config())
     # it is also possible to enable the API directly
