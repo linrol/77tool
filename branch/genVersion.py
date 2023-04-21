@@ -4,13 +4,13 @@ import getopt
 import utils
 import traceback
 from common import Common
-from checkVersion import CheckVersion
 from datetime import datetime, timedelta
 
-project_platform = ["app-build-plugins", "app-common", "app-common-api",
-                    "common-base", "common-base-api", "graphql-api",
-                    "graphql-impl", "json-schema-plugin", "mbg-plugins",
-                    "metadata-api", "metadata-impl", "sql-parser"]
+project_platform = ["app-archetype", "app-build-plugins", "app-common",
+                    "app-common-api", "common-base", "common-base-api",
+                    "graphql-api", "graphql-impl", "grpc-clients",
+                    "json-schema-plugin", "mbg-plugins", "metadata-api",
+                    "metadata-impl", "parent", "sql-parser", "testapp"]
 
 
 def usage():
@@ -44,27 +44,20 @@ class GenVersion(Common):
     def is_feature(self):
         return self.fixed_version is not None
 
-    def project_convert(self, project_names):
+    def project_convert(self, names):
         result = set()
-        for name in project_names:
-            is_apps = name not in project_platform
-            if is_apps:
-                result.add(name)
+        for name, p in self.projects.items():
+            if name not in names and p.getModule() not in names:
                 continue
-            name = "framework"
-            if not self.is_feature():
-                result.add(name)
-                continue
-            if not self.equals_version(self.target, self.source, name):
-                # 当目标工程的目标版本号和来源版本号不一致时，无需更新版本号
+            if name in project_platform:
+                name = "framework"
+                if self.is_feature():
+                    if self.equals_version(self.target, self.source, name):
+                        # 当目标工程的目标版本号和来源版本号不一致时，无需更新版本号
+                        continue
+            if self.source_version.get(name) is None:
                 continue
             result.add(name)
-
-        if self.force and self.source not in ["stage-global"]:
-            compare_dict = {self.target: True, self.source: False}
-            force_project = CheckVersion().compare_version(compare_dict, False)
-            if len(force_project) > 0:
-                result.update(force_project)
         return list(result)
 
     def get_adjacent_branch_version(self, days):
@@ -229,11 +222,9 @@ if __name__ == "__main__":
         force_update = not opts_dict.keys().isdisjoint({"-f", "--force"})
         source_branch = opts_dict.get("-s", opts_dict.get("-source"))
         target_branch = opts_dict.get("-t", opts_dict.get("-target"))
-        fixed_version = opts_dict.get("-v", opts_dict.get("-fixed_version",
-                                                          None))
+        fixed_version = opts_dict.get("-v", opts_dict.get("-fixed_version", None))
         projects = opts_dict.get("-p", opts_dict.get("-project")).split(",")
-        GenVersion(force_update, fixed_version, source_branch, target_branch,
-                   projects).execute()
+        GenVersion(force_update, fixed_version, source_branch, target_branch, projects).execute()
     except getopt.GetoptError as err:
         print(err)
         traceback.print_exc()
