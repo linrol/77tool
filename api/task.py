@@ -400,7 +400,17 @@ class Task(Common):
             logger.info("send mr to {} url {}".format(author_userid,
                                                       mr_source_msg))
             hmset("q7link-branch-merge", {mr_key: author_userid})
+            hmset("q7link-branch-build", {build_id: author_userid})
             crop.send_text_msg(author_userid, mr_source_msg)
+
+    # 发送编译结果通知
+    def send_build_notify(self, crop, build_id, ret):
+        user_id = hget("q7link-branch-build", build_id)
+        if user_id is None:
+            return
+        ret_msg = "成功" if ret == "true" else "失败"
+        build_msg = msg_content["build_ret"].format(build_id, ret_msg)
+        crop.send_text_msg(user_id, build_msg)
 
     # 发送代码合并任务
     def build_branch_task(self, branches, modules, clusters, crop):

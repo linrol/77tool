@@ -175,9 +175,9 @@ def check_upgrade():
 # 接受编译结果通知
 @app.route("/build/notify", methods=["GET"])
 def build_notify():
-    task_id = request.args.get('id')
+    build_id = request.args.get('id')
     ret = request.args.get('ret')
-    print("task_id={}, ret={}".format(task_id, ret))
+    task.send_build_notify(crop, build_id, ret)
     return make_response("success")
 
 
