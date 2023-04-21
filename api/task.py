@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
 from wxmessage import build_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content
-from redisclient import save_user_task, get_branch_mapping, hmset, hget
+from redisclient import save_user_task, get_branch_mapping, hmset, hget, hdel
 from common import Common
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
 
@@ -411,6 +411,7 @@ class Task(Common):
         ret_msg = "成功" if ret == "true" else "失败"
         build_msg = msg_content["build_ret"].format(build_id, ret_msg)
         crop.send_text_msg(user_id, build_msg)
+        hdel("q7link-branch-build", build_id)
 
     # 发送代码合并任务
     def build_branch_task(self, branches, modules, clusters, crop):
