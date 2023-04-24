@@ -52,7 +52,7 @@ class GenVersion(Common):
             if name in project_platform:
                 name = "framework"
                 if self.is_feature():
-                    if self.equals_version(self.target, self.source, name):
+                    if not self.equals_version(self.target, self.source, name):
                         # 当目标工程的目标版本号和来源版本号不一致时，无需更新版本号
                         continue
             if self.source_version.get(name) is None:
