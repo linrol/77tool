@@ -34,16 +34,13 @@ class Common(Base):
     def chdir_data_pre(self):
         os.chdir("../dataPre/")
 
-    # 是否首次创建分支
-    def init_create_branch(self, branch):
-        return self.project_build.getBranch(branch) is None
+    # 判断项目分支是否存在
+    def branch_is_present(self, project, branch):
+        return self.projects.get(project).getBranch(branch) is not None
 
     # 获取清空build脚本的参数
     def get_clear_build_params(self, branch):
-        if self.init_create_branch(branch):
-            return "true"
-        else:
-            return "false"
+        return "false" if self.branch_is_present("build", branch) else "true"
 
     # 切换本地分支
     def checkout_branch(self, branch, end="backend"):

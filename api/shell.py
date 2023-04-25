@@ -77,6 +77,8 @@ class Shell(Common):
             is_feature_branch = fixed_version != "None"
             if is_feature_branch:
                 gen_params = "-v {}".format(fixed_version)
+                if not self.branch_is_present('parent', self.target_branch):
+                    projects.add("framework")
             else:
                 gen_params = "-f"
             # self.checkout_branch(self.source_branch)

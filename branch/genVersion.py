@@ -51,10 +51,10 @@ class GenVersion(Common):
                 continue
             if name in project_platform:
                 name = "framework"
-                # if self.is_feature():
-                #     if not self.equals_version(self.target, self.source, name):
-                #         # 当目标工程的目标版本号和来源版本号不一致时，无需更新版本号
-                #         continue
+                if self.is_feature():
+                    if name not in names:
+                        # 当平台工程非首次创建时，无需更新版本号
+                        continue
             if self.source_version.get(name) is None:
                 continue
             result.add(name)
@@ -216,13 +216,13 @@ class GenVersion(Common):
 # 生成版本号
 if __name__ == "__main__":
     try:
-        arg_str = ["help", "force", "source=", "target=", "weight=", "project="]
+        arg_str = ["help", "force", "version=", "source=", "target=", "project="]
         opts, args = getopt.getopt(sys.argv[1:], "hfv:s:t:p:", arg_str)
         opts_dict = dict(opts)
         force_update = not opts_dict.keys().isdisjoint({"-f", "--force"})
         source_branch = opts_dict.get("-s", opts_dict.get("-source"))
         target_branch = opts_dict.get("-t", opts_dict.get("-target"))
-        fixed_version = opts_dict.get("-v", opts_dict.get("-fixed_version", None))
+        fixed_version = opts_dict.get("-v", opts_dict.get("-version", None))
         projects = opts_dict.get("-p", opts_dict.get("-project")).split(",")
         GenVersion(force_update, fixed_version, source_branch, target_branch, projects).execute()
     except getopt.GetoptError as err:
