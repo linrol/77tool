@@ -325,11 +325,11 @@ class Task(Common):
 
     # 发送mr提醒通知
     def send_mr_notify(self, crop):
-        before_min = (datetime.now() - timedelta(minutes=600)).isoformat()
+        before_hours = (datetime.utcnow() - timedelta(minutes=180)).isoformat()
         group = self.get_project('parent').getGroup('backend')
         # 发送待合并通知
         opened_mr_list = group.mergerequests.list(state='opened', all=True,
-                                                  created_after=before_min)
+                                                  created_after=before_hours)
         for mr in opened_mr_list:
             if mr.assignee is None:
                 continue
@@ -362,7 +362,7 @@ class Task(Common):
 
         # 发送已合并通知
         merged_mr_list = group.mergerequests.list(state='merged', all=True,
-                                                  created_after=before_min)
+                                                  updated_after=before_hours)
         for mr in merged_mr_list:
             if mr.merged_by is None:
                 continue
