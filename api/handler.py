@@ -175,8 +175,8 @@ class Handler(Base):
                 source = task_contents[1]
                 target = task_contents[2]
                 namespaces = task_contents[3]
-            if "sprint" not in source:
-                raise Exception("迁移分支输入错误，当前仅支持班车sprint分支")
+            if "sprint" not in source and "release" not in source:
+                raise Exception("迁移分支输入错误，仅支持来源为sprint/release分支")
             self.crop.send_text_msg(self.user_id, "分支迁移任务运行中，请稍等!")
             shell = Shell(self.user_id, self.is_test, source, target)
             _, ret = shell.move_branch(namespaces)
