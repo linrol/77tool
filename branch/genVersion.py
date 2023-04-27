@@ -73,10 +73,10 @@ class GenVersion(Common):
             return {}
 
     def get_branch_offset(self, project_name):
-        if self.target_name not in ["stage-patch", "release"]:
-            return 0
         try:
-            if self.target_name == "release":
+            if self.target_name not in ["stage-patch", "release"]:
+                return 0
+            if self.source == "stage" and self.target_name == "release":
                 num = datetime.strptime(self.target_date, "%Y%m%d").isoweekday()
                 return num - 4
             elif self.equals_version("master", self.target, project_name):
