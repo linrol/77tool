@@ -50,7 +50,8 @@ class Task(Common):
             return version, self.name2userid(leader_user), leader_user
         source = feature_info.split("@")[0]
         if source != source_branch:
-            raise Exception("ERROR: 特性分支初始化的来源分支必须为【{}】".format(source))
+            logger.info("Waring: 特性分支创建时来源分支为【{}】".format(source))
+            # raise Exception("Waring: 特性分支创建时来源分支为【{}】".format(source))
         version = feature_info.split("@")[1]
         approve = feature_info.split("@")[2]
         return version, self.name2userid(approve), approve
