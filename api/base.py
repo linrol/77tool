@@ -45,25 +45,24 @@ class Base:
 
     # 获取只读权限的值班人
     def get_readonly_duties(self):
-        return []
-        # ids = []
-        # try:
-        #     body = get("{}/api/verify/duty/users".format(self.rd_url))
-        #     sqa_duties = body.get("data").get("sqa")
-        #     # sqa值班人（仅接受消息）
-        #     for duty in sqa_duties:
-        #         ids.append(duty.get("user_id"))
-        # except Exception as err:
-        #     logger.error("get readonly user error: {}".format(str(err)), exc_info=True)
-        # return ids
+        ids = []
+        try:
+            body = get("{}/api/verify/duty/users".format(self.rd_url))
+            sqa_duties = body.get("data").get("sqa")
+            # sqa值班人（仅接受消息）
+            for duty in sqa_duties:
+                ids.append(duty.get("user_id"))
+        except Exception as err:
+            logger.error("get readonly user error: {}".format(str(err)), exc_info=True)
+        return ids
 
     # 获取值班人
     def get_duty_info(self, is_test, end="backend"):
         if is_test:
             return "LuoLin", "罗林"
         else:
-            # body = get("{}/api/verify/duty/users".format(self.rd_url))
-            body = {"data": {"backend": [{"user_id": "zhaojunlei", "user_name": "赵俊磊"}], "front": [{"user_id": "LiPan", "user_name": "李攀"}]}}
+            body = get("{}/api/verify/duty/users".format(self.rd_url))
+            # body = {"data": {"backend": [{"user_id": "zhaojunlei", "user_name": "赵俊磊"}], "front": [{"user_id": "LiPan", "user_name": "李攀"}]}}
             end_duties = body.get("data").get(end)
             user_ids = []
             user_names = []
