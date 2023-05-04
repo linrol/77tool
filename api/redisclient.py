@@ -29,6 +29,14 @@ def hget(name, key):
     return redisClient.get_connection().hget(name, key)
 
 
+def hget_key(name, v):
+    kvs = redisClient.get_connection().hgetall(name)
+    for key, value in kvs.items():
+        if value == v:
+            return key
+    return None
+
+
 def hdel(name, key):
     redisClient.get_connection().hdel(name, key)
 

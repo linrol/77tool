@@ -3,7 +3,7 @@ import pymysql
 import pymysql.cursors
 from request import post_form, get, post
 from log import logger
-from redisclient import get_branch_mapping, hget, hmset, get_version
+from redisclient import get_branch_mapping, hget, hget_key, hmset, get_version
 from wxmessage import msg_content
 
 
@@ -33,6 +33,9 @@ class Base:
         try:
             if user_name is None:
                 return None
+            key = hget_key("wwcba5faed367cdeee", user_name)
+            if key is not None:
+                return key.replace("-userinfo", "")
             url = "{}/api/verify/duty/user_id?user_name={}"
             body = get(url.format(self.rd_url, user_name))
             return body.get("data")[0].get("user_id")
