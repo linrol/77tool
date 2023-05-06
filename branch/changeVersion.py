@@ -113,12 +113,19 @@ class ChangeVersion:
     self.clearFile(buildPath, ["upgrade/upgrade_Readme.md", "upgrade/4_apiUpgrade/global_api.json", "upgrade/4_apiUpgrade/tenantallin_api.json"])
 
   def clearFile(self, buildPath, filePaths):
+    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     for filePath in filePaths:
       path = os.path.join(buildPath, filePath)
       if os.path.exists(path):
-        file=open(path, "r+")
-        file.truncate()
-
+        file=open(path, "w+")
+        if ".json" in filePath:
+          file.write("// 初始化内容({},{})，可删除".format(self.branchName, date))
+          file.flush()
+        elif ".sql" in filePath:
+          file.write("-- 初始化内容({},{})，可删除".format(self.branchName, date))
+          file.flush()
+        else:
+          file.truncate()
 
 class CommentedTreeBuilder(ET.TreeBuilder):
   def __init__(self, element_factory=None):
