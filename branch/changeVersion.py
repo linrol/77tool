@@ -119,7 +119,7 @@ class ChangeVersion:
       if os.path.exists(path):
         file=open(path, "w+")
         if ".json" in filePath:
-          file.write("// 初始化内容({},{})，可删除".format(self.branchName, date))
+          file.write("[]")
           file.flush()
         elif ".sql" in filePath:
           file.write("-- 初始化内容({},{})，可删除".format(self.branchName, date))
