@@ -88,7 +88,7 @@ class Merge(Common):
                 option = "-X theirs -m 'Merge branch {} into {} & accept {}' origin/{}".format(self.source, self.target, self.source, self.source)
             else:
                 option = "-m 'Merge branch {} into {}' origin/{} --no-ff".format(self.source, self.target, self.source)
-            ret, merge_msg = subprocess.getstatusoutput('cd {};git merge {}'.format(path, option))
+            ret, merge_msg = subprocess.getstatusoutput('cd {};git merge {} --allow-unrelated-histories'.format(path, option))
             if ret != 0:
                 _, abort_msg = subprocess.getstatusoutput('cd {};git merge --abort'.format(path))
                 print("工程【{}】分支【{}】合并至分支【{}】失败【{}】".format(name, self.source, self.target, merge_msg))
