@@ -264,7 +264,7 @@ class Handler(Base):
     def new_branch_task(self):
         try:
             branch_params = get_branch_dirt(self.msg_content)
-            end = self.get_project_end(branch_params[2].split(","))
+            end = self.get_project_end(branch_params[2])
             applicant = (self.user_id, self.user_name)
             watchman = self.get_duty_info(self.is_test, end)
             _, ret = Task(self.is_test).new_branch_task(self.crop,
