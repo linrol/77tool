@@ -5,7 +5,7 @@ import re
 from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
-from wxmessage import send_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content
+from wxmessage import send_create_branch_msg, build_merge_branch_msg, build_move_branch_msg, msg_content
 from redisclient import save_user_task, get_branch_mapping, hmset, hget, hdel
 from common import Common
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
@@ -109,47 +109,26 @@ class Task(Common):
     def new_branch_task(self, crop, source, target, projects, **user):
         projects = self.filter_project(target, projects)
         feature_info = self.get_feature_branch(source, target)
-        if feature_info is not None:
+        if feature_info is None:
+            # 值班分支
+            version = None
+            self.check_new_branch(source, target, user["applicant"][1])
+        else:
             # 特性分支
             version = feature_info[0]
             user["watchman"] = feature_info[1:]
-            return self.new_feature_branch_task(crop, source, target, projects,
-                                                version, **user)
-        # 值班分支
-        applicant_name = user["applicant"][1]
-        self.check_new_branch(source, target, applicant_name)
         multi_source = self.split_multi_source(source, target, projects)
-        for _source, _projects in multi_source.items():
-            if len(_projects) < 1:
+        for source, projects in multi_source.items():
+            if len(projects) < 1:
                 continue
             task_id = "branch_new@{}".format(int(time.time()))
-            project_str = ",".join(_projects)
-            task_code = send_create_branch__msg(crop, _source, target,
-                                                _projects, task_id, **user)
+            content = send_create_branch_msg(crop, source, target, projects,
+                                             task_id, str(version), **user)
             # 记录任务
-            applicant_id = user["applicant"][0]
-            content = "{}#{}#{}#{}#None#{}#{}".format(applicant_id, _source,
-                                                      target, project_str,
-                                                      str(self.is_test),
-                                                      task_code)
-            logger.info("save task_id: " + task_id)
-            save_user_task(task_id, content)
-        task_brief = "{}#{}#{}".format(source, target, ",".join(projects))
-        return True, "new branch task[{}] success".format(task_brief)
-
-    # 创建拉特性分支的任务
-    def new_feature_branch_task(self, crop, source, target, projects, version, **user):
-        task_id = "branch_new@{}".format(int(time.time()))
-        task_code = send_create_branch__msg(crop, source, target, projects,
-                                            task_id, **user)
-        # 记录任务
-        applicant_id = user["applicant"][0]
-        task_content = "{}#{}#{}#{}#{}#{}#{}".format(applicant_id, source,
-                                                     target, ",".join(projects),
-                                                     version, str(self.is_test),
-                                                     task_code)
-        save_user_task(task_id, task_content)
-        return True, "new branch task[{}] success".format(task_id)
+            logger.info("add task[{}->{}]".format(task_id, content))
+            save_user_task(task_id, str(self.is_test) + "#" + content)
+        ret = "{}->{}->{}".format(source, target, ",".join(projects))
+        return True, "new branch task[{}] success".format(ret)
 
     def compare_version(self, left_branch, right_branch):
         ret = {}
@@ -475,13 +454,9 @@ class Task(Common):
         body = crop.send_template_card(user_ids, task_params)
         # 记录任务
         task_code = body.get("response_code")
-        content = "{}#{}#{}#{}#None#{}#{}".format(user_ids,
-                                                  source,
-                                                  target,
-                                                  ",".join(modules),
-                                                  str(self.is_test),
-                                                  task_code)
-        logger.info("task[{}] content[{}]".format(task_id, content))
+        content = "{}#{}#{}#{}#{}".format(str(self.is_test), task_code, source,
+                                          target, ",".join(modules))
+        logger.info("add task[{}->{}]".format(task_id, content))
         save_user_task(task_id, content)
         return task_id
 

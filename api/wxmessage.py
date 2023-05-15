@@ -361,11 +361,12 @@ def get_build_dirt(msg_content):
     return branch_map.get('目标分支'), " ".join(modules), protect, is_build
 
 
-def send_create_branch__msg(crop, source, target, projects, task_id, **user):
+def send_create_branch_msg(crop, source, target, projects, task_id, version, **user):
     applicant_id = user["applicant"][0]
     applicant_name = user["applicant"][1]
-    watchman_id = user["watchman"][1]
+    watchman_id = user["watchman"][0]
     watchman_name = user["watchman"][1]
+    project_str = ",".join(projects)
     task_info_list = [{
         "type": 3,
         "keyname": "申请人",
@@ -379,7 +380,7 @@ def send_create_branch__msg(crop, source, target, projects, task_id, **user):
         "value": target,
     }, {
         "keyname": "工程模块",
-        "value": ",".join(projects),
+        "value": project_str,
     }]
     msg_content["create_branch_task"]["main_title"]["title"] = "值班助手-来自{}的拉分支请求".format(applicant_name)
     msg_content["create_branch_task"]["horizontal_content_list"] = task_info_list
@@ -390,8 +391,10 @@ def send_create_branch__msg(crop, source, target, projects, task_id, **user):
     body = crop.send_template_card(watchman_id, msg_content["create_branch_task"])
     # 发送申请人回执消息
     crop.send_text_msg(applicant_id, str(msg_content["create_branch_task_response"].format(watchman_name)))
-    # 返回任务消息的第三方（企业微信）code码
-    return body.get("response_code")
+    # 返回任务消息关键内容
+    task_code = body.get("response_code")
+    return "{}#{}#{}#{}#{}#{}".format(task_code, applicant_id, source, target,
+                                      project_str, version)
 
 
 def build_change_branch_version_msg(task_id, source, target, project_info):
@@ -410,6 +413,7 @@ def build_change_branch_version_msg(task_id, source, target, project_info):
     msg_content["change_branch_version"]["button_list"][0]["key"] = "deny@" + task_id
     msg_content["change_branch_version"]["button_list"][1]["key"] = "agree@" + task_id
     return msg_content["change_branch_version"]
+
 
 def build_merge_branch_msg(source, target, modules, cluster, task_id):
     task_info_list = [{
@@ -432,6 +436,7 @@ def build_merge_branch_msg(source, target, modules, cluster, task_id):
     msg_content["merge_branch_task"]["button_list"][0]["key"] = "deny@" + task_id
     msg_content["merge_branch_task"]["button_list"][1]["key"] = "agree@" + task_id
     return msg_content["merge_branch_task"]
+
 
 def build_move_branch_msg(source, target, group, cluster, task_id):
     task_info_list = [{

@@ -70,7 +70,8 @@ class Handler(Base):
         if task_content is None:
             return "agree task {} not found".format(self.event_task_id)
         task_contents = task_content.split("#")
-        self.is_test = task_contents[5] == "True"
+        self.is_test = task_contents[0] == "True"
+        task_code = task_contents[1]
         if action_type == "branch_new":
             ret_msg = self.new_branch(task_contents)
         elif action_type == "branch_merge":
@@ -79,7 +80,6 @@ class Handler(Base):
             ret_msg = self.move_branch(task_contents)
         else:
             ret_msg = "未知任务"
-        task_code = task_contents[6]
         self.crop.disable_task_button(task_code, "任务执行完成")
         return ret_msg
 
@@ -140,11 +140,11 @@ class Handler(Base):
     # 拉分支
     def new_branch(self, task_contents):
         try:
-            req_id = task_contents[0]
-            source = task_contents[1]
-            target = task_contents[2]
-            projects = task_contents[3].split(",")
-            fixed_version = task_contents[4]
+            req_id = task_contents[2]
+            source = task_contents[3]
+            target = task_contents[4]
+            projects = task_contents[5].split(",")
+            fixed_version = task_contents[6]
             shell = Shell(req_id, self.is_test, source, target)
             end = self.get_project_end(projects)
             if end == "front":
@@ -170,9 +170,9 @@ class Handler(Base):
             if task_contents is None:
                 source, target, namespaces = get_move_branch_dirt(self.msg_content)
             else:
-                source = task_contents[1]
-                target = task_contents[2]
-                namespaces = task_contents[3]
+                source = task_contents[2]
+                target = task_contents[3]
+                namespaces = task_contents[4]
             if "sprint" not in source and "release" not in source:
                 raise Exception("迁移分支输入错误，仅支持来源为sprint/release分支")
             self.crop.send_text_msg(self.user_id, "分支迁移任务运行中，请稍等!")
@@ -198,9 +198,9 @@ class Handler(Base):
                 source, target, projects, clear = get_merge_branch_dirt(self.msg_content)
                 self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等!")
             else:
-                source = task_contents[1]
-                target = task_contents[2]
-                projects = task_contents[3].split(",")
+                source = task_contents[2]
+                target = task_contents[3]
+                projects = task_contents[4].split(",")
                 end = self.get_project_end(projects)
                 clear = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
             shell = Shell(self.user_id, self.is_test, source, target)
