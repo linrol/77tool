@@ -39,7 +39,8 @@ RUN /etc/init.d/postgresql start &&  \
 USER root
 WORKDIR /data/backend/branch-manage/
 COPY . ./
-RUN pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn
+RUN pip3 install -i https://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com -r requirements.txt
+# RUN pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn
 
 # set utf-8
 RUN apt install language-pack-zh-hans -y &&  \
