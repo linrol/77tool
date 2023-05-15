@@ -49,6 +49,8 @@ class GenVersion(Common):
         for name, p in self.projects.items():
             if name not in names and p.getModule() not in names:
                 continue
+            if p.getBranch(self.target) is None:
+                continue
             if name in project_platform:
                 name = "framework"
                 if self.is_feature():
