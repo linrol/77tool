@@ -294,7 +294,9 @@ def get_branch_dirt(msg_content):
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     projects = list(map(project_convert, branch_map.get('工程模块').split(",")))
-    return branch_map.get('来源分支'), branch_map.get('目标分支'), ",".join(projects)
+    exclude_projects = ["build", "parent", "testapp", "base-common-test"]
+    projects = list(filter(lambda name: name not in exclude_projects, projects))
+    return branch_map.get('来源分支'), branch_map.get('目标分支'), projects
 
 
 def get_init_feature_dirt(msg_content):
@@ -359,12 +361,16 @@ def get_build_dirt(msg_content):
     return branch_map.get('目标分支'), " ".join(modules), protect, is_build
 
 
-def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id, source, target, project_names):
+def send_create_branch__msg(crop, source, target, projects, task_id, **user):
+    applicant_id = user["applicant"][0]
+    applicant_name = user["applicant"][1]
+    watchman_id = user["watchman"][1]
+    watchman_name = user["watchman"][1]
     task_info_list = [{
         "type": 3,
         "keyname": "申请人",
-        "value": req_user_name,
-        "userid": req_user_id
+        "value": applicant_name,
+        "userid": applicant_id
     }, {
         "keyname": "来源分支",
         "value": source,
@@ -373,14 +379,20 @@ def build_create_branch__msg(req_user_id, req_user_name, duty_user_name, task_id
         "value": target,
     }, {
         "keyname": "工程模块",
-        "value": project_names,
+        "value": ",".join(projects),
     }]
-    msg_content["create_branch_task"]["main_title"]["title"] = "值班助手-来自{}的拉分支请求".format(req_user_name)
+    msg_content["create_branch_task"]["main_title"]["title"] = "值班助手-来自{}的拉分支请求".format(applicant_name)
     msg_content["create_branch_task"]["horizontal_content_list"] = task_info_list
     msg_content["create_branch_task"]["task_id"] = task_id
     msg_content["create_branch_task"]["button_list"][0]["key"] = "deny@" + task_id
     msg_content["create_branch_task"]["button_list"][1]["key"] = "agree@" + task_id
-    return msg_content["create_branch_task"], str(msg_content["create_branch_task_response"].format(duty_user_name))
+    # 发送值班人审核通知
+    body = crop.send_template_card(watchman_id, msg_content["create_branch_task"])
+    # 发送申请人回执消息
+    crop.send_text_msg(applicant_id, str(msg_content["create_branch_task_response"].format(watchman_name)))
+    # 返回任务消息的第三方（企业微信）code码
+    return body.get("response_code")
+
 
 def build_change_branch_version_msg(task_id, source, target, project_info):
     task_info_list = [{

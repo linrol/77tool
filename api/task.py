@@ -5,7 +5,7 @@ import re
 from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
-from wxmessage import build_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content
+from wxmessage import send_create_branch__msg, build_merge_branch_msg, build_move_branch_msg, msg_content
 from redisclient import save_user_task, get_branch_mapping, hmset, hget, hdel
 from common import Common
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
@@ -45,8 +45,7 @@ class Task(Common):
                 return None
             leader_user = zt_user_info.get("realname", None)
             version = self.gen_feature_version(source_branch)
-            self.save_branch_feature(target_branch, source_branch, version,
-                                     leader_user)
+            self.save_branch_feature(target_branch, source_branch, version, leader_user)
             return version, self.name2userid(leader_user), leader_user
         source = feature_info.split("@")[0]
         if source != source_branch:
@@ -56,15 +55,10 @@ class Task(Common):
         approve = feature_info.split("@")[2]
         return version, self.name2userid(approve), approve
 
-    def get_new_project(self, target, project_names):
-        exclude_projects = ["build", "parent", "testapp"]
-        projects = list(filter(
-            lambda name:
-            self.get_project_branch(name, target) is None
-            and name not in exclude_projects, project_names.split(",")))
+    def filter_project(self, target, projects):
+        projects = list(filter(lambda name: self.get_project_branch(name, target) is None, projects))
         if len(projects) < 1:
-            raise Exception("ERROR: \n" + "工程【{}】目标分支【{}】已存在!!!".format(
-                project_names, target))
+            raise Exception("ERROR: \n" + "工程【{}】目标分支【{}】已存在!!!".format(",".join(projects), target))
         return projects
 
     def gen_feature_version(self, branch):
@@ -112,65 +106,49 @@ class Task(Common):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
 
     # 创建拉值班分支的任务
-    def new_branch_task(self, crop, req_id, req_name, duty_id, duty_name,
-        source, target, project_names):
+    def new_branch_task(self, crop, source, target, projects, **user):
+        projects = self.filter_project(target, projects)
         feature_info = self.get_feature_branch(source, target)
         if feature_info is not None:
-            return self.new_feature_branch_task(crop, req_id, req_name, source,
-                                                target, project_names,
-                                                *feature_info)
-        self.check_new_branch(source, target, req_name)
-        need_projects = self.get_new_project(target, project_names)
-        split = self.split_multi_source(source, target, need_projects)
-        notify_req = None
-        for priority, projects in split.items():
-            if len(projects) < 1:
+            # 特性分支
+            version = feature_info[0]
+            user["watchman"] = feature_info[1:]
+            return self.new_feature_branch_task(crop, source, target, projects,
+                                                version, **user)
+        # 值班分支
+        applicant_name = user["applicant"][1]
+        self.check_new_branch(source, target, applicant_name)
+        multi_source = self.split_multi_source(source, target, projects)
+        for _source, _projects in multi_source.items():
+            if len(_projects) < 1:
                 continue
             task_id = "branch_new@{}".format(int(time.time()))
-            logger.info("task_id" + task_id)
-            project_str = ",".join(projects)
-            notify_duty, notify_req = build_create_branch__msg(req_id, req_name,
-                                                               duty_name,
-                                                               task_id,
-                                                               priority,
-                                                               target,
-                                                               project_str)
-            # 发送值班人审核通知
-            body = crop.send_template_card(duty_id, notify_duty)
+            project_str = ",".join(_projects)
+            task_code = send_create_branch__msg(crop, _source, target,
+                                                _projects, task_id, **user)
             # 记录任务
-            task_code = body.get("response_code")
-            content = "{}#{}#{}#{}#None#{}#{}".format(req_id, priority, target,
-                                                      project_str,
+            applicant_id = user["applicant"][0]
+            content = "{}#{}#{}#{}#None#{}#{}".format(applicant_id, _source,
+                                                      target, project_str,
                                                       str(self.is_test),
                                                       task_code)
+            logger.info("save task_id: " + task_id)
             save_user_task(task_id, content)
-        crop.send_text_msg(req_id, notify_req)
-        task_brief = "{}#{}#{}".format(source, target, project_names)
+        task_brief = "{}#{}#{}".format(source, target, ",".join(projects))
         return True, "new branch task[{}] success".format(task_brief)
 
     # 创建拉特性分支的任务
-    def new_feature_branch_task(self, crop, req_user_id, req_user_name,
-        source, target, project_names, version, approve_id, approve_name):
-        project_str = ",".join(self.get_new_project(target, project_names))
+    def new_feature_branch_task(self, crop, source, target, projects, version, **user):
         task_id = "branch_new@{}".format(int(time.time()))
-        notify_approve, notify_req = build_create_branch__msg(req_user_id,
-                                                              req_user_name,
-                                                              approve_name,
-                                                              task_id,
-                                                              source,
-                                                              target,
-                                                              project_str)
-        # 发送分支负责人审核通知
-        body = crop.send_template_card(approve_id, notify_approve)
+        task_code = send_create_branch__msg(crop, source, target, projects,
+                                            task_id, **user)
         # 记录任务
-        task_code = body.get("response_code")
-        task_content = "{}#{}#{}#{}#{}#{}#{}".format(req_user_id, source,
-                                                     target,
-                                                     project_str, version,
-                                                     str(self.is_test),
+        applicant_id = user["applicant"][0]
+        task_content = "{}#{}#{}#{}#{}#{}#{}".format(applicant_id, source,
+                                                     target, ",".join(projects),
+                                                     version, str(self.is_test),
                                                      task_code)
         save_user_task(task_id, task_content)
-        crop.send_text_msg(req_user_id, notify_req)
         return True, "new branch task[{}] success".format(task_id)
 
     def compare_version(self, left_branch, right_branch):

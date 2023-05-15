@@ -1,5 +1,3 @@
-import random
-import string
 from shell import Shell
 from task import Task
 from log import logger
@@ -265,12 +263,14 @@ class Handler(Base):
     # 创建拉分支的任务
     def new_branch_task(self):
         try:
-            req_user = (self.user_id, self.user_name)
-            new_branch_params = get_branch_dirt(self.msg_content)
-            end = self.get_project_end(new_branch_params[2].split(","))
-            duty_user = self.get_duty_info(self.is_test, end)
-            task_info = req_user + duty_user + new_branch_params
-            _, ret = Task(self.is_test).new_branch_task(self.crop, *task_info)
+            branch_params = get_branch_dirt(self.msg_content)
+            end = self.get_project_end(branch_params[2].split(","))
+            applicant = (self.user_id, self.user_name)
+            watchman = self.get_duty_info(self.is_test, end)
+            _, ret = Task(self.is_test).new_branch_task(self.crop,
+                                                        *branch_params,
+                                                        applicant=applicant,
+                                                        watchman=watchman)
             return ret
         except Exception as err:
             logger.exception(err)
