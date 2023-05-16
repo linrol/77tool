@@ -162,14 +162,14 @@ class Common(Base):
                 branch_merge[self.stage] = self.master
                 continue
             if source_branch is None:
-                error.append("来源分支【{}】不存在".format(branch))
+                error.append("工程【{}】来源分支【{}】不存在".format(project, branch))
                 continue
             target = self.get_branch_created_source(end, branch)
             if target is None:
                 error.append("分支【{}】未知的目标分支".format(branch))
                 continue
             if git_project.getBranch(target) is None:
-                error.append("目标分支【{}】不存在".format(target))
+                error.append("工程【{}】目标分支【{}】不存在".format(project, target))
                 continue
             is_merge = git_project.checkMerge(branch, target)
             if is_merge and branch != self.stage_global:

@@ -438,6 +438,7 @@ class Task(Common):
     # 发送分支操作（迁移/合并）任务
     def send_branch_action(self, action, user_ids, source, target, modules, clusters, crop):
         # 发送合并代码通知
+        time.sleep(2)
         task_id = "branch_{}@{}".format(action, int(time.time()))
         if action == "move":
             task_params = build_move_branch_msg(source, target,
