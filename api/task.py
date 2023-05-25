@@ -412,7 +412,7 @@ class Task(Common):
                 return task_id
             if not self.equals_version(self.stage, self.master):
                 return task_id
-            all_clusters = {"宁夏生产集群0", "宁夏生产集群1", "宁夏生产集群2", "宁夏生产集群3",
+            all_clusters = {"宁夏灰度集群0", "宁夏灰度集群1", "宁夏生产集群2", "宁夏生产集群3",
                             "宁夏生产集群4", "宁夏生产集群5", "宁夏生产集群6", "宁夏生产集群7"}
             push_all = len(set(clusters).intersection(all_clusters)) > 6
             if not push_all:
