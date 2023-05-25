@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
 from wxmessage import send_create_branch_msg, build_merge_branch_msg, build_move_branch_msg, msg_content
-from redisclient import save_user_task, get_branch_mapping, hmset, hget, hdel
+from redisclient import save_user_task, save_task_depend, get_branch_mapping, hmset, hget, hdel
 from common import Common
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
 
@@ -397,17 +397,31 @@ class Task(Common):
         try:
             user_ids, _ = self.get_duty_info(self.is_test)
             source, target = self.get_merge_branch(branches, clusters, "build")
-            is_global = "global" in modules
+            push_global = "global" in modules
+            is_sprint = "sprint" in source or "release" in source
             params = [user_ids, source, target, modules, clusters, crop]
-            if is_global and "sprint" in source:
+            if is_sprint and push_global:
                 if self.has_release(source):
                     raise Exception("sprint deploy global,all release not move")
-                # sprint发布到global & 分支未封板，将global模块迁移至stage-global
+                # sprint/release发布到global & 分支未封板，将global模块迁移至stage-global
                 target = self.stage_global
                 params[2] = target
                 return self.send_branch_action("move", *params)
             task_id = self.send_branch_action("merge", *params)
-            return task_id
+            if not self.is_trunk(target):
+                return task_id
+            if not self.compare_version(self.stage, self.master):
+                return task_id
+            all_clusters = {"宁夏生产集群0", "宁夏生产集群1", "宁夏生产集群2", "宁夏生产集群3",
+                            "宁夏生产集群4", "宁夏生产集群5", "宁夏生产集群6", "宁夏生产集群7"}
+            push_all = len(set(clusters).intersection(all_clusters)) > 6
+            if not push_all:
+                return task_id
+            # 当主干分支(stage,master)一致时且推送至所有集群时，合并到多个分支
+            params[2] = self.stage if target == self.master else self.master
+            task_id_2 = self.send_branch_action("merge", *params)
+            save_task_depend(task_id, task_id_2)
+            return task_id + "," + task_id_2
         except Exception as err:
             logger.exception(err)
             return str(err)

@@ -3,7 +3,7 @@ from task import Task
 from log import logger
 from base import Base
 from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_protect_branch_dirt, get_move_branch_dirt
-from redisclient import duplicate_msg, get_user_task, hmset
+from redisclient import duplicate_msg, get_user_task, no_task_depend
 
 
 class Handler(Base):
@@ -202,7 +202,7 @@ class Handler(Base):
                 target = task_contents[3]
                 projects = task_contents[4].split(",")
                 end = self.get_project_end(projects)
-                clear = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
+                clear = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId") and no_task_depend(self.event_task_id)
             shell = Shell(self.user_id, self.is_test, source, target)
             _, ret = shell.merge_branch(end, projects, clear, self.user_name)
             # 发送消息通知

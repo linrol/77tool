@@ -76,6 +76,25 @@ def save_user_task(key, value):
     redisClient.get_connection().hmset("q7link-user-task", {key: value})
 
 
+def save_task_depend(key, value):
+    redisClient.get_connection().hmset("q7link-task-depend", {key: value})
+
+
+def no_task_depend(key):
+    try:
+        depend = redisClient.get_connection().hgetall("q7link-task-depend")
+        if depend is None:
+            return True
+        for k, v in depend.items():
+            if key in [k, v]:
+                redisClient.get_connection().hdel("q7link-task-depend", key)
+                return False
+        return True
+    except Exception as err:
+        print(err)
+        return True
+
+
 def get_user_task(key):
     return redisClient.get_connection().hget("q7link-user-task", key)
 
