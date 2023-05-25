@@ -349,8 +349,9 @@ class Task(Common):
             _, project = project_full.rsplit("/", 1)
             build_id = "-1"
             if project in self.projects.keys():
-                build_id = self.ops_build(mr.target_branch, False,
-                                          project_full, author_name)
+                if project not in ["build"]:
+                    build_id = self.ops_build(mr.target_branch, False,
+                                              project_full, author_name)
             mr_source_msg = msg_content["mr_source"].format(mr.web_url,
                                                             project,
                                                             merged_username,
