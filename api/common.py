@@ -207,7 +207,7 @@ class Common(Base):
         return config_yaml
 
     # 分支版本号比较，用于判断两个分支代码是否一致
-    def compare_version(self, left, right):
+    def equals_version(self, left, right):
         left_version = self.get_branch_version(left)
         right_version = self.get_branch_version(right)
         if left_version is None or right_version is None:

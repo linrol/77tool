@@ -410,7 +410,7 @@ class Task(Common):
             task_id = self.send_branch_action("merge", *params)
             if not self.is_trunk(target):
                 return task_id
-            if not self.compare_version(self.stage, self.master):
+            if not self.equals_version(self.stage, self.master):
                 return task_id
             all_clusters = {"宁夏生产集群0", "宁夏生产集群1", "宁夏生产集群2", "宁夏生产集群3",
                             "宁夏生产集群4", "宁夏生产集群5", "宁夏生产集群6", "宁夏生产集群7"}
