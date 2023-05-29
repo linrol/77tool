@@ -92,7 +92,7 @@ class CreateBranch:
 
     projectConfigs = utils.project_config()
     # 拉取工程分支，自动拉取必须要拉的工程
-    if "front" not in relatedModule:
+    if "front" not in relatedModule and len(relatedModule) > 0:
       for module,projectNames in MUST_PROJECT.items():
         for projectName in projectNames:
           if not (projectName in projectInfoMap):
