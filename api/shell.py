@@ -75,12 +75,9 @@ class Shell(Common):
             self.lock_value = self.lock.get_lock("lock", 300)
             clear_build_params = self.get_clear_build_params(self.target_branch)
             is_feature_branch = fixed_version != "None"
-            if is_feature_branch:
-                gen_params = "-v {}".format(fixed_version)
-                if not self.branch_is_present('parent', self.target_branch):
-                    projects.append("framework")
-            else:
-                gen_params = "-f"
+            gen_params = "-v {}".format(fixed_version) if is_feature_branch else "-f"
+            if not self.branch_is_present('parent', self.target_branch):
+                projects.append("framework")
             # self.checkout_branch(self.source_branch)
             slave_source = self.get_slave_source()
             cmd = 'cd ../branch;python3 createBranch.py {}.{} {}.false {}'.format(self.source_branch, slave_source, self.target_branch, " ".join(projects))

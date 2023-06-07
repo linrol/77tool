@@ -53,10 +53,10 @@ class GenVersion(Common):
                 continue
             if name in project_platform:
                 name = "framework"
-                if self.is_feature():
-                    if name not in names:
-                        # 当平台工程非首次创建时，无需更新版本号
-                        continue
+                # if self.is_feature():
+                if name not in names:
+                    # 当平台工程非首次创建时，无需更新版本号
+                    continue
             if self.source_version.get(name) is None:
                 continue
             result.add(name)
