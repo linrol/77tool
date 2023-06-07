@@ -38,8 +38,7 @@ class GenVersion(Common):
         if self.fixed_version is None:
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
-            self.last_target_version = self.get_adjacent_branch_version(-7)
-            self.next_target_version = self.get_adjacent_branch_version(7)
+            self.last_sprint_version = self.get_last_sprint_version([-7, -14])
 
     def is_feature(self):
         return self.fixed_version is not None
@@ -62,16 +61,21 @@ class GenVersion(Common):
             result.add(name)
         return list(result)
 
-    def get_adjacent_branch_version(self, days):
-        if self.target_name != "sprint":
+    def get_last_sprint_version(self, days_list):
+        if self.target_name not in ["sprint", 'release']:
             return {}
-        target_date = datetime.strptime(self.target_date, "%Y%m%d")
-        last_week_date = target_date + timedelta(days=days)
-        last_branch = self.target_name + last_week_date.strftime("%Y%m%d")
         try:
-            return self.get_branch_version(last_branch)
+            for days in days_list:
+                for name in ['sprint', 'release']:
+                    target_date = datetime.strptime(self.target_date, "%Y%m%d")
+                    last_week_date = target_date + timedelta(days=days)
+                    last_branch = name + last_week_date.strftime("%Y%m%d")
+                    exist = self.branch_is_presence(last_branch)
+                    if not exist:
+                        continue
+                    return self.get_branch_version(last_branch)
+            return {}
         except Exception as e:
-            print(str(e))
             return {}
 
     def get_branch_offset(self, project_name):
@@ -147,50 +151,32 @@ class GenVersion(Common):
         source_min = int(source_min)
         # target_min = int(target_min)
         # 上一班车分支版本号+weight<=sprint增量的版本号需<=下一班车分支版本号+weight
-        last_target_min = self.get_adjacent_min_version(project_name, source_prefix, source_min, True)
-        next_target_min = self.get_adjacent_min_version(project_name, source_prefix, source_min, False)
+        last_target_min = self.get_last_min_version(project_name, source_prefix, source_min)
         target_min = source_min + inc_version
         target_min = target_min + self.get_branch_offset(project_name)
-        if last_target_min is None and next_target_min is None:
+        if last_target_min is None or self.source == "stage-global":
             ret = "{}.{}-SNAPSHOT".format(target_prefix, target_min)
             print("{}({}->{})".format(project_name, ".".join(source_version), ret))
             return ret
-        if self.source == "stage-global":
-            ret = "{}.{}-SNAPSHOT".format(target_prefix, target_min)
-            print("{}({}->{})".format(project_name, ".".join(source_version), ret))
-            return ret
-        if last_target_min is not None and next_target_min is not None:
-            inc_version = (next_target_min - last_target_min) // 2
-            target_min = last_target_min + inc_version
-        if next_target_min is not None:
-            inc_version = (next_target_min - source_min) // 2
-            target_min = source_min + inc_version
-        if last_target_min is not None:
-            less_weight = source_min + inc_version - last_target_min < weight
-            target_min = last_target_min + weight if less_weight else target_min
-        if target_min - source_min < 2:
-            target_min = source_min + weight
-            print("工程【{}】目标分支【{}】增量版本号小于2请确认下个班车版本号".format(project_name, self.target))
+        if target_min < last_target_min + weight:
+            target_min = last_target_min + weight
         ret = "{}.{}-SNAPSHOT".format(target_prefix, target_min)
         print("{}({}->{})".format(project_name, ".".join(source_version), ret))
         return ret
 
-    def get_adjacent_min_version(self, project_name, prefix, s_min, is_last):
-        if is_last:
-            adjacent_version = self.last_target_version.get(project_name, None)
-        else:
-            adjacent_version = self.next_target_version.get(project_name, None)
-        if adjacent_version is None:
+    def get_last_min_version(self, project_name, prefix, s_min):
+        last_version = self.last_sprint_version.get(project_name, None)
+        if last_version is None:
             return None
-        adjacent_prefix = adjacent_version[0]
+        adjacent_prefix = last_version[0]
         if prefix != adjacent_prefix:
             return None
-        adjacent_min = adjacent_version[1].replace("-SNAPSHOT", "")
-        if not adjacent_min.isdigit():
+        last_min = last_version[1].replace("-SNAPSHOT", "")
+        if not last_min.isdigit():
             return None
-        if int(adjacent_min) <= int(s_min):
+        if int(last_min) <= int(s_min):
             return None
-        return int(adjacent_min)
+        return int(last_min)
 
     def execute(self):
         try:
