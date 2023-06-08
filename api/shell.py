@@ -70,7 +70,7 @@ class Shell(Common):
         return self.stage
 
     # 创建分支
-    def create_branch(self, fixed_version, projects):
+    def create_branch(self, fixed_version, projects, req_name):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             clear_build_params = self.get_clear_build_params(self.target_branch)
@@ -86,7 +86,7 @@ class Shell(Common):
             self.exec(cmd, True, True)
             cmd = 'cd ../branch;python3 changeVersion.py {} {}'.format(self.target_branch, clear_build_params)
             [_, version_msg] = self.exec(cmd, True)
-            self.commit_and_push(self.target_branch, 'd' if is_feature_branch else 'hotfix')
+            self.commit_and_push(self.target_branch, 'd' if is_feature_branch else 'hotfix', req_name)
             self.ops_build(self.target_branch, self.is_test)
             self.save_branch_created(self.user_id, self.source_branch, self.target_branch, projects)
             created_msg = re.compile('WARNNING：.*\n').sub('', created_msg)
@@ -175,7 +175,7 @@ class Shell(Common):
             [_, release_version_msg] = self.exec(cmd, True, False)
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
             [_, change_version_msg] = self.exec(cmd, True)
-            self.commit_and_push(self.target_branch, protect)
+            self.commit_and_push(self.target_branch, protect, self.user_id)
             self.ops_build(self.target_branch, not is_build)
             msg = release_version_msg + change_version_msg
             return True, msg.replace("\n", "").replace("工程", "\n工程")
@@ -196,7 +196,7 @@ class Shell(Common):
         except Exception as err:
             logger.exception(err)
 
-    def commit_and_push(self, branch, protect):
+    def commit_and_push(self, branch, protect, user_name):
         push_cmd = ''
         for name, project in self.projects.items():
             path = project.getPath()
@@ -206,7 +206,7 @@ class Shell(Common):
             _, project_commit = self.exec("cd {};git status -s".format(path), True, False)
             if len(project_commit) < 1:
                 continue
-            commit_title = "{}-task-0000-修改版本号--{}({})".format(branch, name, self.user_id)
+            commit_title = "{}-task-0000-修改版本号--{}({})".format(branch, name, user_name)
             push_cmd += ';cd ' + path + ';git add .;git commit -m "{}"'.format(commit_title)
             push_cmd += ";git push origin {}".format(branch)
         if len(push_cmd) < 1:

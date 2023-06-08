@@ -120,7 +120,7 @@ class Crop:
     def send_markdown_msg(self, to_user, content):
         return self.send_message(to_user, 'markdown', {"content": content})
 
-    def user_id2name(self, user_id):
+    def userid2name(self, user_id):
         user_name = self.get("{}-userinfo".format(user_id))
         if user_name is not None:
             return user_name

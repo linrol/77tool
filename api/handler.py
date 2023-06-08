@@ -16,7 +16,7 @@ class Handler(Base):
         self.is_test = 'isTest=true' in self.msg_content
         # 可能时密文或者明文
         self.user_id = self.data['FromUserName']
-        self.user_name = self.crop.user_id2name(self.user_id)
+        self.user_name = self.crop.userid2name(self.user_id)
         # 消息类型
         self.msg_type = self.data.get('MsgType', '')
         self.is_text_msg = self.msg_type == 'text'
@@ -145,13 +145,14 @@ class Handler(Base):
             target = task_contents[4]
             projects = task_contents[5].split(",")
             fixed_version = task_contents[6]
+            req_name = self.crop.userid2name(req_id)
             shell = Shell(req_id, self.is_test, source, target)
             end = self.get_project_end(projects)
             if end == "front":
                 is_feature = fixed_version != "None"
                 _, ret = shell.create_front_branch(is_feature, projects)
             else:
-                _, ret = shell.create_branch(fixed_version, projects)
+                _, ret = shell.create_branch(fixed_version, projects, req_name)
             # 发送消息通知
             user_ids = "|".join({self.user_id, req_id})
             self.crop.send_text_msg(user_ids, str(ret))
