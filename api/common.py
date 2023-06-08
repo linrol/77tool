@@ -73,7 +73,7 @@ class Common(Base):
             message = "{}-task-0000-{}".format(branch, "清空升级接口")
             file.content = ''
             file.save(branch=branch, commit_message=message)
-            return True, "\n工程【{}】清空升级接口完成".format(name)
+            return True, "\n工程【{}】清空升级接口【{}】成功".format(name, path)
         except Exception as err:
             return False, str(err)
 
