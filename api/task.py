@@ -56,9 +56,10 @@ class Task(Common):
         return version, self.name2userid(approve), approve
 
     def filter_project(self, target, projects):
+        project_str = ",".join(projects)
         projects = list(filter(lambda name: self.get_project_branch(name, target) is None, projects))
         if len(projects) < 1:
-            raise Exception("ERROR: \n" + "工程【{}】目标分支【{}】已存在!!!".format(",".join(projects), target))
+            raise Exception("ERROR: \n" + "工程【{}】目标分支【{}】已存在!!!".format(project_str, target))
         return projects
 
     def gen_feature_version(self, branch):
