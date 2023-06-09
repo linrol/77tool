@@ -79,14 +79,16 @@ class LinkedList(object):
 
 
 class Common:
-    def __init__(self, utils, end="backend"):
+    def __init__(self, utils, end="backend", readonly_redis=True):
         self.branch_group = {}
         self.is_front = end in ["front"]
         self.utils = utils
         self.projects = utils.project_path(self.get_module(end))
         self.project_build = self.projects.get('build')
-        self.password = os.environ.get("REDIS_PASSWORD")
-        self.redis_pool = redis.ConnectionPool(host="linrol.cn", port=6379,
+        self.port = 6378 if readonly_redis else 6379
+        self.password = "readonly" if readonly_redis else os.environ.get("REDIS_PASSWORD")
+        self.redis_pool = redis.ConnectionPool(host="linrol.cn",
+                                               port=self.port,
                                                password=self.password, db=2,
                                                decode_responses=True,
                                                max_connections=16)

@@ -11,7 +11,7 @@ XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 
 class Backup(Common):
     def __init__(self, source, target, clear, namespaces):
-        super().__init__(utils)
+        super().__init__(utils, False)
         self.source = source
         self.target = target
         self.clear = clear
