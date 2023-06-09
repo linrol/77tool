@@ -144,9 +144,9 @@ class GenVersion(Common):
             return None
         source_min = source_min.replace("-SNAPSHOT", "")
         target_min = target_min.replace("-SNAPSHOT", "")
-        if not (source_min.isdigit() and target_min.isdigit()):
+        if not source_min.isdigit():
             err_info = "{}({}),{}({})".format(self.source, source_min, self.target, target_min)
-            print("工程【{}】来源和目标分支最小版本号非数字【{}】".format(project_name, err_info))
+            print("工程【{}】来源分支最小版本号非数字【{}】".format(project_name, err_info))
             return None
         source_min = int(source_min)
         # target_min = int(target_min)
