@@ -255,12 +255,13 @@ class Task(Common):
             hmset("q7link-branch-pushed", branch_created)
 
     # 校正分支版本号
-    def branch_correct(self, user_id, branch, project, crop):
-        shell = Shell(self.is_test, user_id, self.master, branch)
+    def branch_correct(self, correct_user, branch, project, crop):
+        shell = Shell(self.is_test, correct_user, self.master, branch)
         params = "none other={}".format(project)
         _, msg = shell.build_package(params, "hotfix,all", True)
         logger.info("branch correct [{}] [{}] ret[{}]".format(branch, project, msg))
-        crop.send_text_msg(user_id, msg)
+        duty_users, _ = self.get_duty_info(True)
+        crop.send_text_msg(duty_users, msg)
         return msg
 
     # 拆分项目的来源分支

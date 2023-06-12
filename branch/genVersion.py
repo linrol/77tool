@@ -225,9 +225,10 @@ class GenVersion(Common):
                 correct_version = "{}.{}-SNAPSHOT".format(next_prefix, int(this_min) + weight)
                 ret += ("," if len(ret) > 0 else '') + project + ":" + correct_version
             if len(ret) > 0:
-                correct_id = ''.join(str(uuid.uuid4()).split('-'))
                 url = "https://branch.linrol.cn/branch/correct"
-                params = "?correct_id={}&user_id={}&branch={}&project={}".format(correct_id, "backend-ci", self.next_sprint, ret)
+                correct_id = ''.join(str(uuid.uuid4()).split('-'))
+                user_id = self.get_gl_user_name()
+                params = "?correct_id={}&user_id={}&branch={}&project={}".format(correct_id, user_id, self.next_sprint, ret)
                 requests.get(url + params)
         except Exception as e:
             print(e)
