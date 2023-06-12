@@ -92,6 +92,7 @@ class Common:
                                                password=self.password, db=2,
                                                decode_responses=True,
                                                max_connections=16)
+        self.weights = self.hgetall("q7link-branch-weight")
 
     def __del__(self):
         self.get_connection().close()
@@ -163,6 +164,13 @@ class Common:
             return True
         return False
 
+    # 检查指定工程的分支是否存在
+    def project_branch_is_presence(self, project, branch_name):
+        p_info = self.projects.get(project)
+        if p_info is None:
+            return False
+        return p_info.getBranch(branch_name) is not None
+
     # 判断是否为主干分支
     def is_trunk(self, branch):
         return branch in ['stage', 'master']
@@ -198,15 +206,14 @@ class Common:
         target_date = target[-8:]
         target_name = target.replace(target_date, "")
         key = "{}_{}_{}".format(source, target_name, project)
-        weights = self.hgetall("q7link-branch-weight")
-        weight = weights.get(key)
+        weight = self.weights.get(key)
         if weight is not None:
             return int(weight)
         key1 = "{}_{}_*".format(source, target_name)
-        weight = weights.get(key1)
+        weight = self.weights.get(key1)
         if weight is not None:
             return int(weight)
         key2 = "*_{}_*".format(target_name)
-        weight = weights.get(key2)
+        weight = self.weights.get(key2)
         return int(weight)
 

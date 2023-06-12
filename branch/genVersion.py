@@ -3,6 +3,8 @@ import sys
 import getopt
 import utils
 import traceback
+import requests
+import uuid
 from common import Common
 from datetime import datetime, timedelta
 
@@ -38,7 +40,10 @@ class GenVersion(Common):
         if self.fixed_version is None:
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
-            self.last_sprint_version = self.get_last_sprint_version([-7, -14])
+            self.last_sprint = None
+            self.last_sprint_version = self.get_adjoin_sprint_version([-7, -14])
+            self.next_sprint = None
+            self.next_sprint_version = self.get_adjoin_sprint_version([7, 14])
 
     def is_feature(self):
         return self.fixed_version is not None
@@ -61,19 +66,23 @@ class GenVersion(Common):
             result.add(name)
         return list(result)
 
-    def get_last_sprint_version(self, days_list):
+    def get_adjoin_sprint_version(self, days_list):
         if self.target_name not in ["sprint", 'release']:
             return {}
         try:
             for days in days_list:
                 for name in ['sprint', 'release']:
                     target_date = datetime.strptime(self.target_date, "%Y%m%d")
-                    last_week_date = target_date + timedelta(days=days)
-                    last_branch = name + last_week_date.strftime("%Y%m%d")
-                    exist = self.branch_is_presence(last_branch)
+                    adjoin_week_date = target_date + timedelta(days=days)
+                    branch_name = name + adjoin_week_date.strftime("%Y%m%d")
+                    exist = self.branch_is_presence(branch_name)
                     if not exist:
                         continue
-                    return self.get_branch_version(last_branch)
+                    if days > 0:
+                        self.next_sprint = branch_name
+                    else:
+                        self.last_sprint = branch_name
+                    return self.get_branch_version(branch_name)
             return {}
         except Exception as e:
             return {}
@@ -115,7 +124,10 @@ class GenVersion(Common):
             return 1
         return factory
 
-    def get_replace_version(self, project_name):
+    def gen_version(self, project_name):
+        if self.is_feature():
+            # 生成特性分支版本号
+            return self.gen_feature_version(project_name)
         if self.target_name in ['sprint', 'release']:
             factory = self.factory_week()
         else:
@@ -164,6 +176,12 @@ class GenVersion(Common):
         print("{}({}->{})".format(project_name, ".".join(source_version), ret))
         return ret
 
+    def gen_feature_version(self, project_name):
+        source_version = self.source_version.get(project_name)
+        if source_version is None:
+            return None
+        return "{}.{}".format(source_version[0], self.fixed_version[4:])
+
     def get_last_min_version(self, project_name, prefix, s_min):
         last_version = self.last_sprint_version.get(project_name, None)
         if last_version is None:
@@ -178,23 +196,54 @@ class GenVersion(Common):
             return None
         return int(last_min)
 
+    # 矫正下个班车版本号
+    def correct_version(self, project_versions):
+        try:
+            if self.is_feature():
+                return
+            if self.next_sprint is None:
+                return
+            ret = ""
+            for project, version in project_versions.items():
+                version = version.rsplit(".", 1)
+                next_version = self.next_sprint_version.get(project)
+                if next_version is None:
+                    continue
+                if not self.project_branch_is_presence(project, self.next_sprint):
+                    continue
+                next_prefix = next_version[0]
+                next_min = next_version[1].replace("-SNAPSHOT", "")
+                this_prefix = version[0]
+                this_min = version[1].replace("-SNAPSHOT", "")
+                if this_prefix != next_prefix:
+                    continue
+                if not next_min.isdigit() or not this_min.isdigit():
+                    continue
+                weight = self.get_branch_weight(self.source, self.target, project)
+                if int(next_min) > int(this_min):
+                    continue
+                correct_version = "{}.{}-SNAPSHOT".format(next_prefix, int(this_min) + weight)
+                ret += ("," if len(ret) > 0 else '') + project + ":" + correct_version
+            if len(ret) > 0:
+                correct_id = ''.join(str(uuid.uuid4()).split('-'))
+                url = "https://branch.linrol.cn/branch/correct"
+                params = "?correct_id={}&user_id={}&branch={}&project={}".format(correct_id, "backend-ci", self.next_sprint, ret)
+                requests.get(url + params)
+        except Exception as e:
+            print(e)
+            return
+
     def execute(self):
         try:
-            replace_version = {}
+            gen_version = {}
             for project_name in self.project_names:
-                if self.fixed_version is not None:
-                    source_version = self.source_version.get(project_name)
-                    if source_version is None:
-                        raise Exception("look {} version by config.yaml[{}] not fount".format(project_name, self.source))
-                    version = "{}.{}".format(source_version[0], self.fixed_version[4:])
-                    replace_version[project_name] = version
-                    continue
-                version = self.get_replace_version(project_name)
+                version = self.gen_version(project_name)
                 if version is None:
                     continue
-                replace_version[project_name] = version
-            self.update_build_version(self.target, replace_version)
-            return replace_version
+                gen_version[project_name] = version
+            self.update_build_version(self.target, gen_version)
+            self.correct_version(gen_version)
+            return gen_version
         except Exception as e:
             print(str(e))
             traceback.print_exc()
