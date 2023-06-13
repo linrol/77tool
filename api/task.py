@@ -31,7 +31,9 @@ class Task(Common):
             # 值班分支
             return None
         if end == "front":
-            return self.gen_feature_version(source_branch), user["applicant"]
+            applicant_id = user["applicant"][0]
+            applicant_name = user["applicant"][1]
+            return self.gen_feature_version(source_branch), applicant_id, applicant_name
         feature_info = hget("q7link-branch-feature", target_branch)
         if feature_info is None:
             sql = "select * from zt_project where code = '{}' and type='sprint'".format(target_branch)
