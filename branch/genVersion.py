@@ -44,11 +44,9 @@ class GenVersion(Common):
 
     def filter_project(self, names):
         result = set()
+        if "framework" in names:    # 当平台工程首次创建时，才需要更新版本号
+            result.add("framework")
         for name, p in self.projects.items():
-            if name == "framework" and name in names:
-                # 当平台工程首次创建时，才需要更新版本号
-                result.add(name)
-                continue
             if name not in names and p.getModule() not in names:
                 continue
             if p.getBranch(self.target) is None:
