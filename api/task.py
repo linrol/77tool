@@ -25,11 +25,13 @@ class Task(Common):
         project = self.get_project(project_name)
         return project.getBranch(branch)
 
-    def get_feature_branch(self, source_branch, target_branch):
-        s_not, t_not, _, _ = self.not_duty_branch(source_branch, target_branch)
-        if (not s_not) and (not t_not):
+    def get_feature_branch(self, source_branch, target_branch, end, **user):
+        s_duty, t_duty, _, _ = self.is_duty_branch(source_branch, target_branch)
+        if s_duty and t_duty:
             # 值班分支
             return None
+        if end == "front":
+            return self.gen_feature_version(source_branch), user["applicant"]
         feature_info = hget("q7link-branch-feature", target_branch)
         if feature_info is None:
             sql = "select * from zt_project where code = '{}' and type='sprint'".format(target_branch)
@@ -68,8 +70,8 @@ class Task(Common):
         prefix = re.match("[0-9][0-9.]*", prefix).group()
         return "{}.{}-SNAPSHOT".format(prefix, last_version).replace("..", ".")
 
-    # 判断非值班分支
-    def not_duty_branch(self, source, target):
+    # 判断值班分支
+    def is_duty_branch(self, source, target):
         mapping = get_branch_mapping()
         match_source = None
         match_target = []
@@ -79,10 +81,10 @@ class Task(Common):
                 continue
             match_source = match.group()
             match_target = v.split(",")
-        s_not_duty = match_source is None
+        s_duty = match_source is not None
         target_name, target_date = self.get_branch_date(target)
-        t_not_duty = target_date is None or target_name not in match_target
-        return s_not_duty, t_not_duty, mapping.keys(), match_target
+        t_duty = target_date is not None and target_name in match_target
+        return s_duty, t_duty, mapping.keys(), match_target
 
     def check_new_branch(self, source, target, user_name):
         tips = "\n是否需要拉特性分支，如需请按以下格式初始化(可修改分支版本号，负责人等信息)：" + \
@@ -92,13 +94,13 @@ class Task(Common):
                "\n目标分支：" + target + \
                "\n分支版本号：{}" + \
                "\n分支负责人：" + user_name
-        s_not, t_not, sources, targets = self.not_duty_branch(source, target)
-        if s_not:
+        s_duty, t_duty, sources, targets = self.is_duty_branch(source, target)
+        if not s_duty:
             error = "来源分支非值班系列【{}】{}"
             tips = tips.format(self.gen_feature_version(source))
             raise Exception(error.format(",".join(sources), tips))
         target_name, target_date = self.get_branch_date(target)
-        if t_not:
+        if not t_duty:
             error = "目标分支非值班系列【{}】{}"
             tips = tips.format(self.gen_feature_version(source))
             raise Exception(error.format(",".join(targets), tips))
@@ -107,9 +109,9 @@ class Task(Common):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
 
     # 创建拉值班分支的任务
-    def new_branch_task(self, crop, source, target, projects, **user):
+    def new_branch_task(self, crop, end, source, target, projects, **user):
         projects = self.filter_project(target, projects)
-        feature_info = self.get_feature_branch(source, target)
+        feature_info = self.get_feature_branch(source, target, end, **user)
         if feature_info is None:
             # 值班分支
             version = None

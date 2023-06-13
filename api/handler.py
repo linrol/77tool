@@ -268,7 +268,7 @@ class Handler(Base):
             end = self.get_project_end(branch_params[2])
             applicant = (self.user_id, self.user_name)
             watchman = self.get_duty_info(self.is_test, end)
-            _, ret = Task(self.is_test).new_branch_task(self.crop,
+            _, ret = Task(self.is_test).new_branch_task(self.crop, end,
                                                         *branch_params,
                                                         applicant=applicant,
                                                         watchman=watchman)
