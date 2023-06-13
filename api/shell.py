@@ -77,7 +77,8 @@ class Shell(Common):
             is_feature_branch = fixed_version != "None"
             gen_params = "-v {}".format(fixed_version) if is_feature_branch else "-f"
             if not self.branch_is_present('parent', self.target_branch):
-                projects.append("framework")
+                if "platform" in self.get_project_module(projects):
+                    projects.append("framework")
             # self.checkout_branch(self.source_branch)
             slave_source = self.get_slave_source()
             cmd = 'cd ../branch;python3 createBranch.py {}.{} {}.false {}'.format(self.source_branch, slave_source, self.target_branch, " ".join(projects))

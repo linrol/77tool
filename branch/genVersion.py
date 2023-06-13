@@ -8,12 +8,6 @@ import uuid
 from common import Common
 from datetime import datetime, timedelta
 
-project_platform = ["app-archetype", "app-build-plugins", "app-common",
-                    "app-common-api", "common-base", "common-base-api",
-                    "graphql-api", "graphql-impl", "grpc-clients",
-                    "json-schema-plugin", "mbg-plugins", "metadata-api",
-                    "metadata-impl", "parent", "sql-parser", "testapp"]
-
 
 def usage():
     print('''
@@ -36,7 +30,7 @@ class GenVersion(Common):
         self.target = target
         self.source_version = self.get_branch_version(source)
         self.target_version = self.get_branch_version(target)
-        self.project_names = self.project_convert(project_names)
+        self.project_names = self.filter_project(project_names)
         if self.fixed_version is None:
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
@@ -48,20 +42,20 @@ class GenVersion(Common):
     def is_feature(self):
         return self.fixed_version is not None
 
-    def project_convert(self, names):
+    def filter_project(self, names):
         result = set()
         for name, p in self.projects.items():
+            if name == "framework" and name in names:
+                # 当平台工程首次创建时，才需要更新版本号
+                result.add(name)
+                continue
             if name not in names and p.getModule() not in names:
                 continue
             if p.getBranch(self.target) is None:
                 continue
-            if name in project_platform:
-                name = "framework"
-                # if self.is_feature():
-                if name not in names:
-                    # 当平台工程非首次创建时，无需更新版本号
-                    continue
             if self.source_version.get(name) is None:
+                continue
+            if self.target_version.get(name) is None:
                 continue
             result.add(name)
         return list(result)

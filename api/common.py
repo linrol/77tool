@@ -214,4 +214,16 @@ class Common(Base):
             return False
         return left_version == right_version
 
+    # 获取项目涉及的模块
+    def get_project_module(self, projects):
+        ret = set()
+        for p in projects:
+            p_info = self.projects.get(p)
+            if p_info is None:
+                continue
+            ret.add(p_info.getModule())
+        return list(ret)
+
+
+
 
