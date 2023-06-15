@@ -47,7 +47,7 @@ class DeleteBranch:
 
   def execute(self):
     #获取要操作的工程信息
-    projectInfoMap = utils.project_path(self.projectNames)
+    projectInfoMap = utils.init_projects(self.projectNames)
 
     if len(projectInfoMap) > 0:
       #获取需要进行分支删除的工程（key:gitlab的project对象，value:本地工程路径）

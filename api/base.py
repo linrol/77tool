@@ -1,6 +1,7 @@
 import re
 import pymysql
 import pymysql.cursors
+import json
 from request import post_form, get, post
 from log import logger
 from redisclient import get_branch_mapping, hget, hget_key, hmset, get_version
@@ -8,6 +9,7 @@ from wxmessage import msg_content
 
 
 class Base:
+    backend = "backend"
     stage = "stage"
     master = "master"
     stage_global = "stage-global"
@@ -114,12 +116,19 @@ class Base:
 
     # 获取项目所属端
     def get_project_end(self, projects):
-        front_projects = {"front-theory", "front-goserver"}
-        intersection = set(projects).intersection(front_projects)
-        if len(intersection) > 0:
-            return "front"
-        else:
-            return "backend"
+        with open("../branch/project.json", "r", encoding="utf-8") as f:
+            content = json.load(f)
+        ends = set()
+        for end, modules in content.items():
+            for ps in modules.values():
+                for p in ps.keys():
+                    if p in projects:
+                        ends.add(end)
+        if len(ends) < 1:
+            return self.backend
+        if len(ends) > 1:
+            raise Exception("get project belong end not non-unique")
+        return list(ends)[0]
 
     # 触发ops编译
     def ops_build(self, branch, skip=False, project=None, call_name=None):
@@ -213,6 +222,3 @@ class Base:
         except Exception as err:
             logger.exception(err)
             return None
-
-
-

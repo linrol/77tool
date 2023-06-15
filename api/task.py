@@ -274,8 +274,7 @@ class Task(Common):
         over_source = self.stage_global
         if source != self.stage:
             return ret
-        end = "backend"
-        branch = self.get_branch_created_source(end, over_source)
+        branch = self.get_branch_created_source(self.backend, over_source)
         if branch is None:
             return ret
         if target != branch:
@@ -290,7 +289,7 @@ class Task(Common):
     # 发送mr提醒通知
     def send_mr_notify(self, crop):
         before_hours = (datetime.utcnow() - timedelta(minutes=180)).isoformat()
-        group = self.get_project('parent').getGroup('backend')
+        group = self.get_project('parent').getGroup(self.backend)
         # 发送待合并通知
         opened_mr_list = group.mergerequests.list(state='opened', all=True,
                                                   created_after=before_hours)

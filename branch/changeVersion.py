@@ -20,7 +20,7 @@ class ChangeVersion:
     self.pool = ThreadPoolExecutor(max_workers=10)
 
   def execute(self):
-    projectInfoMap = utils.project_path()
+    projectInfoMap = utils.init_projects()
     if len(projectInfoMap) > 0:
       # 获取各工程版本
       projectVersionMap = self.get_project_version(projectInfoMap)
@@ -45,7 +45,7 @@ class ChangeVersion:
         print('工程【build】清空脚本完成')
 
     else:
-      print('ERROR: 请在path.yaml文件配置各项目路径！！！')
+      print('ERROR: 请在project.json文件配置各项目路径！！！')
       sys.exit(1)
 
   #获取各工程版本
@@ -78,7 +78,7 @@ class ChangeVersion:
           projectVersionMap['testapp-api'] = projectVersionMap.get('framework')
           return projectVersionMap
     else:
-      print('ERROR: 请在path.yaml文件中指定build工程的路径')
+      print('ERROR: 请在project.json文件中指定build工程的路径')
       sys.exit(1)
 
 

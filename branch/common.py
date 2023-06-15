@@ -83,7 +83,7 @@ class Common:
         self.branch_group = {}
         self.is_front = end in ["front"]
         self.utils = utils
-        self.projects = utils.project_path(self.get_module(end))
+        self.projects = utils.init_projects(self.get_module(end))
         self.project_build = self.projects.get('build')
         self.port = 6378 if readonly_redis else 6379
         self.password = "readonly" if readonly_redis else os.environ.get("REDIS_PASSWORD")

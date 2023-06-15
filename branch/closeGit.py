@@ -52,7 +52,7 @@ if __name__ == "__main__":
     sys.exit(1)
 
 
-  projectInfoMap = utils.project_path()
+  projectInfoMap = utils.init_projects()
   if len(projectInfoMap) == 0:
     sys.exit(1)
 

@@ -18,9 +18,9 @@ class Checout:
   # 执行器
   def execute(self):
     if self.is_front:
-      projectInfoMap = utils.project_path(self.module)
+      projectInfoMap = utils.init_projects(self.module)
     else:
-      projectInfoMap = utils.project_path()
+      projectInfoMap = utils.init_projects()
     if len(projectInfoMap) == 0:
       sys.exit(1)
 

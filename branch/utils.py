@@ -21,10 +21,12 @@ MAINTAINER_ACCESS = 40
 VISIBILITY_PRIVATE = 0
 
 class ProjectInfo():
-  def __init__(self, name, path, module):
+  def __init__(self, end, module, path, name, namespace=None):
+    self.__end = end
     self.__name = name
     self.__path = path
     self.__module = module
+    self.__namespace = namespace
     self.__group = None
     self.__project = None
     self.__gl = self.getGl()
@@ -37,6 +39,8 @@ class ProjectInfo():
     gl = gitlab.Gitlab(URL, self.getToken())
     gl.auth()
     return gl
+  def getEnd(self):
+    return self.__end
   def getName(self):
     return self.__name
   def getPath(self):
@@ -54,8 +58,13 @@ class ProjectInfo():
   def getProject(self):
     if self.__project is None:
       try:
-        projects = self.__gl.projects.list(search=self.__name) # 此处是模糊查询
-        if len(projects) > 0:
+        if self.__namespace is not None:
+          projects = self.__gl.projects.get(self.__namespace)
+        else:
+          projects = self.__gl.projects.list(search=self.__name) # 此处是模糊查询
+        if len(projects) == 1:
+          self.__project = projects[0]
+        if len(projects) > 1:
           for project in projects:
             if project.name_with_namespace.startswith("backend") and project.name == self.__name:
               self.__project = project
@@ -64,9 +73,8 @@ class ProjectInfo():
               self.__project = project
               break
       except Exception:
-        print("项目：{}".format(self.__name))
+        # print("从git获取项目失败：{}".format(self.__name))
         raise
-
     if self.__project is None:
       print("ERROR: 工程【{}】不存在!!!".format(self.__name))
       sys.exit(1)
@@ -403,29 +411,29 @@ def check_upgrade():
     raise Exception("分支管理工具必须更新后可用")
 
 
-def project_path(names=None):
+def init_projects(names=None):
   check_upgrade()
-  # 获取path.yaml
-  projectConfigs = project_config(get_project_end(names))
-
+  if names is None or len(names) == 0:
+    names = ["backend"]
   projectInfos = {}
-  for module,v in projectConfigs.items():
-    for projectName,path in v.items():
-      if names is None or len(names) == 0 or projectName in names or module in names:
-        #刷新每个工程的信息，防止因为本地信息和远程信息不同步导致报错
-        # subprocess.getstatusoutput('cd ' + path +' && git fetch -p')
-        projectInfo = ProjectInfo(projectName, path, module)
-        projectInfos[projectName] = projectInfo
+  for end, modules in project_config().items():
+    for module, projects in modules.items():
+      for project, value in projects.items():
+        match_name = project in names
+        match_module = module in names
+        match_end = end in names
+        if match_name or match_module or match_end:
+          # 刷新每个工程的信息，防止因为本地信息和远程信息不同步导致报错
+          # subprocess.getstatusoutput('cd ' + path +' && git fetch -p')
+          projectInfo = ProjectInfo(end, module, value.get("path"), project, value.get("namespace"))
+          projectInfos[project] = projectInfo
   return projectInfos
 
 # 获取本地工程路径配置信息
-def project_config(end=None):
-  file = "path.yaml"
-  if end is not None and end == "front":
-    file = "path_front.yaml"
-  filename = os.path.join(os.curdir, file).replace("\\", "/")
-  f = open(filename)
-  return yaml.load(f, Loader=yaml.FullLoader)
+def project_config():
+  with open("./project.json", "r", encoding="utf-8") as f:
+    content = json.load(f)
+  return content
 
 #打印列表中的信息
 def print_list(title, list):

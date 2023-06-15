@@ -16,14 +16,14 @@ class CreateTag:
     self.pool = ThreadPoolExecutor(max_workers=10)
 
   def execute(self):
-    projectInfoMap = utils.project_path()
+    projectInfoMap = utils.init_projects()
     if len(projectInfoMap) > 0:
       self.projectVersionMap = self.get_project_version(projectInfoMap)
       #检查参数是否正确
       tasks = [self.pool.submit(self.checkAndCreate, projectInfo) for projectInfo in projectInfoMap.values()]
       wait(tasks, return_when=ALL_COMPLETED)
     else:
-      print('WARNNING: 请在path.yaml文件配置各项目路径！！！')
+      print('WARNNING: 请在project.json文件配置各项目路径！！！')
       sys.exit(1)
 
   #获取各工程版本
@@ -52,7 +52,7 @@ class CreateTag:
               projectVersionMap[k] = v
           return projectVersionMap
     else:
-      print('ERROR: 请在path.yaml文件中指定build工程的路径')
+      print('ERROR: 请在project.json文件中指定build工程的路径')
       sys.exit(1)
 
   #获取需要执行的项目，并检出其指定分支

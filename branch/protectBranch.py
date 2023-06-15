@@ -19,13 +19,13 @@ class ProjectBranch:
       sys.exit(1)
 
   def execute(self):
-    projectInfoMap = utils.project_path(self.projectNames)
+    projectInfoMap = utils.init_projects(self.projectNames)
     if len(projectInfoMap) > 0:
       #检查参数是否正确
       tasks = [self.pool.submit(self.checkAndProtect, projectInfo) for projectInfo in projectInfoMap.values()]
       wait(tasks, return_when=ALL_COMPLETED)
     else:
-      print('ERROR: 请在path.yaml文件配置各项目路径！！！')
+      print('ERROR: 请在project.json文件配置各项目路径！！！')
       sys.exit(1)
 
 

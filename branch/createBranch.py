@@ -43,7 +43,7 @@ class CreateBranch:
 
   def execute(self):
     #获取需操作工程的信息
-    projectInfoMap = utils.project_path(self.projectNames)
+    projectInfoMap = utils.init_projects(self.projectNames)
 
     if len(projectInfoMap) > 0:
       #检查参数是否正确
@@ -54,7 +54,7 @@ class CreateBranch:
         wait(tasks, return_when=ALL_COMPLETED)
       return ",".join(list(map(lambda add: add.getName(), adds)))
     else:
-      print('ERROR: 请在path.yaml文件配置各工程路径！！！')
+      print('ERROR: 请在project.json文件配置各工程路径！！！')
       sys.exit(1)
 
   #创建分支
@@ -78,6 +78,7 @@ class CreateBranch:
     error=[]
     adds=[]
     relatedModule=set()
+    relatedEnd=set()
     tasks = [self.pool.submit(self.check_project, projectInfo, self.existCheck) for projectInfo in projectInfoMap.values()]
     for future in as_completed(tasks):
       result = future.result()
@@ -85,19 +86,21 @@ class CreateBranch:
         projectInfo = result.getProjectInfo()
         adds.append(projectInfo)
         relatedModule.add(projectInfo.getModule())
+        relatedEnd.add(projectInfo.getEnd())
       elif result.skip():
         print(result.getMessage())
       else:
         error.append(result.getMessage())
 
-    projectConfigs = utils.project_config()
-    # 拉取工程分支，自动拉取必须要拉的工程
-    if "front" not in relatedModule and len(relatedModule) > 0:
+    config = utils.project_config()
+    backend = "backend"
+    if backend in relatedEnd and len(relatedEnd) > 0:
+      # 拉取工程分支，自动拉取必须要拉的工程
       for module,projectNames in MUST_PROJECT.items():
         for projectName in projectNames:
           if not (projectName in projectInfoMap):
-            path = projectConfigs.get(module, {}).get(projectName, None)
-            projectInfo = utils.ProjectInfo(projectName, path, module)
+            path = config.get(backend).get(module).get(projectName).get("path")
+            projectInfo = utils.ProjectInfo(backend, module, path, projectName)
             result = self.check_project(projectInfo, False)
             if result.isAdd():
               adds.append(projectInfo)
@@ -106,43 +109,41 @@ class CreateBranch:
               print(result.getMessage())
             else:
               error.append(result.getMessage())
-
-    # 拉取某个模块的工程时，自动拉取该模块下的必须要拉的工程
-    for module,projectNames in MODULE_PROJECT.items():
-      if module in relatedModule:
-        for projectName in projectNames:
-          if not (projectName in projectInfoMap):
-            path = projectConfigs.get(module, {}).get(projectName, None)
-          else:
-            continue
-          projectInfo = utils.ProjectInfo(projectName, path, module)
-          result = self.check_project(projectInfo, False)
-          if result.isAdd():
-            adds.append(projectInfo)
-            relatedModule.add(projectInfo.getModule())
-          elif result.skip():
-            print(result.getMessage())
-          else:
-            error.append(result.getMessage())
-
-    # 拉取某个工程时，自动拉依赖的工程
-    for project,projectNames in DEPEND_PROJECT.items():
-      if project in list(map(lambda p: p.getName(), adds)):
-        for projectName in projectNames:
-          module = "apps"
-          if not (projectName in projectInfoMap):
-            path = projectConfigs.get(module, {}).get(projectName, None)
-          else:
-            continue
-          projectInfo = utils.ProjectInfo(projectName, path, module)
-          result = self.check_project(projectInfo, False)
-          if result.isAdd():
-            adds.append(projectInfo)
-            relatedModule.add(projectInfo.getModule())
-          elif result.skip():
-            print(result.getMessage())
-          else:
-            error.append(result.getMessage())
+      # 拉取某个模块的工程时，自动拉取该模块下的必须要拉的工程
+      for module,projectNames in MODULE_PROJECT.items():
+        if module in relatedModule:
+          for projectName in projectNames:
+            if not (projectName in projectInfoMap):
+              path = config.get(backend).get(module).get(projectName).get("path")
+            else:
+              continue
+            projectInfo = utils.ProjectInfo(backend, module, path, projectName)
+            result = self.check_project(projectInfo, False)
+            if result.isAdd():
+              adds.append(projectInfo)
+              relatedModule.add(projectInfo.getModule())
+            elif result.skip():
+              print(result.getMessage())
+            else:
+              error.append(result.getMessage())
+      # 拉取某个工程时，自动拉依赖的工程
+      for project,projectNames in DEPEND_PROJECT.items():
+        if project in list(map(lambda p: p.getName(), adds)):
+          for projectName in projectNames:
+            module = "apps"
+            if not (projectName in projectInfoMap):
+              path = config.get(backend).get(module).get(projectName).get("path")
+            else:
+              continue
+            projectInfo = utils.ProjectInfo(backend, module, path, projectName)
+            result = self.check_project(projectInfo, False)
+            if result.isAdd():
+              adds.append(projectInfo)
+              relatedModule.add(projectInfo.getModule())
+            elif result.skip():
+              print(result.getMessage())
+            else:
+              error.append(result.getMessage())
 
     if len(error) > 0:
       #如果有错误信息则不执行删除
@@ -157,7 +158,7 @@ class CreateBranch:
     projectName = projectInfo.getName()
 
     if projectInfo.getPath() is None:
-      errorMessgae = 'ERROR: 请在path.yaml文件配置工程【{}】路径！！！'.format(projectName)
+      errorMessgae = 'ERROR: 请在project.json文件配置工程【{}】路径！！！'.format(projectName)
       return CheckResult(projectInfo, False, errorMessgae)
 
     project = projectInfo.getProject()
