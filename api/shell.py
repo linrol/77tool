@@ -63,7 +63,7 @@ class Shell(Common):
     def get_slave_source(self):
         if self.is_trunk(self.source_branch):
             return self.source_branch
-        end = "backend"
+        end = self.backend
         branch = self.get_branch_created_source(end, self.stage_global)
         if branch is not None and branch in self.source_branch:
             return "{}.{}".format(self.stage_global, self.stage)
@@ -114,7 +114,7 @@ class Shell(Common):
             logger.exception(err)
             return False, str(err)
         finally:
-            executor.submit(self.rest_branch_env, "front")
+            executor.submit(self.rest_branch_env, self.front)
 
     def check_version(self, branch_str):
         try:
@@ -143,7 +143,7 @@ class Shell(Common):
 
     def merge_branch(self, end, projects, clear, user_name):
         try:
-            if end == "backend":
+            if end == self.backend:
                 projects = []
             self.lock_value = self.lock.get_lock("lock", 600)
             self.checkout_branch(self.source_branch)

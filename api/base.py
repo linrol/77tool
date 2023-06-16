@@ -10,6 +10,7 @@ from wxmessage import msg_content
 
 class Base:
     backend = "backend"
+    front = "front"
     stage = "stage"
     master = "master"
     stage_global = "stage-global"
@@ -59,7 +60,7 @@ class Base:
         return ids
 
     # 获取值班人
-    def get_duty_info(self, is_test, end="backend"):
+    def get_duty_info(self, is_test, end=backend):
         if is_test:
             return "LuoLin", "罗林"
         else:
@@ -166,7 +167,7 @@ class Base:
     # 发送群消息通知
     def send_group_notify(self, source, target, modules, ret, user, end):
         try:
-            is_backend = end == "backend"
+            is_backend = end == self.backend
             ret_msg = "成功" if ret else "失败（分支代码存在冲突需手动合并）"
             content_template = msg_content["merge_branch_result"]
             module_str = "apps,global" if is_backend else ",".join(modules)

@@ -14,7 +14,7 @@ class Common(Base):
     def __init__(self):
         self.chdir_branch()
         self.utils = utils
-        self.front_projects = utils.init_projects(["front"])
+        self.front_projects = utils.init_projects([self.front])
         self.projects = {**utils.init_projects(), **self.front_projects}
         self.project_build = self.projects.get('build')
         self.project_init_data = self.projects.get('init-data')
@@ -135,7 +135,7 @@ class Common(Base):
         duty_branches = self.get_duty_branches()
         branch_merge = {}
         end = self.get_project_end([project])
-        is_front = end != "backend"
+        is_front = end != self.backend
         error = []
         for branch in branches:
             if self.is_chinese(branch):

@@ -30,7 +30,7 @@ class Task(Common):
         if s_duty and t_duty:
             # 值班分支
             return None
-        if end == "front":
+        if end != self.backend:
             applicant_id = user["applicant"][0]
             applicant_name = user["applicant"][1]
             return self.gen_feature_version(source_branch), applicant_id, applicant_name
