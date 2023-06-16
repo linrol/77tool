@@ -1,0 +1,286 @@
+{
+  "backend": {
+    "apps": {
+      "allocation": {
+        "path": "../../apps/allocation"
+      },
+      "allocation-api": {
+        "path": "../../apps/allocation-api"
+      },
+      "arap": {
+        "path": "../../apps/arap"
+      },
+      "arap-api": {
+        "path": "../../apps/arap-api"
+      },
+      "asset": {
+        "path": "../../apps/asset"
+      },
+      "asset-api": {
+        "path": "../../apps/asset-api"
+      },
+      "baseapp": {
+        "path": "../../apps/baseapp"
+      },
+      "baseapp-api": {
+        "path": "../../apps/baseapp-api"
+      },
+      "base-common": {
+        "path": "../../apps/base-common"
+      },
+      "base-common-test": {
+        "path": "../../apps/base-common-test"
+      },
+      "basebi": {
+        "path": "../../apps/basebi"
+      },
+      "basebi-api": {
+        "path": "../../apps/basebi-api"
+      },
+      "biz-common": {
+        "path": "../../apps/biz-common"
+      },
+      "budget": {
+        "path": "../../apps/budget"
+      },
+      "budget-api": {
+        "path": "../../apps/budget-api"
+      },
+      "build": {
+        "path": "../../apps/build"
+      },
+      "cashier": {
+        "path": "../../apps/cashier"
+      },
+      "cashier-api": {
+        "path": "../../apps/cashier-api"
+      },
+      "consolidation": {
+        "path": "../../apps/consolidation"
+      },
+      "consolidation-api": {
+        "path": "../../apps/consolidation-api"
+      },
+      "contract": {
+        "path": "../../apps/contract"
+      },
+      "contract-api": {
+        "path": "../../apps/contract-api"
+      },
+      "factgl": {
+        "path": "../../apps/factgl"
+      },
+      "factgl-api": {
+        "path": "../../apps/factgl-api"
+      },
+      "graphql": {
+        "path": "../../apps/graphql"
+      },
+      "init-data": {
+        "path": "../../apps/init-data"
+      },
+      "innertrans": {
+        "path": "../../apps/innertrans"
+      },
+      "innertrans-api": {
+        "path": "../../apps/innertrans-api"
+      },
+      "inv-common": {
+        "path": "../../apps/inv-common"
+      },
+      "inventory": {
+        "path": "../../apps/inventory"
+      },
+      "inventory-api": {
+        "path": "../../apps/inventory-api"
+      },
+      "invoice": {
+        "path": "../../apps/invoice"
+      },
+      "invoice-api": {
+        "path": "../../apps/invoice-api"
+      },
+      "procdesign": {
+        "path": "../../apps/procdesign"
+      },
+      "procdesign-api": {
+        "path": "../../apps/procdesign-api"
+      },
+      "project": {
+        "path": "../../apps/project"
+      },
+      "project-api": {
+        "path": "../../apps/project-api"
+      },
+      "projectcost": {
+        "path": "../../apps/projectcost"
+      },
+      "projectcost-api": {
+        "path": "../../apps/projectcost-api"
+      },
+      "purchase": {
+        "path": "../../apps/purchase"
+      },
+      "purchase-api": {
+        "path": "../../apps/purchase-api"
+      },
+      "reimbursement": {
+        "path": "../../apps/reimbursement"
+      },
+      "reimbursement-api": {
+        "path": "../../apps/reimbursement-api"
+      },
+      "salary": {
+        "path": "../../apps/salary"
+      },
+      "salary-api": {
+        "path": "../../apps/salary-api"
+      },
+      "sales": {
+        "path": "../../apps/sales"
+      }
+    },
+
+    "global": {
+      "sales-api": {
+        "path": "../../apps/sales-api"
+      },
+      "identity": {
+        "path": "../../global/identity"
+      },
+      "identity-api": {
+        "path": "../../global/identity-api"
+      },
+      "reconcile": {
+        "path": "../../global/reconcile"
+      }
+    },
+
+    "platform": {
+      "reconcile-api": {
+        "path": "../../global/reconcile-api"
+      },
+      "app-archetype": {
+        "path": "../../platform/app-archetype"
+      },
+      "app-build-plugins": {
+        "path": "../../platform/app-build-plugins"
+      },
+      "app-common": {
+        "path": "../../platform/app-common"
+      },
+      "app-common-api": {
+        "path": "../../platform/app-common-api"
+      },
+      "common-base": {
+        "path": "../../platform/common-base"
+      },
+      "common-base-api": {
+        "path": "../../platform/common-base-api"
+      },
+      "graphql-api": {
+        "path": "../../platform/graphql-api"
+      },
+      "graphql-impl": {
+        "path": "../../platform/graphql-impl"
+      },
+      "grpc-clients": {
+        "path": "../../platform/grpc-clients"
+      },
+      "json-schema-plugin": {
+        "path": "../../platform/json-schema-plugin"
+      },
+      "mbg-plugins": {
+        "path": "../../platform/mbg-plugins"
+      },
+      "metadata-api": {
+        "path": "../../platform/metadata-api"
+      },
+      "metadata-impl": {
+        "path": "../../platform/metadata-impl"
+      },
+      "parent": {
+        "path": "../../platform/parent"
+      },
+      "sql-parser": {
+        "path": "../../platform/sql-parser"
+      },
+      "testapp": {
+        "path": "../../platform/testapp"
+      }
+    }
+  },
+  "front": {
+    "front": {
+        "front-theory": {
+          "path": "../../../front/front-theory",
+          "namespace": "front/front-theory"
+        },
+        "front-goserver": {
+          "path": "../../../front/front-goserver",
+          "namespace": "front/front-goserver"
+        }
+      }
+  },
+  "qbos_store": {
+    "other": {
+      "qbos": {
+        "path": "../../../other/qbos",
+        "namespace": "apps/qbos"
+      },
+      "store": {
+        "path": "../../../other/store",
+        "namespace": "apps/store"
+      }
+    }
+  },
+  "openapi": {
+    "other": {
+      "openapi": {
+        "path": "../../../other/openapi",
+        "namespace": "apps/openapi"
+      },
+      "qtms": {
+        "path": "../../../other/qtms",
+        "namespace": "backend/other/qtms"
+      }
+    }
+  },
+  "jsf": {
+    "other": {
+      "jsf": {
+        "path": "../../../other/jsf",
+        "namespace": "backend/apps/jsf"
+      }
+    }
+  },
+  "emitter": {
+    "other": {
+      "emitter": {
+        "path": "../../../other/emitter",
+        "namespace": "backend/other/emitter"
+      }
+    }
+  },
+  "process": {
+    "other": {
+      "q7link-services": {
+        "path": "../../../other/q7link-services",
+        "namespace": "apps/q7link-services"
+      }
+    }
+  },
+  "idps": {
+    "other": {
+      "idps": {
+        "path": "../../../other/idps",
+        "namespace": "backend/qip/idps"
+      },
+      "qip-front": {
+        "path": "../../../other/qip-front",
+        "namespace": "backend/qip/qip-front"
+      }
+    }
+  }
+}
+
