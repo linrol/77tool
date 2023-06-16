@@ -115,6 +115,7 @@ def branch_release_check():
     response = {}
     try:
         body = json.loads(request.data.decode('utf-8'))
+        logger.info("release_check:" + str(body))
         response["ret"] = True
         response["msg"] = Task().release_check(body)
     except Exception as err:

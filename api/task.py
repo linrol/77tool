@@ -509,7 +509,6 @@ class Task(Common):
 
     # 检查是否为发布包
     def release_check(self, body):
-        logger.info("release_check:" + str(body))
         branch = body.get("branch")
         projects = body.get("projects")
         for project in projects:
