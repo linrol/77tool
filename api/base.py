@@ -11,6 +11,7 @@ from wxmessage import msg_content
 class Base:
     backend = "backend"
     front = "front"
+    other = "other"
     stage = "stage"
     master = "master"
     stage_global = "stage-global"
