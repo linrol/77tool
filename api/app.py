@@ -101,6 +101,7 @@ def branch_seal():
     response = {}
     try:
         body = json.loads(request.data.decode('utf-8'))
+        logger.info("branch_seal:" + str(body))
         response = Task().branch_seal(body)
     except Exception as err:
         logger.exception(err)
@@ -114,6 +115,7 @@ def branch_release_check():
     response = {}
     try:
         body = json.loads(request.data.decode('utf-8'))
+        logger.info("release_check:" + str(body))
         response["ret"] = True
         response["msg"] = Task().release_check(body)
     except Exception as err:

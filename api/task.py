@@ -482,7 +482,6 @@ class Task(Common):
         return task_id
 
     def branch_seal(self, body):
-        logger.info("branch_seal:" + str(body))
         response = {}
         user_id, branch, projects, is_seal = body.get("user_id"), body.get("branch"), body.get("projects"), body.get("is_seal") == "true"
         modules = []
@@ -509,7 +508,6 @@ class Task(Common):
 
     # 检查是否为发布包
     def release_check(self, body):
-        logger.info("release_check:" + str(body))
         branch = body.get("branch")
         projects = body.get("projects")
         for project in projects:
