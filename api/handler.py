@@ -148,11 +148,11 @@ class Handler(Base):
             req_name = self.crop.userid2name(req_id)
             shell = Shell(req_id, self.is_test, source, target)
             end = self.get_project_end(projects)
-            if end == self.front:
-                is_feature = fixed_version != "None"
-                _, ret = shell.create_front_branch(is_feature, projects)
-            else:
+            if end == self.backend:
                 _, ret = shell.create_branch(fixed_version, projects, req_name)
+            else:
+                is_feature = fixed_version != "None"
+                _, ret = shell.create_other_branch(is_feature, projects)
             # 发送消息通知
             user_ids = "|".join({self.user_id, req_id})
             self.crop.send_text_msg(user_ids, str(ret))

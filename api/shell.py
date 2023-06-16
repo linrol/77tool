@@ -100,8 +100,8 @@ class Shell(Common):
         finally:
             executor.submit(self.rest_branch_env)
 
-    # 创建前端分支
-    def create_front_branch(self, is_feature, projects):
+    # 创建非后端工程的分支
+    def create_other_branch(self, is_feature, projects):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             cmd = 'cd ../branch;python3 createBranch.py {}.stage {} {}'.format(self.source_branch, self.target_branch, " ".join(projects))
@@ -114,7 +114,8 @@ class Shell(Common):
             logger.exception(err)
             return False, str(err)
         finally:
-            executor.submit(self.rest_branch_env, self.front)
+            end = self.get_project_end(projects)
+            executor.submit(self.rest_branch_env, end)
 
     def check_version(self, branch_str):
         try:
