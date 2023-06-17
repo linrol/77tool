@@ -10,10 +10,10 @@ def close_git(projectMap):
     return
   print('Git管理：' + str(list(projectMap.keys())))
 
-  path = '../../.idea'
+  idea_path = '../../.idea'
   xmlName = 'vcs.xml'
 
-  tree = ET.parse('{}/{}'.format(path,xmlName))
+  tree = ET.parse('{}/{}'.format(idea_path,xmlName))
   root=tree.getroot()
   components=root.findall('component')
   for component in components:
@@ -32,12 +32,15 @@ def close_git(projectMap):
       component.remove(mapping)
 
   for projectName,projectInfo in projectMap.items():
-    dirNames = projectInfo.getPath().split('/')
+    path = projectInfo.getPath()
+    if path is None:
+      continue
+    dirNames = path.split('/')
     element = Element('mapping', {'directory':'$PROJECT_DIR$/{}/{}'.format(dirNames[-2], dirNames[-1]), 'vcs':'Git'})
     element.tail = '\n    '
     component.append(element)
 
-  tree.write('{}/{}'.format(path,xmlName), encoding="UTF-8", xml_declaration=True)
+  tree.write('{}/{}'.format(idea_path,xmlName), encoding="UTF-8", xml_declaration=True)
 
 
 #关闭没有指定分支的工程 git管理功能

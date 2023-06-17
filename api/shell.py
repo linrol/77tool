@@ -202,6 +202,8 @@ class Shell(Common):
         push_cmd = ''
         for name, project in self.projects.items():
             path = project.getPath()
+            if path is None:
+                continue
             _, current_branch = self.exec('cd {};git branch --show-current'.format(path), True, False)
             if current_branch != branch:
                 continue

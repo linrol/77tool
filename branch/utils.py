@@ -64,18 +64,15 @@ class ProjectInfo():
       try:
         if self.__namespace is not None:
           projects = self.__gl.projects.get(self.__namespace)
+          self.__project = projects
         else:
           projects = self.__gl.projects.list(search=self.__name) # 此处是模糊查询
-        if len(projects) == 1:
-          self.__project = projects[0]
-        if len(projects) > 1:
-          for project in projects:
-            if project.name_with_namespace.startswith("backend") and project.name == self.__name:
-              self.__project = project
-              break
-            if project.name_with_namespace.startswith("front") and project.name == self.__name:
-              self.__project = project
-              break
+          if len(projects) > 0:
+            for project in projects:
+              if project.name == self.__name:
+                if project.name_with_namespace.startswith("backend"):
+                  self.__project = project
+                  break
       except Exception:
         # print("从git获取项目失败：{}".format(self.__name))
         raise
@@ -252,7 +249,7 @@ class ProjectInfo():
   # 检出指定分支
   def checkout(self, branchName):
     if self.__path is None:
-      return True
+      return False
     self.fetch()
     [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git checkout ' + branchName)
     if result != 0:

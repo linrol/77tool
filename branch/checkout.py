@@ -42,11 +42,11 @@ class Checout:
     if self.intersection and not projectInfo.branchIntersection(self.branches):
         return None
     branch = projectInfo.getBranch(self.branchNames)
-    if branch is not None:
-      projectInfo.checkout(branch.name)
+    if branch is None:
+      return None
+    if projectInfo.checkout(branch.name):
       print('工程【{}】检出分支【{}】成功'.format(projectInfo.getName(), branch.name))
-      return projectInfo
-    return None
+    return projectInfo
 
   # 获取build工程指定tag的版本号
   def get_build_tags(self, project_build, project_parent, tag_name):

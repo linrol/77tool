@@ -53,6 +53,8 @@ class Merge(Common):
             # if not p_info.checkConflicts(self.source, self.target, title):
             #     continue
             path = p_info.getPath()
+            if path is None:
+                continue
             cmd = "cd {};git merge-base origin/{} origin/{}".format(path, self.source, self.target)
             [ret, base_sha] = subprocess.getstatusoutput(cmd)
             if ret != 0:
@@ -84,6 +86,8 @@ class Merge(Common):
                 wait_created.append(name)
                 continue
             path = project.getPath()
+            if path is None:
+                continue
             if self.source == "stage" and self.target == "master":
                 option = "-X theirs -m 'Merge branch {} into {} & accept {}' origin/{}".format(self.source, self.target, self.source, self.source)
             else:
