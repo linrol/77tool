@@ -214,11 +214,13 @@
     "front": {
         "front-theory": {
           "path": "../../../front/front-theory",
-          "namespace": "front/front-theory"
+          "namespace": "front/front-theory",
+          "checkPath": false
         },
         "front-goserver": {
           "path": "../../../front/front-goserver",
-          "namespace": "front/front-goserver"
+          "namespace": "front/front-goserver",
+          "checkPath": false
         }
       }
   },
@@ -226,11 +228,13 @@
     "other": {
       "qbos": {
         "path": "../../../other/qbos",
-        "namespace": "apps/qbos"
+        "namespace": "apps/qbos",
+        "checkPath": false
       },
       "store": {
         "path": "../../../other/store",
-        "namespace": "apps/store"
+        "namespace": "apps/store",
+        "checkPath": false
       }
     }
   },
@@ -238,11 +242,13 @@
     "other": {
       "openapi": {
         "path": "../../../other/openapi",
-        "namespace": "apps/openapi"
+        "namespace": "apps/openapi",
+        "checkPath": false
       },
       "qtms": {
         "path": "../../../other/qtms",
-        "namespace": "backend/other/qtms"
+        "namespace": "backend/other/qtms",
+        "checkPath": false
       }
     }
   },
@@ -250,7 +256,8 @@
     "other": {
       "jsf": {
         "path": "../../../other/jsf",
-        "namespace": "backend/apps/jsf"
+        "namespace": "backend/apps/jsf",
+        "checkPath": false
       }
     }
   },
@@ -258,7 +265,8 @@
     "other": {
       "emitter": {
         "path": "../../../other/emitter",
-        "namespace": "backend/other/emitter"
+        "namespace": "backend/other/emitter",
+        "checkPath": false
       }
     }
   },
@@ -266,7 +274,8 @@
     "other": {
       "q7link-services": {
         "path": "../../../other/q7link-services",
-        "namespace": "apps/q7link-services"
+        "namespace": "apps/q7link-services",
+        "checkPath": false
       }
     }
   },
@@ -274,11 +283,13 @@
     "other": {
       "idps": {
         "path": "../../../other/idps",
-        "namespace": "backend/qip/idps"
+        "namespace": "backend/qip/idps",
+        "checkPath": false
       },
       "qip-front": {
         "path": "../../../other/qip-front",
-        "namespace": "backend/qip/qip-front"
+        "namespace": "backend/qip/qip-front",
+        "checkPath": false
       }
     }
   }

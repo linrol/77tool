@@ -6,21 +6,17 @@ import closeGit
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class Checout:
-  def __init__(self, branches, module=None, close=False, intersection=False):
+  def __init__(self, branches, end=None, close=False, intersection=False):
     self.branches = branches
     self.branchNames = ".".join(branches)
-    self.module = module
-    self.is_front = module in ["front"]
+    self.end = end
     self.close = close
     self.intersection = intersection
     self.pool = ThreadPoolExecutor(max_workers=10)
 
   # 执行器
   def execute(self):
-    if self.is_front:
-      projectInfoMap = utils.init_projects(self.module)
-    else:
-      projectInfoMap = utils.init_projects()
+    projectInfoMap = utils.init_projects(self.end)
     if len(projectInfoMap) == 0:
       sys.exit(1)
 
@@ -105,15 +101,15 @@ if __name__ == "__main__":
     print ("ERROR: 输入参数错误, 正确的参数为：[module] <branch> [<closeGit>]")
     sys.exit(1)
   branchNames=sys.argv[1:]
-  module = 'backend'
+  end = 'backend'
   close = False #是否需要关闭git管理
-  if sys.argv[1] in ["backend", "front"]:
-    module = sys.argv[1]
-    branchNames.remove(module)
+  if sys.argv[1] in ["backend", "front", "other"]:
+    end = sys.argv[1]
+    branchNames.remove(end)
   if sys.argv[-1].lower() in ["true", "false"]:
     close = (sys.argv[-1].lower() == 'true')
     branchNames.remove(sys.argv[-1])
   check_intersection = len(branchNames) > 1 #是否检出交集分支
-  executor = Checout(branchNames, module, close, check_intersection)
+  executor = Checout(branchNames, end, close, check_intersection)
   executor.execute()
 

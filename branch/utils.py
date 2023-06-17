@@ -21,16 +21,16 @@ MAINTAINER_ACCESS = 40
 VISIBILITY_PRIVATE = 0
 
 class ProjectInfo():
-  def __init__(self, end, module, path, name, namespace=None):
+  def __init__(self, end, module, name, config):
     self.__end = end
     self.__name = name
-    self.__path = path
+    self.__path = config.get("path")
     self.__module = module
-    self.__namespace = namespace
+    self.__namespace = config.get("namespace", None)
     self.__group = None
     self.__project = None
     self.__gl = self.getGl()
-    self.__checkPath()
+    self.__checkPath(config.get("checkPath", True))
     # self.fetch()# TODO 是否fetch
 
   def getToken(self):
@@ -48,9 +48,13 @@ class ProjectInfo():
   def getModule(self):
     return self.__module
 
-  def __checkPath(self):
+  def __checkPath(self, check):
     [result, msg] = subprocess.getstatusoutput('cd ' + self.__path)
-    if result != 0:
+    if result == 0:
+      return
+    if not check:
+      self.__path = None
+    else:
       print("ERROR: 工程【{}】路径【{}】不存在!!!".format(self.__name, self.__path))
       sys.exit(1)
 
@@ -132,6 +136,8 @@ class ProjectInfo():
 
   # 删除本地分支
   def deleteLocalBranch(self, deleteBranch, checkoutBranch=None):
+    if self.__path is None:
+      return
     if checkoutBranch is None or len(checkoutBranch) == 0:
       [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git status')
       if(result == 0):
@@ -236,6 +242,8 @@ class ProjectInfo():
 
   # 更新本地远程分支
   def fetch(self):
+    if self.__path is None:
+      return
     [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git fetch -p')
     if result != 0:
       print(msg)
@@ -243,6 +251,8 @@ class ProjectInfo():
 
   # 检出指定分支
   def checkout(self, branchName):
+    if self.__path is None:
+      return True
     self.fetch()
     [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git checkout ' + branchName)
     if result != 0:
@@ -257,6 +267,8 @@ class ProjectInfo():
 
   # 检出指定分支
   def checkoutTag(self, tagName):
+    if self.__path is None:
+      return True
     self.fetch()
     [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git checkout ' + tagName)
     if result != 0:
@@ -341,14 +353,14 @@ def init_projects(names=None):
   projectInfos = {}
   for end, modules in project_config().items():
     for module, projects in modules.items():
-      for project, value in projects.items():
+      for project, config in projects.items():
         match_name = project in names
         match_module = module in names
         match_end = end in names
         if match_name or match_module or match_end:
           # 刷新每个工程的信息，防止因为本地信息和远程信息不同步导致报错
           # subprocess.getstatusoutput('cd ' + path +' && git fetch -p')
-          projectInfo = ProjectInfo(end, module, value.get("path"), project, value.get("namespace"))
+          projectInfo = ProjectInfo(end, module, project, config)
           projectInfos[project] = projectInfo
   return projectInfos
 

@@ -92,15 +92,15 @@ class CreateBranch:
       else:
         error.append(result.getMessage())
 
-    config = utils.project_config()
+    configs = utils.project_config()
     backend = "backend"
     if backend in relatedEnd and len(relatedEnd) > 0:
       # 拉取工程分支，自动拉取必须要拉的工程
       for module,projectNames in MUST_PROJECT.items():
         for projectName in projectNames:
           if not (projectName in projectInfoMap):
-            path = config.get(backend).get(module).get(projectName).get("path")
-            projectInfo = utils.ProjectInfo(backend, module, path, projectName)
+            config = configs.get(backend).get(module).get(projectName)
+            projectInfo = utils.ProjectInfo(backend, module, projectName, config)
             result = self.check_project(projectInfo, False)
             if result.isAdd():
               adds.append(projectInfo)
@@ -114,10 +114,10 @@ class CreateBranch:
         if module in relatedModule:
           for projectName in projectNames:
             if not (projectName in projectInfoMap):
-              path = config.get(backend).get(module).get(projectName).get("path")
+              config = configs.get(backend).get(module).get(projectName)
             else:
               continue
-            projectInfo = utils.ProjectInfo(backend, module, path, projectName)
+            projectInfo = utils.ProjectInfo(backend, module, projectName, config)
             result = self.check_project(projectInfo, False)
             if result.isAdd():
               adds.append(projectInfo)
@@ -131,11 +131,10 @@ class CreateBranch:
         if project in list(map(lambda p: p.getName(), adds)):
           for projectName in projectNames:
             module = "apps"
-            if not (projectName in projectInfoMap):
-              path = config.get(backend).get(module).get(projectName).get("path")
-            else:
+            if projectName in projectInfoMap:
               continue
-            projectInfo = utils.ProjectInfo(backend, module, path, projectName)
+            config = configs.get(backend).get(module).get(projectName)
+            projectInfo = utils.ProjectInfo(backend, module, projectName, config)
             result = self.check_project(projectInfo, False)
             if result.isAdd():
               adds.append(projectInfo)
