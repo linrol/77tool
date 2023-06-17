@@ -87,7 +87,7 @@ cd front
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/front/front-theory.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/front/front-goserver.git
 
-cd ../../
+cd ../
 mkdir other
 cd other
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/apps/qbos.git
