@@ -4,7 +4,7 @@ import pymysql.cursors
 import json
 from request import post_form, get, post
 from log import logger
-from redisclient import get_branch_mapping, hget, hget_key, hmset, get_version
+from redisclient import get_branch_mapping, hget, hget_default, hget_key, hmset, get_version
 from wxmessage import msg_content
 
 
@@ -75,7 +75,7 @@ class Base:
                 user_ids.append(duty.get("user_id"))
                 user_names.append(duty.get("user_name"))
             # 固定值班人
-            fixed_userid = hget("q7link_fixed_duty", end).split(",")
+            fixed_userid = hget_default("q7link_fixed_duty", end, "").split(",")
             if len(fixed_userid) > 0:
                 user_ids.extend(fixed_userid)
             # 只读值班人（仅接受消息，sqa）
@@ -94,6 +94,14 @@ class Base:
         except Exception as err:
             logger.exception(err)
         return branches
+
+    # 获取分支合并策略
+    def get_merge_rules(self, end, module):
+        try:
+            return json.loads(hget_default("q7link-branch-merge-rule", end, hget_default("q7link-branch-merge-rule", module, {})))
+        except Exception as err:
+            logger.exception(err)
+            return {}
 
     # 判断是否为主干分支
     def is_trunk(self, branch):
@@ -122,14 +130,18 @@ class Base:
             content = json.load(f)
         ends = set()
         for end, modules in content.items():
-            for ps in modules.values():
+            if end in projects:
+                ends.add(end)
+            for module, ps in modules.items():
+                if module in projects:
+                    ends.add(end)
                 for p in ps.keys():
                     if p in projects:
                         ends.add(end)
         if len(ends) < 1:
             return self.backend
         if len(ends) > 1:
-            raise Exception("get project belong end not non-unique")
+            raise Exception("工程模块的分支负责人存在多个，请分开发起请求")
         return list(ends)[0]
 
     # 触发ops编译

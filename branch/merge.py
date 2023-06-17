@@ -15,46 +15,43 @@ branch_group = {}
 
 
 class Merge(Common):
-    def __init__(self, end, source, target, includes, clear):
-        super().__init__(utils, end)
-        self.end = end
-        self.includes = includes
-        self.filter_projects()
+    def __init__(self, source, target, projects, clear):
+        super().__init__(utils, projects)
+        self.end = None
         self.source = source
         self.target = target
         self.clear = clear
+        self.filter()
 
     # 过滤项目
-    def filter_projects(self):
-        if self.includes is None or len(self.includes) < 1:
-            return
-        for k in list(self.projects.keys()):
-            if k not in self.includes:
-                self.projects.pop(k)
+    def filter(self):
+        for name in list(self.projects.keys()):
+            project = self.projects.get(name)
+            self.end = project.getEnd()
+            branch_source = project.getBranch(self.source)
+            if branch_source is None:
+                self.projects.pop(name)
+                continue
+            branch_target = project.getBranch(self.target)
+            if branch_target is None and self.end != self.backend:
+                self.projects.pop(name)
+                continue
+            path = project.getPath()
+            if path is None:
+                self.projects.pop(name)
+                continue
 
     def check_conflict(self):
         conflict_project = []
         for p, p_info in self.projects.items():
-            branch_source = p_info.getBranch(self.source)
-            if branch_source is None:
-                if self.is_front:
-                    print("ERROR:工程【{}】来源分支不存在".format(p, self.target))
-                    sys.exit(1)
-                continue
-            branch_target = p_info.getBranch(self.target)
-            if branch_target is None:
-                if self.is_front:
-                    print("ERROR:工程【{}】目标分支不存在".format(p, self.target))
-                    sys.exit(1)
-                continue
             if self.source == "stage" and self.target == "master":
+                continue
+            if p_info.getBranch(self.target) is None:
                 continue
             # title = "Merge branch {} into {}".format(self.source, self.target)
             # if not p_info.checkConflicts(self.source, self.target, title):
             #     continue
             path = p_info.getPath()
-            if path is None:
-                continue
             cmd = "cd {};git merge-base origin/{} origin/{}".format(path, self.source, self.target)
             [ret, base_sha] = subprocess.getstatusoutput(cmd)
             if ret != 0:
@@ -98,24 +95,29 @@ class Merge(Common):
                 print("工程【{}】分支【{}】合并至分支【{}】失败【{}】".format(name, self.source, self.target, merge_msg))
                 sys.exit(1)
             wait_push[name] = path
-        self.push_front(wait_push) if self.is_front else self.push(wait_push)
+        self.push(wait_push)
         self.created(wait_created)
         self.tag()
         if not self.clear or self.is_trunk(self.source):
             return
-        delete_projects = None
-        if self.is_front:
-            delete_projects = self.projects.keys()
+        delete_projects = self.projects.keys()
         executor = DeleteBranch(self.source, self.target, delete_projects, True)
         executor.execute()
 
-    def push_front(self, paths):
-        # 前端push
+    def push(self, paths):
+        if self.end != self.backend:
+            self.push_single(paths)
+        else:
+            self.push_batch(paths)
+
+    # 单个工程push
+    def push_single(self, paths):
         ProjectBranch(self.target, "release", paths.keys()).execute()
         for k, v in paths.items():
-            self.push({k: v})
+            self.push_batch({k: v})
 
-    def push(self, paths):
+    # 批量push
+    def push_batch(self, paths):
         cmd = ''
         for path in paths.values():
             cmd += ';cd ' + path + ';git push origin {}'.format(self.target)
@@ -132,16 +134,16 @@ class Merge(Common):
         try:
             if not self.is_trunk(self.target):
                 return True, str("目标分支非主干，无需打Tag")
-            date = datetime.now().strftime("%Y%m%d%H%M")
-            if self.is_front:
-                return True, self.create_front_tag()
-            executor = CreateTag(self.target, date)
-            executor.execute()
-            return True, str("后端工程打Tag成功")
+            return True, self.create_tag()
         except Exception as err:
             return False, str(err)
 
-    def create_front_tag(self):
+    def create_tag(self):
+        if self.end == self.backend:
+            date = datetime.now().strftime("%Y%m%d%H%M")
+            executor = CreateTag(self.target, date)
+            executor.execute()
+            return str("后端工程打Tag成功")
         date = datetime.now().strftime("%Y%m%d")
         for p_name, p_info in self.projects.items():
             tag = p_info.getLastTag()
@@ -155,8 +157,7 @@ class Merge(Common):
             tag_name = tag_prefix + "{}.{}-{}".format(int(tag_num) + 1, date,
                                                       self.target)
             p_info.createTag(tag_name, self.target)
-            print('工程【{}】分支【{}】打Tag【{}】成功'.format(p_name, self.target,
-                                                         tag_name))
+            print('工程【{}】分支【{}】打Tag【{}】成功'.format(p_name, self.target, tag_name))
         return str("前端工程打Tag成功")
 
     def created(self, projects):
@@ -170,6 +171,9 @@ class Merge(Common):
 
     def execute(self):
         try:
+            if len(self.projects) < 1:
+                print("不存在待合并的工程!!!")
+                sys.exit(1)
             self.checkout_branch(self.end, self.source)
             self.checkout_branch(self.end, self.target)
             conflict_projects = self.check_conflict()
@@ -192,11 +196,10 @@ if __name__ == "__main__":
         print("ERROR: 输入参数错误, 正确的参数为：<end> <source_branch> <target_branch>")
         sys.exit(1)
     else:
-        belong_end = sys.argv[1]
-        clear_source = ".clear" in sys.argv[2]
-        source_branch = sys.argv[2].replace(".clear", "")
-        target_branch = sys.argv[3]
+        clear_source = ".clear" in sys.argv[1]
+        source_branch = sys.argv[1].replace(".clear", "")
+        target_branch = sys.argv[2]
         mr_projects = []
-        if len(sys.argv) > 4:
-            mr_projects = sys.argv[4:]
-        Merge(belong_end, source_branch, target_branch, mr_projects, clear_source).execute()
+        if len(sys.argv) > 3:
+            mr_projects = sys.argv[3:]
+        Merge(source_branch, target_branch, mr_projects, clear_source).execute()

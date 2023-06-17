@@ -103,7 +103,7 @@ if __name__ == "__main__":
   branchNames=sys.argv[1:]
   end = 'backend'
   close = False #是否需要关闭git管理
-  if sys.argv[1] in ["backend", "front", "other"]:
+  if sys.argv[1] in utils.get_ends():
     end = sys.argv[1]
     branchNames.remove(end)
   if sys.argv[-1].lower() in ["true", "false"]:

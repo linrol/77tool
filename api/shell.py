@@ -70,7 +70,7 @@ class Shell(Common):
         return self.stage
 
     # 创建分支
-    def create_branch(self, fixed_version, projects, req_name):
+    def create_backend_branch(self, fixed_version, projects, req_name):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
             clear_build_params = self.get_clear_build_params(self.target_branch)
@@ -104,12 +104,13 @@ class Shell(Common):
     def create_other_branch(self, is_feature, projects):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
-            cmd = 'cd ../branch;python3 createBranch.py {}.stage {} {}'.format(self.source_branch, self.target_branch, " ".join(projects))
-            [_, created_msg] = self.exec(cmd, True)
-            self.save_branch_created(self.user_id, self.source_branch, self.target_branch, projects)
-            [_, clear_upgrade] = self.clear_front_upgrade(projects, self.target_branch, "upgrade/release.json")
+            source = self.source_branch + ".stage"
+            target = self.target_branch
+            [_, created_msg] = self.create_branch(projects, source, target)
+            self.save_branch_created(self.user_id, self.source_branch, target, projects)
+            [_, clear_upgrade] = self.clear_front_upgrade(projects, target, "upgrade/release.json")
             [_, protect_msg] = self.protect_branch(self.target_branch, 'd' if is_feature else 'hotfix', projects)
-            return True, created_msg + clear_upgrade + "\n" + protect_msg
+            return True, created_msg + clear_upgrade + protect_msg
         except Exception as err:
             logger.exception(err)
             return False, str(err)
@@ -145,12 +146,12 @@ class Shell(Common):
     def merge_branch(self, end, projects, clear, user_name):
         try:
             if end == self.backend:
-                projects = []
+                projects = [self.backend]
             self.lock_value = self.lock.get_lock("lock", 600)
             self.checkout_branch(self.source_branch)
             self.protect_branch(self.target_branch, 'release', projects)
             source = self.source_branch + ".clear" if clear else self.source_branch
-            cmd = 'cd ../branch;python3 merge.py {} {} {} {}'.format(end, source, self.target_branch, " ".join(projects))
+            cmd = 'cd ../branch;python3 merge.py {} {} {}'.format(source, self.target_branch, " ".join(projects))
             [ret, merge_msg] = self.exec(cmd, True)
             if self.is_trunk(self.target_branch):
                 access_level = "none"

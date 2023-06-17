@@ -27,6 +27,7 @@ class ProjectInfo():
     self.__path = config.get("path")
     self.__module = module
     self.__namespace = config.get("namespace", None)
+    self.__isGlobal = config.get("isGlobal", False)
     self.__group = None
     self.__project = None
     self.__gl = self.getGl()
@@ -47,6 +48,8 @@ class ProjectInfo():
     return self.__path
   def getModule(self):
     return self.__module
+  def isGlobal(self):
+    return self.__isGlobal
 
   def __checkPath(self, check):
     [result, msg] = subprocess.getstatusoutput('cd ' + self.__path)
@@ -276,6 +279,8 @@ class ProjectInfo():
 
   # 创建合并
   def createMr(self, source, target, title, assignee):
+    if self.checkMerge(source, target):
+      return None
     data = {
     'source_branch': source,
     'target_branch': target,
@@ -293,18 +298,23 @@ class ProjectInfo():
   # 检查合并冲突，借助gitlab的发起mr来判断
   def checkConflicts(self, source, target, title):
     mr = self.createMr(source, target, title, None)
+    if mr is None:
+      return False
     elapsed = 0
     while True:
       mr = self.getMr(mr.iid)
       status = mr.merge_status
       if status == 'can_be_merged':
-        mr.delete()
+        self.closeMr(mr)
+        # mr.delete()
         return False
       if status in ['cannot_be_merged', 'cannot_be_merged_recheck']:
-        mr.delete()
+        self.closeMr(mr)
+        # mr.delete()
         return True
       if elapsed > 30:
-        mr.delete()
+        self.closeMr(mr)
+        # mr.delete()
         return True
       elapsed += 3
       time.sleep(3)
@@ -320,6 +330,10 @@ class ProjectInfo():
     if mr.has_conflicts or mr.merge_status != "can_be_merged":
       raise Exception("工程【】从【】合并至【】存在冲突", project, source, target)
     return mr.merge()
+
+  def closeMr(self, mr):
+    mr.state_event = 'close'
+    mr.save()
 
   # 获取项目成员
   def getProjectMember(self, query):
@@ -392,7 +406,13 @@ def get_project_file(project, branch, file_path, parser):
                                                             file_path))
   return parser(f.decode())
 
+# 获取所属端
+def get_ends():
+  return project_config().keys()
+
 if __name__ == "__main__":
+  conflicts = init_projects("budget").get("budget").checkConflicts("feature-branch-test1", "feature-branch-test", "check conflicts")
+  print("check result:{}".format(conflicts))
   print(camel("project-api"))
   print(camel("project"))
   print(camel("project api"))

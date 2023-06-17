@@ -229,12 +229,14 @@
       "qbos": {
         "path": "../../../other/qbos",
         "namespace": "apps/qbos",
-        "checkPath": false
+        "checkPath": false,
+        "isGlobal": true
       },
       "store": {
         "path": "../../../other/store",
         "namespace": "apps/store",
-        "checkPath": false
+        "checkPath": false,
+        "isGlobal": true
       }
     }
   },
@@ -243,12 +245,14 @@
       "openapi": {
         "path": "../../../other/openapi",
         "namespace": "apps/openapi",
-        "checkPath": false
+        "checkPath": false,
+        "isGlobal": true
       },
       "qtms": {
         "path": "../../../other/qtms",
         "namespace": "backend/other/qtms",
-        "checkPath": false
+        "checkPath": false,
+        "isGlobal": true
       }
     }
   },
@@ -266,7 +270,8 @@
       "emitter": {
         "path": "../../../other/emitter",
         "namespace": "backend/other/emitter",
-        "checkPath": false
+        "checkPath": false,
+        "isGlobal": true
       }
     }
   },
@@ -284,12 +289,14 @@
       "idps": {
         "path": "../../../other/idps",
         "namespace": "backend/qip/idps",
-        "checkPath": false
+        "checkPath": false,
+        "isGlobal": true
       },
       "qip-front": {
         "path": "../../../other/qip-front",
         "namespace": "backend/qip/qip-front",
-        "checkPath": false
+        "checkPath": false,
+        "isGlobal": true
       }
     }
   }

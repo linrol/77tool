@@ -59,6 +59,17 @@ class Common(Base):
         f = project.getProject().files.get(file_path=file_path, ref=branch)
         return f
 
+    # 创建分支
+    def create_branch(self, projects, source, target):
+        msg = ""
+        for name in projects:
+            project = self.projects.get(name)
+            if project is None:
+                continue
+            real_source = project.createBranch(source, target)
+            msg += "工程【{}】基于分支【{}】创建分支【{}】成功\n".format(name, real_source, target)
+        return True, msg
+
     # 清空前端升级脚本
     def clear_front_upgrade(self, projects, branch, path):
         try:
@@ -72,9 +83,10 @@ class Common(Base):
             message = "{}-task-0000-{}".format(branch, "清空升级接口")
             file.content = ''
             file.save(branch=branch, commit_message=message)
-            return True, "\n工程【{}】清空升级接口【{}】成功".format(name, path)
+            return True, "工程【{}】清空升级接口【{}】成功\n".format(name, path)
         except Exception as err:
-            return False, str(err)
+            logger.error(str(err))
+            return False, ""
 
     # 保护分支
     def protect_branch(self, branch, protect, projects=None):
@@ -129,60 +141,6 @@ class Common(Base):
             logger.exception(err)
             return False, str(err)
 
-    # 获取合并代码的分支
-    def get_merge_branch(self, branches, clusters, project):
-        duty_branches = self.get_duty_branches()
-        branch_merge = {}
-        end = self.get_project_end([project])
-        is_front = end != self.backend
-        error = []
-        for branch in branches:
-            if self.is_chinese(branch):
-                continue
-            branch_prefix, _ = self.get_branch_date(branch)
-            if len(duty_branches) > 0 and branch_prefix not in duty_branches:
-                continue
-            is_sprint = "sprint" in branch or "release" in branch
-            push_stage0 = "宁夏灰度集群0" in clusters and len(clusters) == 1
-            if push_stage0 and is_sprint:
-                # 班车/release推灰度0环境:
-                #   -> 前端跳过
-                #   -> 后端stage-global合并至sprint/release
-                if is_front:
-                    continue
-                branch = self.stage_global
-            prod_clusters = {"宁夏生产集群3", "宁夏生产集群4", "宁夏生产集群5", "宁夏生产集群6",
-                             "宁夏生产集群7"}
-            push_prod = len(set(clusters).intersection(prod_clusters)) > 2
-            git_project = self.projects.get(project)
-            source_branch = git_project.getBranch(branch)
-            if is_sprint and source_branch is None and push_prod:
-                # 班车/release推生产环境，stage合并至master
-                branch_merge[self.stage] = self.master
-                continue
-            if source_branch is None:
-                error.append("工程【{}】来源分支【{}】不存在".format(project, branch))
-                continue
-            target = self.get_branch_created_source(end, branch)
-            if target is None:
-                error.append("分支【{}】未知的目标分支".format(branch))
-                continue
-            if git_project.getBranch(target) is None:
-                error.append("工程【{}】目标分支【{}】不存在".format(project, target))
-                continue
-            is_merge = git_project.checkMerge(branch, target)
-            if is_merge and branch != self.stage_global:
-                error.append("工程【{}】分支【{}】已合并至【{}】".format(project, branch, target))
-                continue
-            branch_merge[branch] = target
-        if len(branch_merge) < 1:
-            raise Exception("解析合并分支信息失败: {}".format(";".join(error)))
-        if len(branch_merge) > 1:
-            raise Exception("解析合并分支信息不唯一: {}".format(branch_merge))
-        logger.info("解析合并分支日志内容: {}".format(";".join(error)))
-        for k, v in branch_merge.items():
-            return k, v
-
     # 获取指定分支的版本号
     def get_branch_version(self, branch):
         config_yaml = self.get_build_config(branch)
@@ -222,7 +180,3 @@ class Common(Base):
                 continue
             ret.add(p_info.getModule())
         return list(ret)
-
-
-
-

@@ -415,7 +415,7 @@ def build_change_branch_version_msg(task_id, source, target, project_info):
     return msg_content["change_branch_version"]
 
 
-def build_merge_branch_msg(source, target, modules, cluster, task_id):
+def build_merge_branch_msg(source, target, project, cluster, task_id):
     task_info_list = [{
         "keyname": "来源分支",
         "value": source,
@@ -423,11 +423,10 @@ def build_merge_branch_msg(source, target, modules, cluster, task_id):
         "keyname": "目标分支",
         "value": target,
     }]
-    is_backend = "apps" in modules or "global" in modules
-    if not is_backend:
+    if project != "build":
         task_info_list.append({
             "keyname": "工程模块",
-            "value": modules,
+            "value": project,
         })
     msg_content["merge_branch_task"]["main_title"]["title"] = "值班助手-代码合并任务"
     msg_content["merge_branch_task"]["sub_title_text"] = "{}已发布至{}，请求将代码合并至{}".format(source, cluster, target)
