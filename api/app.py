@@ -66,7 +66,9 @@ def listener_deploy():
     branches = body.get("branch", body.get("project_desc")).split(",")
     clusters = body.get("cluster").split(",")
     ret = Task().build_merge_task(branches, groups, clusters, crop)
-    return make_response(";\n".join(ret))
+    ret_msg = ";\n".join(ret)
+    logger.info(ret_msg)
+    return make_response(ret_msg)
 
 
 @app.route("/branch/clear", methods=["GET"])

@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import yaml
+import gitlab
 from base import Base
 from log import logger
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
@@ -56,8 +57,10 @@ class Common(Base):
 
     # 获取远端文件
     def git_file(self, project, branch, file_path):
-        f = project.getProject().files.get(file_path=file_path, ref=branch)
-        return f
+        try:
+            return project.getProject().files.get(file_path=file_path, ref=branch)
+        except gitlab.exceptions.GitlabGetError:
+            return None
 
     # 创建分支
     def create_branch(self, projects, source, target):
@@ -157,6 +160,9 @@ class Common(Base):
 
     # 根据工程名称获取指定分支的远程文件
     def get_build_config(self, branch_name):
+        build_branch = self.project_build.getBranch(branch_name)
+        if build_branch is None:
+            raise Exception("工程【build】不存在分支【{}】".format(branch_name))
         file = self.git_file(self.project_build, branch_name, "config.yaml")
         if file is None:
             raise Exception("工程【build】分支【{}】不存在文件【config.yaml】".format(branch_name))

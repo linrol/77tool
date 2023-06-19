@@ -36,6 +36,10 @@ def hget(name, key):
     return redisClient.get_connection().hget(name, key)
 
 
+def hgetall(name):
+    return redisClient.get_connection().hgetall(name)
+
+
 def hget_key(name, v):
     kvs = redisClient.get_connection().hgetall(name)
     for key, value in kvs.items():

@@ -4,7 +4,7 @@ import pymysql.cursors
 import json
 from request import post_form, get, post
 from log import logger
-from redisclient import get_branch_mapping, hget, hget_default, hget_key, hmset, get_version
+from redisclient import get_branch_mapping, hget, hgetall, hget_default, hget_key, hmset, get_version
 from wxmessage import msg_content
 
 
@@ -21,6 +21,7 @@ class Base:
     web_hook = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=f28f65f5-c28d-46e5-8006-5f777f02dc71"
     backend_web_hook = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=6bc35c7b-c884-4707-98ba-722dae243d1f"
     project_category = {}
+    merge_rule = None
     category_mapping = {"global": ['framework', 'global-apps', 'global-apps-api'],
                         "apps": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api']}
 
@@ -75,9 +76,9 @@ class Base:
                 user_ids.append(duty.get("user_id"))
                 user_names.append(duty.get("user_name"))
             # 固定值班人
-            fixed_userid = hget_default("q7link_fixed_duty", end, "").split(",")
-            if len(fixed_userid) > 0:
-                user_ids.extend(fixed_userid)
+            fixed_users = hget("q7link_fixed_duty", end)
+            if fixed_users is not None:
+                user_ids.extend(fixed_users.split(","))
             # 只读值班人（仅接受消息，sqa）
             readonly_ids = self.get_readonly_duties()
             if len(readonly_ids) > 0:
@@ -98,7 +99,12 @@ class Base:
     # 获取分支合并策略
     def get_merge_rules(self, end, module):
         try:
-            return json.loads(hget_default("q7link-branch-merge-rule", end, hget_default("q7link-branch-merge-rule", module, {})))
+            if self.merge_rule is None:
+                self.merge_rule = hgetall("q7link-branch-merge-rule")
+            for k, v in self.merge_rule.items():
+                if k in [end, module]:
+                    return json.loads(v)
+            return {}
         except Exception as err:
             logger.exception(err)
             return {}

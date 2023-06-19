@@ -16,6 +16,7 @@ services2project = {
     "apps": "build",
     "global": "build",
     "bpmn-bridge": "q7link-services",
+    "bpmn-server": "q7link-services",
     "batch": "q7link-services",
     "bpmn-reconclle": "q7link-services",
     "bankstmt": "q7link-services",
@@ -397,7 +398,7 @@ class Task(Common):
         for s in services:
             tmp.add(services2project.get(s, s))
         projects = list(tmp)
-        ret = []
+        rets = []
         duty_branches = self.get_duty_branches()
         for source_name in branches:
             if self.is_chinese(source_name):
@@ -408,30 +409,13 @@ class Task(Common):
             for p_name in projects:
                 project = self.projects.get(p_name)
                 if project is None:
-                    ret.append("工程【{}】不存在".format(p_name))
-                    continue
-                source_branch = project.getBranch(source_name)
-                if source_branch is None:
-                    ret.append("工程【{}】来源分支【{}】不存在".format(p_name, source_name))
+                    rets.append("工程【{}】不存在".format(p_name))
                     continue
                 end = project.getEnd()
-                target_name = self.get_branch_created_source(end, source_name)
-                if target_name is None:
-                    ret.append("工程【{}】来源分支【{}】未知的创建信息".format(p_name, source_name))
-                    continue
-                target_branch = project.getBranch(target_name)
-                if target_branch is None:
-                    ret.append("工程【{}】目标分支【{}】不存在".format(p_name, target_name))
-                    continue
-                is_merge = project.checkMerge(source_name, target_name)
-                if is_merge:
-                    ret.append("工程【{}】来源分支【{}】已合并至目标分支【{}】".format(p_name, source_name, target_name))
-                    continue
-                prod_clusters = {"宁夏生产集群3", "宁夏生产集群4", "宁夏生产集群5", "宁夏生产集群6",
-                                 "宁夏生产集群7"}
+                prod_clusters = {"宁夏生产集群3", "宁夏生产集群4", "宁夏生产集群5", "宁夏生产集群6", "宁夏生产集群7"}
                 params = {
                     "is_sprint": source_prefix in ["sprint", "release"],
-                    "source_release": self.has_release(source_name),
+                    "source_release": self.backend == end and self.has_release(source_name),
                     "is_global": project.isGlobal(),
                     "cluster_global": "宁夏生产global集群" in clusters and len(clusters) == 1,
                     "cluster_0": "宁夏灰度集群0" in clusters and len(clusters) == 1,
@@ -442,20 +426,41 @@ class Task(Common):
                 module = project.getModule()
                 rules = self.get_merge_rules(end, module)
                 for k, v in rules.items():
-                    rule_ret = eval(v, params)
-                    rule_log = "project {} eval rule {}({}) by params({}) ret:{}".format(p_name, v, k, params_str, rule_ret)
-                    if not rule_ret:
-                        # logger.warn(rule_log)
-                        # ret.append(rule_log)
-                        continue
-                    merge_params = k.replace("${source}", source_name).replace("${target}", target_name).split(">")
+                    merge_params = k.split(">")
                     action = merge_params[0]
-                    source = merge_params[1]
+                    source = merge_params[1].replace("${source}", source_name)
                     target = merge_params[2]
-                    user_ids = self.get_duty_info(self.is_test, end)
-                    task_id = self.send_branch_action(action, user_ids, source, target, p_name, clusters, crop)
-                    ret.append(task_id)
-        return ret
+                    rule_ret = eval(v, params)
+                    if not rule_ret:
+                        # rule_log = "project {} eval rule {}({}) by params({}) ret:{}".format(p_name, v, k, params_str, rule_ret)
+                        # logger.warn(rule_log)
+                        # ret.append("工程【{}】来源分支【{}】合并至目标分支【{}】不满足配置条件".format(p_name, source, target))
+                        continue
+                    if project.getBranch(source) is None:
+                        rets.append("工程【{}】来源分支【{}】不存在".format(p_name, source))
+                        continue
+                    tmp_name = self.get_branch_created_source(end, source)
+                    if tmp_name is not None:
+                        target = target.replace("${target}", tmp_name)
+                    if "$" in target:
+                        rets.append("工程【{}】来源分支【{}】未知的创建信息".format(p_name, source))
+                        continue
+                    target_branch = project.getBranch(target)
+                    if target_branch is None:
+                        rets.append("工程【{}】目标分支【{}】不存在".format(p_name, target))
+                        continue
+                    is_merge = project.checkMerge(source, target)
+                    if is_merge:
+                        rets.append("工程【{}】来源分支【{}】已合并至目标分支【{}】".format(p_name, source, target))
+                        continue
+                    task_name = "{}_{}_{}_{}".format(project, source, target, action)
+                    if task_name in rets:
+                        continue
+                    user_ids, _ = self.get_duty_info(self.is_test, end)
+                    task_key = self.send_branch_action(action, user_ids, source, target, p_name, clusters, crop)
+                    rets.append(task_key)
+                    rets.append(task_name)
+        return rets
 
     # 检测分支版本号是否都为发布包（所有模块）
     def has_release(self, branch):
@@ -472,23 +477,22 @@ class Task(Common):
     # 发送分支操作（迁移/合并）任务
     def send_branch_action(self, action, user_ids, source, target, project, clusters, crop):
         # 发送合并代码通知
-        time.sleep(2)
-        task_id = "branch_{}@{}".format(action, int(time.time()))
-        if action == "move":
-            project = "global"
-            task_params = build_move_branch_msg(source, target, project, ",".join(clusters), task_id)
-        elif action == "merge":
-            task_params = build_merge_branch_msg(source, target, project, ",".join(clusters), task_id)
+        time.sleep(3)
+        project = "global" if action == "move" else project
+        task_key = "branch_{}@{}".format(action, int(time.time()))
+        if action == "merge":
+            task_params = build_merge_branch_msg(source, target, project, ",".join(clusters), task_key)
+        elif action == "move":
+            task_params = build_move_branch_msg(source, target, project, ",".join(clusters), task_key)
         else:
-            raise Exception("action error")
+            raise Exception("branch action error")
+        # 发送应用任务消息并记录任务
         body = crop.send_template_card(user_ids, task_params)
-        # 记录任务
         task_code = body.get("response_code")
-        # task_code = "test_task_code"
-        content = "{}#{}#{}#{}#{}".format(str(self.is_test), task_code, source, target, project)
-        logger.info("add task[{}->{}]".format(task_id, content))
-        save_user_task(task_id, content)
-        return task_id
+        task_value = "{}#{}#{}#{}#{}".format(str(self.is_test), task_code, source, target, project)
+        logger.info("write task[{}->{}]".format(task_key, task_value))
+        save_user_task(task_key, task_value)
+        return task_key
 
     def branch_seal(self, body):
         response = {}
