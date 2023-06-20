@@ -153,10 +153,7 @@ class Shell(Common):
             source = self.source_branch + ".clear" if clear else self.source_branch
             cmd = 'cd ../branch;python3 merge.py {} {} {}'.format(source, self.target_branch, " ".join(projects))
             [ret, merge_msg] = self.exec(cmd, True)
-            if self.is_trunk(self.target_branch):
-                access_level = "none"
-            else:
-                access_level = "hotfix"
+            access_level = "none" if self.is_trunk(self.target_branch) else "hotfix"
             self.protect_branch(self.target_branch, access_level, projects)
             merge_msg = re.compile('WARNNING：.*目标分支.*已存在.*\n').sub('', merge_msg)
             merge_msg = re.compile('工程.*保护成功.*\n').sub('', merge_msg)

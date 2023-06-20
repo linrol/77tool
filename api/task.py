@@ -462,6 +462,22 @@ class Task(Common):
                     rets.append(task_name)
         return rets
 
+    # 发现分支代码同步：当主干分支(stage,master)一致时且推送至所有集群时，合并至多个分支
+    def discovery_merge(self, user_id, projects, source, crop):
+        try:
+            if not self.is_trunk(source):
+                return
+            for p_name in projects:
+                project = self.projects.get(p_name)
+                if not project.checkMerge(self.stage, self.master):
+                    continue
+                if not project.checkMerge(self.master, self.stage):
+                    continue
+                target = self.stage if source == self.master else self.master
+                self.send_branch_action("merge", user_id, source, target, p_name, "全部租户集群", crop)
+        except Exception as err:
+            logger.exception(err)
+
     # 检测分支版本号是否都为发布包（所有模块）
     def has_release(self, branch):
         try:
