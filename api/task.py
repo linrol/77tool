@@ -201,7 +201,7 @@ class Task(Common):
         if len(branch_list) < 2:
             return True, "branch({}) length less than one".format(branch_names)
         user_ids, _ = self.get_duty_info(True)
-        ret, msg = Shell(self.is_test, user_ids).check_version(branch_names)
+        ret, msg = Shell(user_ids, self.is_test).check_version(branch_names)
         logger.info(branch + ":" + msg)
         if not ret:
             for user_id in user_ids.split("|"):
@@ -212,7 +212,7 @@ class Task(Common):
     def clear_dirty_branch(self, user_id, branch_name, crop):
         if self.is_trunk(branch_name):
             return
-        ret, msg = Shell(self.is_test, user_id).clear_branch(branch_name)
+        ret, msg = Shell(user_id, self.is_test).clear_branch(branch_name)
         crop.send_text_msg(user_id, msg)
 
     # 发生清理脏分支通知
@@ -275,7 +275,7 @@ class Task(Common):
 
     # 校正分支版本号
     def branch_correct(self, correct_user, branch, project, crop):
-        shell = Shell(self.is_test, correct_user, self.master, branch)
+        shell = Shell(correct_user, self.is_test, self.master, branch)
         params = "none other={}".format(project)
         _, msg = shell.build_package(params, "hotfix,all", True)
         logger.info("branch correct [{}] [{}] ret[{}]".format(branch, project, msg))
