@@ -44,7 +44,7 @@ class Merge(Common):
     def check_conflict(self):
         conflict_project = []
         for p, p_info in self.projects.items():
-            if self.source == "stage" and self.target == "master":
+            if self.is_trunk(self.target):
                 continue
             if p_info.getBranch(self.target) is None:
                 continue
@@ -85,7 +85,7 @@ class Merge(Common):
             path = project.getPath()
             if path is None:
                 continue
-            if self.source == "stage" and self.target == "master":
+            if self.is_trunk(self.target):
                 option = "-X theirs -m 'Merge branch {} into {} & accept {}' origin/{}".format(self.source, self.target, self.source, self.source)
             else:
                 option = "-m 'Merge branch {} into {}' origin/{} --no-ff".format(self.source, self.target, self.source)
