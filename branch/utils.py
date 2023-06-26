@@ -199,11 +199,11 @@ class ProjectInfo():
 
   #检查分支合并
   def checkMerge(self, sourceBranchName, targetBranchName):
-    commits = self.getProject().repository_compare(targetBranchName,sourceBranchName).get('commits', [])
-    if len(commits) == 0:
-      return True
-    else:
+    diff = self.getProject().repository_compare(targetBranchName,sourceBranchName)
+    if len(diff.get('diffs', [])) > 0 and len(diff.get('commits', [])) > 0:
       return False
+    else:
+      return True
 
   #获取tag，如果未指定tag，则获取最新tag
   def getTag(self, tagName=None):
