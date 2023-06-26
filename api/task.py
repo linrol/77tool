@@ -453,7 +453,7 @@ class Task(Common):
                     if is_merge:
                         rets.append("工程【{}】来源分支【{}】已合并至目标分支【{}】".format(p_name, source, target))
                         continue
-                    task_name = "{}_{}_{}_{}".format(project, source, target, action)
+                    task_name = "{}_{}_{}_{}".format(p_name, source, target, action)
                     if task_name in rets:
                         continue
                     user_ids, _ = self.get_duty_info(self.is_test, end)
@@ -462,10 +462,12 @@ class Task(Common):
                     rets.append(task_name)
         return rets
 
-    # 发现分支代码同步：当主干分支(stage,master)一致时且推送至所有集群时，合并至多个分支
-    def discovery_merge(self, user_id, projects, source, crop):
+    # 发现分支代码同步：当主干分支(stage,master)一致时且推送至所有集群时，主干分支自省同步
+    def discovery_merge(self, user_id, projects, source, target, crop):
         try:
-            if not self.is_trunk(source):
+            if self.is_trunk(source):
+                return
+            if not self.is_trunk(target):
                 return
             for p_name in projects:
                 project = self.projects.get(p_name)
@@ -473,8 +475,8 @@ class Task(Common):
                     continue
                 if not project.checkMerge(self.master, self.stage):
                     continue
-                target = self.stage if source == self.master else self.master
-                self.send_branch_action("merge", user_id, source, target, p_name, "全部租户集群", crop)
+                trunk_branch = self.stage if target == self.master else self.master
+                self.send_branch_action("merge", user_id, target, trunk_branch, p_name, "全部租户集群", crop)
         except Exception as err:
             logger.exception(err)
 

@@ -201,7 +201,7 @@ class Handler(Base):
                 source, target, projects = task_contents[2], task_contents[3], task_contents[4].split(",")
                 end = self.get_project_end(projects)
                 clear = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId") and no_task_depend(self.event_task_id)
-                # Task().discovery_merge(self.user_id, projects, target, self.crop)
+                Task().discovery_merge(self.user_id, projects, source, target, self.crop)
             shell = Shell(self.user_id, self.is_test, source, target)
             _, ret = shell.merge_branch(end, projects, clear, self.user_name)
             # 发送消息通知
