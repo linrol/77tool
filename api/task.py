@@ -472,8 +472,10 @@ class Task(Common):
             for p_name in projects:
                 project = self.projects.get(p_name)
                 if not project.checkMerge(self.stage, self.master):
+                    logger.info("differ from {} to {}".format(self.stage, self.master))
                     continue
                 if not project.checkMerge(self.master, self.stage):
+                    logger.info("differ from {} to {}".format(self.master, self.stage))
                     continue
                 trunk_branch = self.stage if target == self.master else self.master
                 self.send_branch_action("merge", user_id, target, trunk_branch, p_name, "全部租户集群", crop)
