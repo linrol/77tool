@@ -32,9 +32,9 @@ def parse_args():
 args = parse_args()
 crop = Crop(args)
 crypt = crop.get_crypt()
-task = Task(True)
+task = Task(crop, True)
 # crop.create_button()
-# Task().clear_dirty_branch_notice(crop)
+# Task(crop).clear_dirty_branch_notice(crop)
 
 
 @app.route("/gitlab/hook", methods=["POST"])
@@ -47,7 +47,7 @@ def gitlab_hook():
     if not update_config:
         return "not update version"
     branch = body.get('ref').rsplit("/", 1)[1]
-    executor.submit(Task().check_version, branch, crop)
+    executor.submit(Task(crop).check_version, branch)
     return make_response("success")
 
 
@@ -65,7 +65,7 @@ def listener_deploy():
         return make_response("ignore")
     branches = body.get("branch", body.get("project_desc")).split(",")
     clusters = body.get("cluster").split(",")
-    ret = Task().build_merge_task(branches, groups, clusters, crop)
+    ret = Task(crop).build_merge_task(branches, groups, clusters)
     ret_msg = ";\n".join(ret)
     logger.info(ret_msg)
     return make_response(ret_msg)
@@ -75,7 +75,7 @@ def listener_deploy():
 def branch_clear():
     user_id = request.args.get('user_id')
     branch = request.args.get('branch')
-    executor.submit(Task().clear_dirty_branch, user_id, branch, crop)
+    executor.submit(Task(crop).clear_dirty_branch, user_id, branch)
     return make_response("success")
 
 
@@ -88,7 +88,7 @@ def branch_correct():
         project = request.args.get('project')
         if duplicate_correct_id(correct_id, branch, project):
             raise Exception("请不要重复校正版本号")
-        executor.submit(Task().branch_correct, user_id, branch, project, crop)
+        executor.submit(Task(crop).branch_correct, user_id, branch, project)
         return make_response("success")
     except Exception as err:
         logger.exception(err)
@@ -101,7 +101,7 @@ def branch_seal():
     try:
         body = json.loads(request.data.decode('utf-8'))
         logger.info("branch_seal:" + str(body))
-        response = Task().branch_seal(body)
+        response = Task(crop).branch_seal(body)
     except Exception as err:
         logger.exception(err)
         response["ret"] = False
@@ -116,7 +116,7 @@ def branch_release_check():
         body = json.loads(request.data.decode('utf-8'))
         logger.info("release_check:" + str(body))
         response["ret"] = True
-        response["msg"] = Task().release_check(body)
+        response["msg"] = Task(crop).release_check(body)
     except Exception as err:
         logger.exception(err)
         response["ret"] = False
@@ -129,13 +129,13 @@ def branch_release_check():
 def job_check_version():
     cur_time = datetime.datetime.now()
     branch = 'sprint' + cur_time.strftime('%Y%m%d')
-    task.check_version(branch, crop)
+    task.check_version(branch)
 
 
 @scheduler.task('interval', id='job_mr_request_notify', seconds=60,
                 timezone='Asia/Shanghai', max_instances=4)
 def job_mr_request_notify():
-    task.send_mr_notify(crop)
+    task.send_mr_notify()
 
 
 @app.route("/callback/<action>", methods=["GET"])
@@ -178,7 +178,7 @@ def check_upgrade():
 def build_notify():
     build_id = request.args.get('id')
     ret = request.args.get('ret')
-    task.send_build_notify(crop, build_id, ret)
+    task.send_build_notify(build_id, ret)
     return make_response("success")
 
 

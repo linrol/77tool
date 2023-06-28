@@ -27,8 +27,9 @@ services2project = {
 
 
 class Task(Common):
-    def __init__(self, is_test=False):
+    def __init__(self, crop, is_test=False):
         super().__init__()
+        self.crop = crop
         self.is_test = is_test
 
     def get_project(self, project_name):
@@ -126,7 +127,7 @@ class Task(Common):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
 
     # 创建拉值班分支的任务
-    def new_branch_task(self, crop, end, source, target, projects, **user):
+    def new_branch_task(self, end, source, target, projects, **user):
         projects = self.filter_project(target, projects)
         feature_info = self.get_feature_branch(source, target, end, **user)
         if feature_info is None:
@@ -142,7 +143,7 @@ class Task(Common):
             if len(projects) < 1:
                 continue
             task_id = "branch_new@{}".format(int(time.time()))
-            content = send_create_branch_msg(crop, source, target, projects,
+            content = send_create_branch_msg(self.crop, source, target, projects,
                                              task_id, str(version), **user)
             # 记录任务
             logger.info("add task[{}->{}]".format(task_id, content))
@@ -178,7 +179,7 @@ class Task(Common):
         return ret
 
     # 检查版本号
-    def check_version(self, branch, crop):
+    def check_version(self, branch):
         branch_name = None
         branch_date = None
         for name in branch_check_list:
@@ -206,17 +207,17 @@ class Task(Common):
         if not ret:
             for user_id in user_ids.split("|"):
                 user_msg = msg.replace("user_id=", "user_id={}".format(user_id))
-                crop.send_text_msg(user_id, user_msg)
+                self.crop.send_text_msg(user_id, user_msg)
         return ret, msg
 
-    def clear_dirty_branch(self, user_id, branch_name, crop):
+    def clear_dirty_branch(self, user_id, branch_name):
         if self.is_trunk(branch_name):
             return
         ret, msg = Shell(user_id, self.is_test).clear_branch(branch_name)
-        crop.send_text_msg(user_id, msg)
+        self.crop.send_text_msg(user_id, msg)
 
     # 发生清理脏分支通知
-    def clear_dirty_branch_notice(self, crop):
+    def clear_dirty_branch_notice(self):
         # self.save_branch_pushed()
         clear_branch_msg = "您创建的分支【{}】超过三个月不存在提交记录，可能为脏分支，请确认是否需要删除？\n<a href=\"https://branch.linrol.cn/branch/clear?user_id={}&branch={}\">点击删除</a>\n无需删除请忽略"
         dirty_branches = self.get_dirty_branches()
@@ -226,7 +227,7 @@ class Task(Common):
                 continue
             user_id = self.name2userid(username)
             if user_id == "LuoLin":
-                crop.send_text_msg(user_id, clear_branch_msg.format(branch, user_id, branch))
+                self.crop.send_text_msg(user_id, clear_branch_msg.format(branch, user_id, branch))
             logger.info(clear_branch_msg.format(branch, user_id, branch))
 
     # 获取可能的脏分支（三个月以上不存在提交记录）
@@ -274,13 +275,13 @@ class Task(Common):
             hmset("q7link-branch-pushed", branch_created)
 
     # 校正分支版本号
-    def branch_correct(self, correct_user, branch, project, crop):
+    def branch_correct(self, correct_user, branch, project):
         shell = Shell(correct_user, self.is_test, self.master, branch)
         params = "none other={}".format(project)
         _, msg = shell.build_package(params, "hotfix,all", True)
         logger.info("branch correct [{}] [{}] ret[{}]".format(branch, project, msg))
         duty_users, _ = self.get_duty_info(True)
-        crop.send_text_msg(duty_users, msg)
+        self.crop.send_text_msg(duty_users, msg)
         return msg
 
     # 拆分项目的来源分支
@@ -302,7 +303,7 @@ class Task(Common):
         return ret
 
     # 发送mr提醒通知
-    def send_mr_notify(self, crop):
+    def send_mr_notify(self):
         before_hours = (datetime.utcnow() - timedelta(minutes=180)).isoformat()
         group = self.get_project('parent').getGroup(self.backend)
         # 发送待合并通知
@@ -335,7 +336,7 @@ class Task(Common):
             assignee_user_id = self.name2userid(assignee_name)
             logger.info("send mr to {} url {}".format(assignee_user_id,
                                                       mr_target_msg))
-            crop.send_text_msg(assignee_user_id, mr_target_msg)
+            self.crop.send_text_msg(assignee_user_id, mr_target_msg)
             hmset("q7link-branch-merge", {mr_key: assignee_name})
 
         # 发送已合并通知
@@ -380,20 +381,20 @@ class Task(Common):
                                                       mr_source_msg))
             hmset("q7link-branch-merge", {mr_key: author_userid})
             hmset("q7link-branch-build", {build_id: author_userid})
-            crop.send_text_msg(author_userid, mr_source_msg)
+            self.crop.send_text_msg(author_userid, mr_source_msg)
 
     # 发送编译结果通知
-    def send_build_notify(self, crop, build_id, ret):
+    def send_build_notify(self, build_id, ret):
         user_id = hget("q7link-branch-build", build_id)
         if user_id is None:
             return
         ret_msg = "成功" if ret == "true" else "失败"
         build_msg = msg_content["build_ret"].format(build_id, ret_msg)
-        crop.send_text_msg(user_id, build_msg)
+        self.crop.send_text_msg(user_id, build_msg)
         hdel("q7link-branch-build", build_id)
 
     # 解析并构建代码合并任务
-    def build_merge_task(self, branches, services, clusters, crop):
+    def build_merge_task(self, branches, services, clusters):
         tmp = set()
         for s in services:
             tmp.add(services2project.get(s, s))
@@ -457,13 +458,13 @@ class Task(Common):
                     if task_name in rets:
                         continue
                     user_ids, _ = self.get_duty_info(self.is_test, end)
-                    task_key = self.send_branch_action(action, user_ids, source, target, p_name, clusters, crop)
+                    task_key = self.send_branch_action(action, user_ids, source, target, p_name, clusters)
                     rets.append(task_key)
                     rets.append(task_name)
         return rets
 
     # 发现分支代码同步：当主干分支(stage,master)一致时且推送至所有集群时，主干分支自省同步
-    def discovery_merge(self, user_id, projects, source, target, crop):
+    def trigger_sync(self, user_id, projects, source, target):
         try:
             if self.is_trunk(source):
                 return
@@ -478,7 +479,7 @@ class Task(Common):
                     logger.info("differ from {} to {}".format(self.master, self.stage))
                     continue
                 trunk_branch = self.stage if target == self.master else self.master
-                self.send_branch_action("merge", user_id, target, trunk_branch, p_name, "全部租户集群", crop)
+                self.send_branch_action("merge", user_id, target, trunk_branch, p_name, ["全部租户集群"])
         except Exception as err:
             logger.exception(err)
 
@@ -495,7 +496,7 @@ class Task(Common):
             return True
 
     # 发送分支操作（迁移/合并）任务
-    def send_branch_action(self, action, user_ids, source, target, project, clusters, crop):
+    def send_branch_action(self, action, user_ids, source, target, project, clusters):
         # 发送合并代码通知
         time.sleep(3)
         project = "global" if action == "move" else project
@@ -507,7 +508,7 @@ class Task(Common):
         else:
             raise Exception("branch action error")
         # 发送应用任务消息并记录任务
-        body = crop.send_template_card(user_ids, task_params)
+        body = self.crop.send_template_card(user_ids, task_params)
         task_code = body.get("response_code")
         task_value = "{}#{}#{}#{}#{}".format(str(self.is_test), task_code, source, target, project)
         logger.info("write task[{}->{}]".format(task_key, task_value))

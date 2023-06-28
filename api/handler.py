@@ -201,9 +201,8 @@ class Handler(Base):
                 source, target, projects = task_contents[2], task_contents[3], task_contents[4].split(",")
                 end = self.get_project_end(projects)
                 clear = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
-            Task().discovery_merge(self.user_id, projects, source, target, self.crop)
             shell = Shell(self.user_id, self.is_test, source, target)
-            _, ret = shell.merge_branch(end, projects, clear, self.user_name)
+            _, ret = shell.merge_branch(end, projects, clear, self.user_name, Task(self.crop).trigger_sync)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(ret))
             return ret
@@ -266,10 +265,8 @@ class Handler(Base):
             end = self.get_project_end(branch_params[2])
             applicant = (self.user_id, self.user_name)
             watchman = self.get_duty_info(self.is_test, end)
-            _, ret = Task(self.is_test).new_branch_task(self.crop, end,
-                                                        *branch_params,
-                                                        applicant=applicant,
-                                                        watchman=watchman)
+            task = Task(self.crop, self.is_test)
+            _, ret = task.new_branch_task(end, *branch_params, applicant=applicant, watchman=watchman)
             return ret
         except Exception as err:
             logger.exception(err)
@@ -282,11 +279,10 @@ class Handler(Base):
             init_feature = get_init_feature_dirt(self.msg_content)
             source = init_feature.get("来源分支")
             target = init_feature.get("目标分支")
-            version = Task().gen_feature_version(source)
+            version = Task(self.crop).gen_feature_version(source)
             feature_version = init_feature.get("分支版本号", version)
             approve_user = init_feature.get("分支负责人")
-            self.save_branch_feature(target, source, feature_version,
-                                     approve_user)
+            self.save_branch_feature(target, source, feature_version, approve_user)
             self.crop.send_text_msg(self.user_id, "分支初始化成功，请重新发起拉分支请求")
             return "init branch[{}] success".format(target)
         except Exception as err:
@@ -294,4 +290,3 @@ class Handler(Base):
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
-
