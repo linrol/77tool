@@ -85,6 +85,8 @@ class Merge(Common):
             path = project.getPath()
             if path is None:
                 continue
+            if project.checkMerge(self.source, self.target):
+                continue
             if self.is_trunk(self.target):
                 option = "-X theirs -m 'Merge branch {} into {} & accept {}' origin/{}".format(self.source, self.target, self.source, self.source)
             else:
