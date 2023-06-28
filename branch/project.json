@@ -240,7 +240,7 @@
       }
     }
   },
-  "openapi": {
+  "openapi_qtms": {
     "other": {
       "openapi": {
         "path": "../../../other/openapi",
@@ -284,7 +284,7 @@
       }
     }
   },
-  "idps": {
+  "idps_front": {
     "other": {
       "idps": {
         "path": "../../../other/idps",
