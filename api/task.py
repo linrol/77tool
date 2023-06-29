@@ -429,6 +429,8 @@ class Task(Common):
                 for k, v in rules.items():
                     merge_params = k.split(">")
                     action = merge_params[0]
+                    action_move = action == "move"
+                    action_merge = action == "merge"
                     source = merge_params[1].replace("${source}", source_name)
                     target = merge_params[2]
                     rule_ret = eval(v, params)
@@ -446,20 +448,21 @@ class Task(Common):
                     if "$" in target:
                         rets.append("工程【{}】来源分支【{}】未知的创建信息".format(p_name, source))
                         continue
-                    target_branch = project.getBranch(target)
-                    if target_branch is None:
-                        rets.append("工程【{}】目标分支【{}】不存在".format(p_name, target))
-                        continue
-                    is_merge = project.checkMerge(source, target)
-                    if is_merge:
-                        rets.append("工程【{}】来源分支【{}】已合并至目标分支【{}】".format(p_name, source, target))
-                        continue
                     task_name = "{}_{}_{}_{}".format(p_name, source, target, action)
                     if task_name in rets:
                         continue
+                    target_branch = project.getBranch(target)
+                    if action_merge and target_branch is None:
+                        rets.append("工程【{}】目标分支【{}】不存在".format(p_name, target))
+                        continue
+                    if action_move and target_branch is not None:
+                        rets.append("工程【{}】目标分支【{}】已存在".format(p_name, target))
+                        continue
+                    if action_merge and project.checkMerge(source, target):
+                        rets.append("工程【{}】来源分支【{}】已合并至目标分支【{}】".format(p_name, source, target))
+                        continue
                     user_ids, _ = self.get_duty_info(self.is_test, end)
-                    task_key = self.send_branch_action(action, user_ids, source, target, p_name, clusters)
-                    rets.append(task_key)
+                    self.send_branch_action(action, user_ids, source, target, p_name, clusters)
                     rets.append(task_name)
         return rets
 
