@@ -40,7 +40,7 @@ class Handler(Base):
             logger.info("* {} accept response: {}".format(self.user_name, ret))
             return ret
         except Exception as err:
-            logger.info("* {} accept response: {}".format(self.user_name, str(err)))
+            logger.error("* {} accept response: {}".format(self.user_name, str(err)))
             return str(err)
 
     # 消费事件消息
@@ -55,7 +55,7 @@ class Handler(Base):
     def accept_event_task(self):
         read_ids = self.get_readonly_duties()
         if self.user_id is not None and self.user_id in read_ids:
-            msg = "您无权限操作！"
+            msg = "您暂无权限操作此任务！"
             self.crop.send_text_msg(self.user_id, msg)
             return msg
         action = self.event_key.split("@")[0]
