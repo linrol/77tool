@@ -472,6 +472,8 @@ class Task(Common):
                 return
             for p_name in projects:
                 project = self.projects.get(p_name)
+                if project.isGlobal():
+                    continue
                 if not project.checkMerge(self.stage, self.master):
                     logger.info("differ from {} to {}".format(self.stage, self.master))
                     continue
