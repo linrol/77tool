@@ -138,13 +138,12 @@
       },
       "sales": {
         "path": "../../apps/sales"
-      }
-    },
-
-    "global": {
+      },
       "sales-api": {
         "path": "../../apps/sales-api"
-      },
+      }
+    },
+    "global": {
       "identity": {
         "path": "../../global/identity"
       },
@@ -153,13 +152,12 @@
       },
       "reconcile": {
         "path": "../../global/reconcile"
-      }
-    },
-
-    "platform": {
+      },
       "reconcile-api": {
         "path": "../../global/reconcile-api"
-      },
+      }
+    },
+    "platform": {
       "app-archetype": {
         "path": "../../platform/app-archetype"
       },
