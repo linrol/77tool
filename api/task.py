@@ -458,7 +458,7 @@ class Task(Common):
                     if action_move and target_branch is not None:
                         rets.append("工程【{}】目标分支【{}】已存在".format(p_name, target))
                         continue
-                    if action_merge and project.checkMerge(source, target):
+                    if action_merge and project.checkMerge(source, target) and source != self.stage_global:
                         rets.append("工程【{}】来源分支【{}】已合并至目标分支【{}】".format(p_name, source, target))
                         continue
                     user_ids, _ = self.get_duty_info(self.is_test, end)
