@@ -63,6 +63,8 @@ def listener_deploy():
     groups = set(body.get("project_group").split(","))
     if groups is None:
         return make_response("ignore")
+    if "idps" in groups:
+        groups.add("qip-front")
     branches = body.get("branch", body.get("project_desc")).split(",")
     clusters = body.get("cluster").split(",")
     ret = Task(crop).build_merge_task(branches, groups, clusters)
