@@ -34,10 +34,11 @@ class Checout:
       if result is not None:
         projectMap[result.getName()] = result
 
-    if self.close and len(projectMap) > 0:
-      closeGit.close_git(projectMap)
     if len(projectMap) == 0:
       print('根据分支【{}】在gitlab未找到工程！！'.format(self.branchNames))
+    if self.close and len(projectMap) > 0:
+      closeGit.close_git(projectMap)
+
 
   #检查是否有分支，如果有则检出分支
   def checkoutBranch(self, projectInfo):
