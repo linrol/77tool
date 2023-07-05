@@ -710,6 +710,7 @@ CREATE TABLE "baseapp_list_columns_definition"
     "last_request_id" VARCHAR(128) DEFAULT '',
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
+    "ui_option" JSONB,
     "customized_fields" JSONB,
     "deleted_fields" JSONB,
     PRIMARY KEY ("id")
@@ -743,6 +744,7 @@ COMMENT ON COLUMN "baseapp_list_columns_definition"."data_version" IS '数据版
 COMMENT ON COLUMN "baseapp_list_columns_definition"."last_request_id" IS '最后一次更新请求的requestId';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."last_modified_user_id" IS '最后修改人';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."last_modified_time" IS '最后修改时间';
+COMMENT ON COLUMN "baseapp_list_columns_definition"."ui_option" IS 'UI选项';
 COMMENT ON COLUMN "baseapp_list_columns_definition"."customized_fields" IS '自定义属性';
 COMMENT ON TABLE "baseapp_list_columns_definition" IS '列表方案';
 
