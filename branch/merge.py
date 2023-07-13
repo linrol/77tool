@@ -6,7 +6,6 @@ from datetime import datetime
 from common import Common
 from createBranch import CreateBranch
 from checkanddeleted import DeleteBranch
-from protectBranch import ProjectBranch
 from tag import CreateTag
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
@@ -107,6 +106,8 @@ class Merge(Common):
         executor.execute()
 
     def push(self, paths):
+        if len(paths) < 1:
+            return
         if self.end != self.backend:
             self.push_single(paths)
         else:
@@ -114,7 +115,6 @@ class Merge(Common):
 
     # 单个工程push
     def push_single(self, paths):
-        ProjectBranch(self.target, "release", paths.keys()).execute()
         for k, v in paths.items():
             self.push_batch({k: v})
 
