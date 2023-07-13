@@ -35,9 +35,9 @@ class GenVersion(Common):
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
             self.last_sprint = None
-            self.last_sprint_version = self.get_adjoin_sprint_version([-7, -14])
+            self.last_sprint_version = self.get_adjoin_sprint_version([-14, -28])
             self.next_sprint = None
-            self.next_sprint_version = self.get_adjoin_sprint_version([7, 14])
+            self.next_sprint_version = self.get_adjoin_sprint_version([14, 28])
 
     def is_feature(self):
         return self.fixed_version is not None
@@ -81,14 +81,21 @@ class GenVersion(Common):
 
     def get_branch_offset(self, project_name):
         try:
-            if self.target_name not in ["stage-patch", "release"]:
-                return 0
             if self.source == "stage" and self.target_name == "release":
+                # 判断release后的日期为周几-4，例：release20230710: 1-4 = -3
                 num = datetime.strptime(self.target_date, "%Y%m%d").isoweekday()
                 return num - 4
+            offset = 0
+            if self.target_name not in ["stage-patch", "perform-patch"]:
+                return offset
             elif self.equals_version("master", self.target, project_name):
-                return 1
-            return 0
+                offset += 1
+                # 热更分支判断版本号和master一致时，偏移量+1
+                if self.branch_is_presence("perform"):
+                    if self.target_name == "stage-patch":
+                        # 存在滚动分支且当前为stage-patch时，偏移量再+1
+                        offset += 1
+            return offset
         except Exception as e:
             print(str(e))
             traceback.print_exc()

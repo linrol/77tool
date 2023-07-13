@@ -13,6 +13,7 @@ class Base:
     front = "front"
     other = "other"
     stage = "stage"
+    perform = "perform"
     master = "master"
     stage_global = "stage-global"
     date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
@@ -113,7 +114,7 @@ class Base:
 
     # 判断是否为主干分支
     def is_trunk(self, branch):
-        return branch in [self.stage, self.master]
+        return branch in [self.stage, self.perform, self.master]
 
     # 删除本地分支
     def delete_branch(self, branch, projects):
