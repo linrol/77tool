@@ -127,11 +127,14 @@ class Shell(Common):
             logger.exception(err)
             return False, str(err)
 
-    def move_branch(self, namespaces):
+    def move_branch(self, end, projects):
         try:
             self.lock_value = self.lock.get_lock("lock", 600)
+            if end == self.backend:
+                projects.append("platform")
+                projects.append("init-data")
             self.checkout_branch(self.source_branch)
-            cmd = 'cd ../branch;python3 backup.py {}.clear {} {},platform,init-data'.format(self.source_branch, self.target_branch, namespaces)
+            cmd = 'cd ../branch;python3 backup.py {}.clear {} {}'.format(self.source_branch, self.target_branch, ",".join(projects))
             [_, backup_msg] = self.exec(cmd, True, False)
             backup_msg = re.compile('WARNNING：.*\n').sub('', backup_msg)
             backup_msg = re.compile('工程.*创建分支.*\n').sub('', backup_msg)

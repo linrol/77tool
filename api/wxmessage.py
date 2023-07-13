@@ -312,7 +312,8 @@ def get_move_branch_dirt(msg_content):
     require_keys = {"迁移分支", "迁出分支", "迁移模块"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
-    return branch_map.get("迁移分支"), branch_map.get("迁出分支"), branch_map.get("迁移模块")
+    projects = branch_map.get("迁移模块", '').strip().split(",")
+    return branch_map.get("迁移分支"), branch_map.get("迁出分支"), projects
 
 
 def get_merge_branch_dirt(msg_content):

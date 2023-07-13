@@ -465,6 +465,10 @@ class Task(Common):
                         rets.append("工程【{}】来源分支【{}】已合并至目标分支【{}】".format(p_name, source, target))
                         continue
                     user_ids, _ = self.get_duty_info(self.is_test, end)
+                    if action_move and target == self.stage_global:
+                        p_name = "global"
+                    if action_move and target == self.perform:
+                        p_name = self.backend
                     self.send_branch_action(action, user_ids, source, target, p_name, clusters)
                     rets.append(task_name)
         return rets
@@ -507,7 +511,6 @@ class Task(Common):
     def send_branch_action(self, action, user_ids, source, target, project, clusters):
         # 发送合并代码通知
         time.sleep(3)
-        project = "global" if action == "move" else project
         task_key = "branch_{}@{}".format(action, int(time.time()))
         if action == "merge":
             task_params = build_merge_branch_msg(source, target, project, ",".join(clusters), task_key)
