@@ -413,7 +413,9 @@ class Task(Common):
                     rets.append("工程【{}】不存在".format(p_name))
                     continue
                 end = project.getEnd()
-                prod_clusters = {"宁夏生产集群3", "宁夏生产集群4", "宁夏生产集群5", "宁夏生产集群6", "宁夏生产集群7"}
+                prod_clusters = {"宁夏生产集群2", "宁夏生产集群3", "宁夏生产集群4", "宁夏生产集群5", "宁夏生产集群6", "宁夏生产集群7", "腾讯生产集群0"}
+                push_prod = len(set(clusters).intersection(prod_clusters)) > 6
+                push_perform = (not push_prod) and len(set(clusters).intersection(prod_clusters)) > 0
                 params = {
                     "is_sprint": source_prefix in ["sprint", "release"],
                     "source_release": self.backend == end and self.has_release(source_name),
@@ -421,7 +423,8 @@ class Task(Common):
                     "cluster_global": "宁夏生产global集群" in clusters and len(clusters) == 1,
                     "cluster_0": "宁夏灰度集群0" in clusters and len(clusters) == 1,
                     "cluster_1": "宁夏灰度集群1" in clusters,
-                    "cluster_prod": len(set(clusters).intersection(prod_clusters)) > 3
+                    "cluster_prod":  push_prod,
+                    "cluster_perform": push_perform
                 }
                 params_str = str(params)
                 module = project.getModule()
