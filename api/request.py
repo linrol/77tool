@@ -31,3 +31,12 @@ def post_form(url, params):
         raise Exception(body)
     return body
 
+
+def put_form(url, params):
+    response = requests.put(url, data=params)
+    body = json.loads(response.text)
+    if response.status_code != 200:
+        logger.error(body)
+        raise Exception(body)
+    return body
+

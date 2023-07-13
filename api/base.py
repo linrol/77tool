@@ -2,9 +2,9 @@ import re
 import pymysql
 import pymysql.cursors
 import json
-from request import post_form, get, post
+from request import post_form, put_form, get, post
 from log import logger
-from redisclient import get_branch_mapping, hget, hgetall, hget_default, hget_key, hmset, get_version
+from redisclient import get_branch_mapping, hget, hgetall, hget_key, hmset, get_version
 from wxmessage import msg_content
 
 
@@ -166,6 +166,15 @@ class Base:
                 params["projects"] = project
             res = post_form(self.build_url, params)
             return res.get("data").get("taskid")
+        except Exception as err:
+            logger.exception(err)
+            return "-1"
+
+    def ops_ticket_status(self, ticket_id):
+        try:
+            params = {"ticket_id": ticket_id}
+            res = put_form(self.build_url, params)
+            return res
         except Exception as err:
             logger.exception(err)
             return "-1"

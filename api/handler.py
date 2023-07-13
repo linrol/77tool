@@ -205,6 +205,8 @@ class Handler(Base):
             _, ret = shell.merge_branch(end, projects, clear, self.user_name, Task(self.crop).trigger_sync)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(ret))
+            # 更新ops的蓝绿部署合并代码审批节点
+            # self.ops_ticket_status("ticket_id")
             return ret
         except Exception as err:
             logger.exception(err)
