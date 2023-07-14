@@ -574,3 +574,17 @@ class Task(Common):
         left_versions = self.get_branch_version(left)
         right_versions = self.get_branch_version(right)
         return left_versions == right_versions
+
+    def front_data_pre(self, body):
+        env = body.get("env")
+        tenant_id = "tenant" + body.get("tenant_id")
+        branch = body.get("branch")
+        condition = body.get("condition")
+        try:
+            shell = Shell('LiMing', target_branch=branch)
+            ret, result = shell.exec_data_pre('new', env, tenant_id, branch, condition, 'linrol')
+            return result
+        except Exception as err:
+            logger.exception(err)
+            # 发送消息通知
+            return str(err)

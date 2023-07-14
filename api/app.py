@@ -125,6 +125,20 @@ def branch_release_check():
         response["msg"] = str(err)
     return jsonify(response)
 
+@app.route("/data/pre", methods=["POST"])
+def branch_release_check():
+    response = {}
+    try:
+        body = json.loads(request.data.decode('utf-8'))
+        logger.info("front_data_pre:" + str(body))
+        response["ret"] = True
+        response["msg"] = Task(crop).front_data_pre(body)
+    except Exception as err:
+        logger.exception(err)
+        response["ret"] = False
+        response["msg"] = str(err)
+    return jsonify(response)
+
 
 @scheduler.task('cron', id='job_check_version', week='*', day_of_week='0-6',
                 hour='8-22', minute='0', timezone='Asia/Shanghai')
