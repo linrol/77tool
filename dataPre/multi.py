@@ -165,6 +165,8 @@ def commit(rootPath, commitUser, condition, changeFileNames):
   cmd = 'cd ' + rootPath
   for changeFileName in changeFileNames:
     cmd += ';git add src/main/resources/init-data/baseapp/multiList/{}'.format(changeFileName)
+  if len(condition) > 30:
+    condition = condition[0:30]
   cmd += ';git commit -m "<数据预制>前端多列表方案数据预置--{}(条件：{})"'.format(commitUser, condition)
   # TODO 如果要自动push则需要删除本地分支重新拉取
   # git push -u origin master

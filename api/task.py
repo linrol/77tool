@@ -580,9 +580,13 @@ class Task(Common):
         tenant_id = "tenant" + body.get("tenant_id")
         branch = body.get("branch")
         condition = body.get("condition")
+        user_id = self.name2userid(body.get("user"))
+        user_id_liming = self.name2userid('刘黎明')
         try:
             shell = Shell('LiMing', target_branch=branch)
-            ret, result = shell.exec_data_pre('new', env, tenant_id, branch, condition, 'linrol')
+            ret, result = shell.exec_data_pre('new', env, tenant_id, branch, condition, user_id_liming)
+            self.crop.send_text_msg(user_id, result)
+            self.crop.send_text_msg(user_id_liming, result)
             return result
         except Exception as err:
             logger.exception(err)
