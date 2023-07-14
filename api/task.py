@@ -585,8 +585,9 @@ class Task(Common):
         try:
             shell = Shell('LiMing', target_branch=branch)
             ret, result = shell.exec_data_pre('new', env, tenant_id, branch, condition, user_id_liming)
-            self.crop.send_text_msg(user_id, result)
-            self.crop.send_text_msg(user_id_liming, result)
+            if ret:
+                self.crop.send_text_msg(user_id, result)
+                self.crop.send_text_msg(user_id_liming, result)
             return result
         except Exception as err:
             logger.exception(err)
