@@ -126,7 +126,7 @@ def branch_release_check():
     return jsonify(response)
 
 @app.route("/data/pre", methods=["POST"])
-def branch_release_check():
+def front_data_pre():
     response = {}
     try:
         body = json.loads(request.data.decode('utf-8'))
