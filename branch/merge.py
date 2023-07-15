@@ -99,11 +99,7 @@ class Merge(Common):
         self.push(wait_push)
         self.created(wait_created)
         self.tag()
-        if not self.clear or self.is_trunk(self.source):
-            return
-        delete_projects = self.projects.keys()
-        executor = DeleteBranch(self.source, self.target, delete_projects, True)
-        executor.execute()
+        self.del_branch()
 
     def push(self, paths):
         if len(paths) < 1:
@@ -170,6 +166,13 @@ class Merge(Common):
             return
         executor = CreateBranch(self.target, self.source, projects, True)
         executor.execute()
+
+    # 删除工程模块分支
+    def del_branch(self):
+        if (self.source == "perform" and self.target == "master") or (self.clear and (not self.is_trunk(self.source))):
+            delete_projects = self.projects.keys()
+            executor = DeleteBranch(self.source, self.target, delete_projects, True)
+            executor.execute()
 
     def execute(self):
         try:

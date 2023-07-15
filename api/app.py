@@ -66,7 +66,7 @@ def listener_deploy():
     if "idps" in groups:
         groups.add("qip-front")
     branches = body.get("branch", body.get("project_desc")).split(",")
-    clusters = body.get("cluster").split(",")
+    clusters = set(body.get("cluster").split(","))
     ret = Task(crop).build_merge_task(branches, groups, clusters)
     ret_msg = ";\n".join(ret)
     logger.info(ret_msg)

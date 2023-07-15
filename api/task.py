@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
 from wxmessage import send_create_branch_msg, build_merge_branch_msg, build_move_branch_msg, msg_content
-from redisclient import save_user_task, get_branch_mapping, hmset, hget, hdel
+from redisclient import save_user_task, get_branch_mapping, hmset, hget, hdel, append
 from common import Common
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
 services2project = {
@@ -407,24 +407,30 @@ class Task(Common):
             source_prefix, _ = self.get_branch_date(source_name)
             if len(duty_branches) > 0 and source_prefix not in duty_branches:
                 continue
+            is_sprint = source_prefix in ["sprint", "release"]
+            push_prod = append("q7link-cluster-release", source_name, ",".join(clusters)) > 8
+            push_cluster_1 = "宁夏灰度集群1" in clusters
+            clusters.discard("宁夏灰度集群1")
+            push_cluster_0 = "宁夏灰度集群0" in clusters and len(clusters) == 1
+            clusters.discard("宁夏灰度集群0")
+            push_global = "宁夏生产global集群" in clusters and len(clusters) == 1
+            clusters.discard("宁夏生产global集群")
+            push_perform = 0 < len(clusters) < 6
             for p_name in projects:
                 project = self.projects.get(p_name)
                 if project is None:
                     rets.append("工程【{}】不存在".format(p_name))
                     continue
                 end = project.getEnd()
-                prod_clusters = {"宁夏生产集群2", "宁夏生产集群3", "宁夏生产集群4", "宁夏生产集群5", "宁夏生产集群6", "宁夏生产集群7", "腾讯生产集群0"}
-                push_prod = len(set(clusters).intersection(prod_clusters)) > 6
-                push_perform = (not push_prod) and len(set(clusters).intersection(prod_clusters)) > 0
                 params = {
-                    "is_sprint": source_prefix in ["sprint", "release"],
+                    "is_sprint": is_sprint,
                     "source_release": self.backend == end and self.has_release(source_name),
                     "is_global": project.isGlobal(),
-                    "cluster_global": "宁夏生产global集群" in clusters and len(clusters) == 1,
-                    "cluster_0": "宁夏灰度集群0" in clusters and len(clusters) == 1,
-                    "cluster_1": "宁夏灰度集群1" in clusters,
-                    "cluster_prod":  push_prod,
-                    "cluster_perform": push_perform
+                    "cluster_global": push_global,
+                    "cluster_0": push_cluster_0,
+                    "cluster_1": push_cluster_1,
+                    "cluster_perform": push_perform,
+                    "cluster_prod":  push_prod
                 }
                 params_str = str(params)
                 module = project.getModule()

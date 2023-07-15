@@ -172,7 +172,7 @@ class Common:
 
     # 判断是否为主干分支
     def is_trunk(self, branch):
-        return branch in ['stage', 'master']
+        return branch in ['stage', 'perform', 'master']
 
     # 切换本地分支
     def checkout_branch(self, end, branch_name):

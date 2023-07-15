@@ -54,11 +54,11 @@ def hdel(name, key):
 
 def append(name, key, value):
     connection = redisClient.get_connection()
-    old_value = hget(name, key)
-    if old_value is None:
-        connection.hmset("q7link-mr-log", {key: value})
-    else:
-        connection.hmset("q7link-mr-log", {key: old_value + "," + value})
+    has_value = hget(name, key)
+    if has_value is not None:
+        value = ",".join(set((value + "," + has_value).split(",")))
+    connection.hmset(name, {key: value})
+    return len(value.split(","))
 
 
 def duplicate_msg(msg):
@@ -89,21 +89,6 @@ def save_user_task(key, value):
 
 def save_task_depend(key, value):
     redisClient.get_connection().hmset("q7link-task-depend", {key: value})
-
-
-def no_task_depend(key):
-    try:
-        depend = redisClient.get_connection().hgetall("q7link-task-depend")
-        if depend is None:
-            return True
-        for k, v in depend.items():
-            if key in [k, v]:
-                redisClient.get_connection().hdel("q7link-task-depend", key)
-                return False
-        return True
-    except Exception as err:
-        print(err)
-        return True
 
 
 def get_user_task(key):
