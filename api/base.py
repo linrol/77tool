@@ -34,6 +34,11 @@ class Base:
             return name, date
         return branch, None
 
+    # 判断分支是否为sprint｜release
+    def is_sprint(self, branch):
+        source_prefix, _ = self.get_branch_date(branch)
+        return source_prefix in ["sprint", "release"]
+
     # 用户名称转换企业微信ID
     def name2userid(self, user_name):
         try:

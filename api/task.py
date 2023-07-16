@@ -482,6 +482,8 @@ class Task(Common):
     # 发现分支代码同步：当主干分支(stage,master)一致时且推送至所有集群时，主干分支自省同步
     def trigger_sync(self, user_id, projects, source, target):
         try:
+            if self.is_sprint(source):
+                return
             if self.is_trunk(source):
                 return
             if not self.is_trunk(target):
