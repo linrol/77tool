@@ -193,7 +193,8 @@ class Base:
         created_mapping = {end + "@" + target: created_value}
         hmset('q7link-branch-created', created_mapping)
 
-    def get_branch_created_source(self, end, target):
+    @staticmethod
+    def get_branch_created_source(end, target):
         key = end + "@" + target
         created_value = hget("q7link-branch-created", key)
         if created_value is None:
@@ -232,16 +233,19 @@ class Base:
             return False
 
     # 保存特性分支信息
-    def save_branch_feature(self, target, source, version, leader_user):
+    @staticmethod
+    def save_branch_feature(target, source, version, leader_user):
         value = "{}@{}@{}".format(source, version, leader_user)
         hmset("q7link-branch-feature", {target: value})
 
     # 获取校验升级的版本号信息
-    def get_upgrade_version(self):
+    @staticmethod
+    def get_upgrade_version():
         return get_version()
 
     # 禅道sql查询
-    def zt_fetchone(self, sql):
+    @staticmethod
+    def zt_fetchone(sql):
         try:
             db = pymysql.connect(host="pro-qiqizentao-202302011450-slave.clrq7smojqgq.rds.cn-northwest-1.amazonaws.com.cn",
                                  user="dev",

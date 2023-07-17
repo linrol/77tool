@@ -125,6 +125,7 @@ def branch_release_check():
         response["msg"] = str(err)
     return jsonify(response)
 
+
 @app.route("/data/pre", methods=["POST"])
 def front_data_pre():
     response = {}

@@ -67,7 +67,6 @@ class RedisLock:
                 return unique_value
             time.sleep(0.001)
 
-
     def del_lock(self, key, value):
         # 释放锁
         lock_key = self.get_lock_key(key)
