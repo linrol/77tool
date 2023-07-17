@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
 from wxmessage import send_create_branch_msg, build_merge_branch_msg, build_move_branch_msg, msg_content
-from redisclient import save_user_task, get_branch_mapping, hmset, hget, hdel
+from redisclient import save_user_task, get_branch_mapping, hmset, hget, hdel, append
 from common import Common
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
 services2project = {
@@ -407,21 +407,30 @@ class Task(Common):
             source_prefix, _ = self.get_branch_date(source_name)
             if len(duty_branches) > 0 and source_prefix not in duty_branches:
                 continue
+            is_sprint = source_prefix in ["sprint", "release"]
+            push_prod = append("q7link-cluster-release", source_name, ",".join(clusters)) > 8
+            push_cluster_1 = "宁夏灰度集群1" in clusters
+            clusters.discard("宁夏灰度集群1")
+            push_cluster_0 = "宁夏灰度集群0" in clusters and len(clusters) == 1
+            clusters.discard("宁夏灰度集群0")
+            push_global = "宁夏生产global集群" in clusters and len(clusters) == 1
+            clusters.discard("宁夏生产global集群")
+            push_perform = 0 < len(clusters) < 6
             for p_name in projects:
                 project = self.projects.get(p_name)
                 if project is None:
                     rets.append("工程【{}】不存在".format(p_name))
                     continue
                 end = project.getEnd()
-                prod_clusters = {"宁夏生产集群3", "宁夏生产集群4", "宁夏生产集群5", "宁夏生产集群6", "宁夏生产集群7"}
                 params = {
-                    "is_sprint": source_prefix in ["sprint", "release"],
+                    "is_sprint": is_sprint,
                     "source_release": self.backend == end and self.has_release(source_name),
                     "is_global": project.isGlobal(),
-                    "cluster_global": "宁夏生产global集群" in clusters and len(clusters) == 1,
-                    "cluster_0": "宁夏灰度集群0" in clusters and len(clusters) == 1,
-                    "cluster_1": "宁夏灰度集群1" in clusters,
-                    "cluster_prod": len(set(clusters).intersection(prod_clusters)) > 3
+                    "cluster_global": push_global,
+                    "cluster_0": push_cluster_0,
+                    "cluster_1": push_cluster_1,
+                    "cluster_perform": push_perform,
+                    "cluster_prod":  push_prod
                 }
                 params_str = str(params)
                 module = project.getModule()
@@ -462,6 +471,10 @@ class Task(Common):
                         rets.append("工程【{}】来源分支【{}】已合并至目标分支【{}】".format(p_name, source, target))
                         continue
                     user_ids, _ = self.get_duty_info(self.is_test, end)
+                    if action_move and target == self.stage_global:
+                        p_name = "global"
+                    if action_move and target == self.perform:
+                        p_name = self.backend
                     self.send_branch_action(action, user_ids, source, target, p_name, clusters)
                     rets.append(task_name)
         return rets
@@ -469,6 +482,8 @@ class Task(Common):
     # 发现分支代码同步：当主干分支(stage,master)一致时且推送至所有集群时，主干分支自省同步
     def trigger_sync(self, user_id, projects, source, target):
         try:
+            if self.is_sprint(source):
+                return
             if self.is_trunk(source):
                 return
             if not self.is_trunk(target):
@@ -504,7 +519,6 @@ class Task(Common):
     def send_branch_action(self, action, user_ids, source, target, project, clusters):
         # 发送合并代码通知
         time.sleep(3)
-        project = "global" if action == "move" else project
         task_key = "branch_{}@{}".format(action, int(time.time()))
         if action == "merge":
             task_params = build_merge_branch_msg(source, target, project, ",".join(clusters), task_key)
@@ -568,3 +582,22 @@ class Task(Common):
         left_versions = self.get_branch_version(left)
         right_versions = self.get_branch_version(right)
         return left_versions == right_versions
+
+    def front_data_pre(self, body):
+        env = body.get("env")
+        tenant_id = "tenant" + body.get("tenant_id")
+        branch = body.get("branch")
+        condition = body.get("condition")
+        user_id = self.name2userid(body.get("user"))
+        user_id_liming = self.name2userid('刘黎明')
+        try:
+            shell = Shell('LiMing', target_branch=branch)
+            ret, result = shell.exec_data_pre('new', env, tenant_id, branch, condition, user_id_liming)
+            if ret:
+                self.crop.send_text_msg(user_id, result)
+                self.crop.send_text_msg(user_id_liming, result)
+            return result
+        except Exception as err:
+            logger.exception(err)
+            # 发送消息通知
+            return str(err)

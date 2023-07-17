@@ -66,7 +66,7 @@ def listener_deploy():
     if "idps" in groups:
         groups.add("qip-front")
     branches = body.get("branch", body.get("project_desc")).split(",")
-    clusters = body.get("cluster").split(",")
+    clusters = set(body.get("cluster").split(","))
     ret = Task(crop).build_merge_task(branches, groups, clusters)
     ret_msg = ";\n".join(ret)
     logger.info(ret_msg)
@@ -119,6 +119,21 @@ def branch_release_check():
         logger.info("release_check:" + str(body))
         response["ret"] = True
         response["msg"] = Task(crop).release_check(body)
+    except Exception as err:
+        logger.exception(err)
+        response["ret"] = False
+        response["msg"] = str(err)
+    return jsonify(response)
+
+
+@app.route("/data/pre", methods=["POST"])
+def front_data_pre():
+    response = {}
+    try:
+        body = json.loads(request.data.decode('utf-8'))
+        logger.info("front_data_pre:" + str(body))
+        response["ret"] = True
+        response["msg"] = Task(crop).front_data_pre(body)
     except Exception as err:
         logger.exception(err)
         response["ret"] = False

@@ -111,7 +111,10 @@ class Common:
         self.get_connection().hset(name, key, value)
 
     def get_gl_user_name(self):
-        return self.project_build.getGl().user.username
+        ps = list(self.projects.values())
+        if len(ps) < 1:
+            return None
+        return ps[0].getGl().user.username
 
     # 获取指定分支的版本号
     def get_branch_version(self, branch, skip_release=False):
@@ -169,7 +172,7 @@ class Common:
 
     # 判断是否为主干分支
     def is_trunk(self, branch):
-        return branch in ['stage', 'master']
+        return branch in ['stage', 'perform', 'master']
 
     # 切换本地分支
     def checkout_branch(self, end, branch_name):

@@ -236,7 +236,7 @@ msg_content = {
     "build_ret": "您触发的独立编译任务ID:{}完成，编译结果：{}",
     "mr_source": "{}\n您发起的工程：{} MR请求，已被{}合并！\n已触发独立编译任务ID:{}，请自行关注编译结果",
     "mr_target": "您收到来自{}的MR请求，请及时合并！\n标题：{}\n工程/分支：{}(分支{}合并到{})\n{}",
-    "merge_branch_result": "【代码合并通知】\n来源分支：{}\n目标分支：{}\n合并模块：{}\n合并结果：{}\n操  作  人：{}"
+    "merge_branch_result": "【分支合并通知】\n来源分支：{}\n目标分支：{}\n合并模块：{}\n合并结果：{}\n操  作  人：{}"
 }
 target_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
 
@@ -312,7 +312,8 @@ def get_move_branch_dirt(msg_content):
     require_keys = {"迁移分支", "迁出分支", "迁移模块"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
-    return branch_map.get("迁移分支"), branch_map.get("迁出分支"), branch_map.get("迁移模块")
+    projects = branch_map.get("迁移模块", '').strip().split(",")
+    return branch_map.get("迁移分支"), branch_map.get("迁出分支"), projects
 
 
 def get_merge_branch_dirt(msg_content):

@@ -19,7 +19,8 @@ class Common(Base):
         self.project_build = self.projects.get('build')
         self.project_init_data = self.projects.get('init-data')
 
-    def exec(self, command, throw=False, level_info=True):
+    @staticmethod
+    def exec(command, throw=False, level_info=True):
         [ret, msg] = subprocess.getstatusoutput(command)
         if throw and ret != 0:
             logger.error("exec[{}] ret[{}]".format(command, msg))
@@ -28,10 +29,12 @@ class Common(Base):
             logger.info("exec[{}] ret[{}]".format(command, msg))
         return [ret == 0, msg]
 
-    def chdir_branch(self):
+    @staticmethod
+    def chdir_branch():
         os.chdir("../branch/")
 
-    def chdir_data_pre(self):
+    @staticmethod
+    def chdir_data_pre():
         os.chdir("../dataPre/")
 
     # 判断项目分支是否存在
@@ -56,7 +59,8 @@ class Common(Base):
             return False, str(err)
 
     # 获取远端文件
-    def git_file(self, project, branch, file_path):
+    @staticmethod
+    def git_file(project, branch, file_path):
         try:
             return project.getProject().files.get(file_path=file_path, ref=branch)
         except gitlab.exceptions.GitlabGetError:

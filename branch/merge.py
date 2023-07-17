@@ -6,7 +6,6 @@ from datetime import datetime
 from common import Common
 from createBranch import CreateBranch
 from checkanddeleted import DeleteBranch
-from protectBranch import ProjectBranch
 from tag import CreateTag
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
@@ -100,13 +99,11 @@ class Merge(Common):
         self.push(wait_push)
         self.created(wait_created)
         self.tag()
-        if not self.clear or self.is_trunk(self.source):
-            return
-        delete_projects = self.projects.keys()
-        executor = DeleteBranch(self.source, self.target, delete_projects, True)
-        executor.execute()
+        self.del_branch()
 
     def push(self, paths):
+        if len(paths) < 1:
+            return
         if self.end != self.backend:
             self.push_single(paths)
         else:
@@ -114,7 +111,6 @@ class Merge(Common):
 
     # 单个工程push
     def push_single(self, paths):
-        ProjectBranch(self.target, "release", paths.keys()).execute()
         for k, v in paths.items():
             self.push_batch({k: v})
 
@@ -170,6 +166,13 @@ class Merge(Common):
             return
         executor = CreateBranch(self.target, self.source, projects, True)
         executor.execute()
+
+    # 删除工程模块分支
+    def del_branch(self):
+        if (self.source == "perform" and self.target == "master") or (self.clear and (not self.is_trunk(self.source))):
+            delete_projects = self.projects.keys()
+            executor = DeleteBranch(self.source, self.target, delete_projects, True)
+            executor.execute()
 
     def execute(self):
         try:

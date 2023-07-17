@@ -2,9 +2,9 @@ import re
 import pymysql
 import pymysql.cursors
 import json
-from request import post_form, get, post
+from request import post_form, put_form, get, post
 from log import logger
-from redisclient import get_branch_mapping, hget, hgetall, hget_default, hget_key, hmset, get_version
+from redisclient import get_branch_mapping, hget, hgetall, hget_key, hmset, get_version
 from wxmessage import msg_content
 
 
@@ -13,6 +13,7 @@ class Base:
     front = "front"
     other = "other"
     stage = "stage"
+    perform = "perform"
     master = "master"
     stage_global = "stage-global"
     date_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
@@ -32,6 +33,11 @@ class Base:
             name = branch.replace(date, "")
             return name, date
         return branch, None
+
+    # 判断分支是否为sprint｜release
+    def is_sprint(self, branch):
+        source_prefix, _ = self.get_branch_date(branch)
+        return source_prefix in ["sprint", "release"]
 
     # 用户名称转换企业微信ID
     def name2userid(self, user_name):
@@ -113,7 +119,7 @@ class Base:
 
     # 判断是否为主干分支
     def is_trunk(self, branch):
-        return branch in [self.stage, self.master]
+        return branch in [self.stage, self.perform, self.master]
 
     # 删除本地分支
     def delete_branch(self, branch, projects):
@@ -169,6 +175,15 @@ class Base:
             logger.exception(err)
             return "-1"
 
+    def ops_ticket_status(self, ticket_id):
+        try:
+            params = {"ticket_id": ticket_id}
+            res = put_form(self.build_url, params)
+            return res
+        except Exception as err:
+            logger.exception(err)
+            return "-1"
+
     def save_branch_created(self, user_id, source, target, projects):
         excludes = [self.stage_global]
         if source in excludes:
@@ -178,7 +193,8 @@ class Base:
         created_mapping = {end + "@" + target: created_value}
         hmset('q7link-branch-created', created_mapping)
 
-    def get_branch_created_source(self, end, target):
+    @staticmethod
+    def get_branch_created_source(end, target):
         key = end + "@" + target
         created_value = hget("q7link-branch-created", key)
         if created_value is None:
@@ -217,16 +233,19 @@ class Base:
             return False
 
     # 保存特性分支信息
-    def save_branch_feature(self, target, source, version, leader_user):
+    @staticmethod
+    def save_branch_feature(target, source, version, leader_user):
         value = "{}@{}@{}".format(source, version, leader_user)
         hmset("q7link-branch-feature", {target: value})
 
     # 获取校验升级的版本号信息
-    def get_upgrade_version(self):
+    @staticmethod
+    def get_upgrade_version():
         return get_version()
 
     # 禅道sql查询
-    def zt_fetchone(self, sql):
+    @staticmethod
+    def zt_fetchone(sql):
         try:
             db = pymysql.connect(host="pro-qiqizentao-202302011450-slave.clrq7smojqgq.rds.cn-northwest-1.amazonaws.com.cn",
                                  user="dev",
