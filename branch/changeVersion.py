@@ -76,6 +76,9 @@ class ChangeVersion:
           projectVersionMap['base-common-test-api'] = projectVersionMap.get('base-common')
           projectVersionMap['testapp'] = projectVersionMap.get('framework')
           projectVersionMap['testapp-api'] = projectVersionMap.get('framework')
+          appBuildPlugin = projectInfoMap.get('app-build-plugins')
+          if appBuildPlugin is not None and appBuildPlugin.getBranch(self.branchName) is not None:
+            projectVersionMap['app-build-plugins'] = projectVersionMap.get('framework')
           return projectVersionMap
     else:
       print('ERROR: 请在project.json文件中指定build工程的路径')
@@ -231,17 +234,19 @@ class VersionUtils():
     for pluginNode in myroot.findall("{}build/{}plugins/{}plugin".format(XML_NS_INC, XML_NS_INC,XML_NS_INC)):
       versionNode = pluginNode.find("{}version".format(XML_NS_INC))
       groupNode = pluginNode.find("{}groupId".format(XML_NS_INC))
-      if versionNode is None or groupNode is None:
+      artifactNode = pluginNode.find("{}artifactId".format(XML_NS_INC))
+      if versionNode is None or groupNode is None or artifactNode is None:
         continue
       if groupNode.text == 'com.q7link.framework':
-        versionKey = 'framework'
-        newVersion = projectVersionMap[versionKey]
-        oldVersion = versionNode.text
-        if oldVersion != newVersion and oldVersion != '${frameworkVersion}':
-          #版本变动，需要修改
-          versionNode.text = newVersion
-          update = True
-          print("工程【{}】【{}】版本修改为【{}】".format(projectInfo.getName(), versionKey, newVersion))
+        artifact_id = artifactNode.text
+        if artifact_id in list(projectVersionMap.keys()):
+          newVersion = projectVersionMap[artifact_id]
+          oldVersion = versionNode.text
+          if oldVersion != newVersion and oldVersion != '${frameworkVersion}':
+            #版本变动，需要修改
+            versionNode.text = newVersion
+            update = True
+            print("工程【{}】【{}】版本修改为【{}】".format(projectInfo.getName(), artifact_id, newVersion))
     return update
 
 
@@ -264,7 +269,7 @@ class VersionUtils():
           update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework.baseapp-api', 'framework') or update
       update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework', 'framework') or update
     update = self.updateDependencies(projectInfo, myroot, projectVersionMap, updateTest) or update
-    # update = self.updatePlugin(projectInfo, myroot, projectVersionMap) or update
+    update = self.updatePlugin(projectInfo, myroot, projectVersionMap) or update
     return update
 
   # 对pom文件中工程自身版本进行替换, 如果有替换，返回true, 否则返回false
