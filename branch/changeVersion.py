@@ -264,7 +264,7 @@ class VersionUtils():
           update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework.baseapp-api', 'framework') or update
       update = self.updateProperties(projectName,myroot, projectVersionMap, 'version.framework', 'framework') or update
     update = self.updateDependencies(projectInfo, myroot, projectVersionMap, updateTest) or update
-    update = self.updatePlugin(projectInfo, myroot, projectVersionMap) or update
+    # update = self.updatePlugin(projectInfo, myroot, projectVersionMap) or update
     return update
 
   # 对pom文件中工程自身版本进行替换, 如果有替换，返回true, 否则返回false
