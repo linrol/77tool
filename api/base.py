@@ -208,8 +208,7 @@ class Base:
             ret_msg = "成功" if ret else "失败（分支代码存在冲突需手动合并）"
             content_template = msg_content["merge_branch_result"]
             module_str = "apps,global" if is_backend else ",".join(modules)
-            content = content_template.format(source, target, module_str,
-                                              ret_msg, user)
+            content = content_template.format(source, target, module_str, ret_msg, user)
             msg = {"msgtype": "text", "text": {"content": content}}
             post(self.web_hook, msg)
             if is_backend:

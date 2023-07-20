@@ -408,7 +408,8 @@ class Task(Common):
             if len(duty_branches) > 0 and source_prefix not in duty_branches:
                 continue
             is_sprint = source_prefix in ["sprint", "release"]
-            push_prod = append("q7link-cluster-release", source_name, ",".join(clusters)) > 8
+            cluster_str = ",".join(clusters)
+            push_prod = append("q7link-cluster-release", source_name, cluster_str) > 8
             push_cluster_1 = "宁夏灰度集群1" in clusters
             clusters.discard("宁夏灰度集群1")
             push_cluster_0 = "宁夏灰度集群0" in clusters and len(clusters) == 1
@@ -475,7 +476,7 @@ class Task(Common):
                         p_name = "global"
                     if action_move and target == self.perform:
                         p_name = self.backend
-                    self.send_branch_action(action, user_ids, source, target, p_name, clusters)
+                    self.send_branch_action(action, user_ids, source, target, p_name, cluster_str)
                     rets.append(task_name)
         return rets
 
@@ -499,7 +500,7 @@ class Task(Common):
                     logger.info("differ from {} to {}".format(self.master, self.stage))
                     continue
                 trunk_branch = self.stage if target == self.master else self.master
-                self.send_branch_action("merge", user_id, target, trunk_branch, p_name, ["全部租户集群"])
+                self.send_branch_action("merge", user_id, target, trunk_branch, p_name, "全部租户集群")
         except Exception as err:
             logger.exception(err)
 
@@ -516,14 +517,14 @@ class Task(Common):
             return True
 
     # 发送分支操作（迁移/合并）任务
-    def send_branch_action(self, action, user_ids, source, target, project, clusters):
+    def send_branch_action(self, action, user_ids, source, target, project, cluster_str):
         # 发送合并代码通知
         time.sleep(3)
         task_key = "branch_{}@{}".format(action, int(time.time()))
         if action == "merge":
-            task_params = build_merge_branch_msg(source, target, project, ",".join(clusters), task_key)
+            task_params = build_merge_branch_msg(source, target, project, cluster_str, task_key)
         elif action == "move":
-            task_params = build_move_branch_msg(source, target, project, ",".join(clusters), task_key)
+            task_params = build_move_branch_msg(source, target, project, cluster_str, task_key)
         else:
             raise Exception("branch action error")
         # 发送应用任务消息并记录任务
