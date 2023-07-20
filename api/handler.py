@@ -121,7 +121,7 @@ class Handler(Base):
         try:
             data_pre_dirt = get_pre_dirt(self.msg_content)
             shell = Shell(self.user_id, target_branch=data_pre_dirt[2])
-            self.crop.send_text_msg(self.user_id, "列表方案预制任务运行中，请稍等!")
+            self.crop.send_text_msg(self.user_id, "列表方案预制任务运行中，请稍等片刻!")
             ret, result = shell.exec_data_pre(pre_type, *data_pre_dirt)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(result))
@@ -145,6 +145,8 @@ class Handler(Base):
             target = task_contents[4]
             projects = task_contents[5].split(",")
             fixed_version = task_contents[6]
+            if self.user_id != req_id:
+                self.crop.send_text_msg(req_id, "您发起的拉分支任务运行中，请稍等片刻!")
             req_name = self.crop.userid2name(req_id)
             shell = Shell(req_id, self.is_test, source, target)
             end = self.get_project_end(projects)
@@ -171,7 +173,7 @@ class Handler(Base):
                 duty_id, duty_name = self.get_duty_info(self.is_test, end)
                 if self.user_id not in duty_id:
                     raise Exception("仅限当周值班人：{}操作".format(duty_name))
-                self.crop.send_text_msg(self.user_id, "分支迁移任务运行中，请稍等!")
+                self.crop.send_text_msg(self.user_id, "分支迁移任务运行中，请稍等片刻!")
             else:
                 source, target, projects = task_contents[2], task_contents[3], task_contents[4].split(",")
                 end = self.get_project_end(projects)
@@ -194,7 +196,7 @@ class Handler(Base):
                 duty_id, duty_name = self.get_duty_info(self.is_test, end)
                 if self.user_id not in duty_id and self.is_trunk(target):
                     raise Exception("仅限当周值班人：{}操作".format(duty_name))
-                self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等!")
+                self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等片刻!")
             else:
                 source, target, projects = task_contents[2], task_contents[3], task_contents[4].split(",")
                 end = self.get_project_end(projects)
@@ -220,7 +222,7 @@ class Handler(Base):
                 duty_ids, name = self.get_duty_info(self.is_test, end)
                 if task_contents is None and self.user_id not in duty_ids:
                     raise Exception("仅限当周值班人：{}操作".format(name))
-                self.crop.send_text_msg(self.user_id, "分支保护任务运行中，请稍等!")
+                self.crop.send_text_msg(self.user_id, "分支保护任务运行中，请稍等片刻!")
             else:
                 target = task_contents[1]
                 projects = task_contents[2]
@@ -246,7 +248,7 @@ class Handler(Base):
             if self.user_id not in duty_user_id:
                 raise Exception("仅限当周后端值班人：{}操作".format(name))
             target, params, protect, is_build = get_build_dirt(self.msg_content)
-            self.crop.send_text_msg(self.user_id, "构建发布包任务运行中，请稍等!")
+            self.crop.send_text_msg(self.user_id, "构建发布包任务运行中，请稍等片刻!")
             shell = Shell(self.user_id, self.is_test, self.master, target)
             _, ret = shell.build_package(params, protect, is_build)
             # 发送消息通知
