@@ -123,7 +123,7 @@ class Shell(Common):
             self.lock_value = self.lock.get_lock("lock", 2)
             cmd = 'cd ../branch;python3 checkVersion.py -t duplicate -b {}'.format(branch)
             ret, msg = self.exec(cmd, level_info=False)
-            msg = "分支【{}】版本号重复检查结果提醒:\n{}".format(branch, msg)
+            msg = "分支【{}】的版本号和其他分支存在重复，重复结果如下:\n{}".format(branch, msg)
             self.send_msg_group_notify(self.check_version_web_hook, ret, msg)
             logger.info("check version ret[{}] msg[{}]".format(ret, msg))
             return ret, msg
