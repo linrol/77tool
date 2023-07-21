@@ -154,12 +154,12 @@ if __name__ == "__main__":
     if check_type == "duplicate":
         if check.check_duplicate(branch):
             sys.exit(1)
-        print('enjoy！版本号冲突检查通过')
+        print('enjoy！分支{}版本号冲突检查通过'.format(branch))
     elif check_type == "compare":
         compare_dict = dict(zip_longest(branch.split(","), [], fillvalue=True))
         if len(check.compare_version(compare_dict, True)) > 0:
             sys.exit(1)
-        print('enjoy！版本号比较检查通过')
+        print('enjoy！分支{}版本号比较检查通过'.format(branch))
     else:
         usage()
 

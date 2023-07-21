@@ -1,6 +1,5 @@
 import argparse
 import json
-import datetime
 from flask import Flask, request, make_response, jsonify
 from flask_apscheduler import APScheduler
 from concurrent.futures import ThreadPoolExecutor
@@ -47,7 +46,7 @@ def gitlab_hook():
     if not update_config:
         return "not update version"
     branch = body.get('ref').rsplit("/", 1)[1]
-    executor.submit(Task(crop).check_version, branch)
+    executor.submit(task.check_version, branch)
     return make_response("success")
 
 
@@ -139,14 +138,6 @@ def front_data_pre():
         response["ret"] = False
         response["msg"] = str(err)
     return jsonify(response)
-
-
-@scheduler.task('cron', id='job_check_version', week='*', day_of_week='0-6',
-                hour='8-22', minute='0', timezone='Asia/Shanghai')
-def job_check_version():
-    cur_time = datetime.datetime.now()
-    branch = 'sprint' + cur_time.strftime('%Y%m%d')
-    task.check_version(branch)
 
 
 @scheduler.task('interval', id='job_mr_request_notify', seconds=60,

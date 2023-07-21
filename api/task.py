@@ -180,34 +180,9 @@ class Task(Common):
 
     # 检查版本号
     def check_version(self, branch):
-        branch_name = None
-        branch_date = None
-        for name in branch_check_list:
-            if name not in branch:
-                continue
-            if len(branch.replace(name, "")) != 8:
-                continue
-            branch_name = name
-            branch_date = branch.replace(name, "")
-            break
-        if branch_name is None:
-            return True, "not check branch"
-        if not branch_date.isdigit():
-            return True, "branch data invalid"
-        index = branch_check_list.index(branch_name)
-        branch_list = []
-        for check_branch in branch_check_list[index:]:
-            branch_list.append(check_branch + branch_date)
-        branch_names = ",".join(branch_list)
-        if len(branch_list) < 2:
-            return True, "branch({}) length less than one".format(branch_names)
-        user_ids, _ = self.get_duty_info(True)
-        ret, msg = Shell(user_ids, self.is_test).check_version(branch_names)
+        _name, _date = self.get_branch_date(branch)
+        ret, msg = Shell('LuoLin', self.is_test).check_version(branch)
         logger.info(branch + ":" + msg)
-        if not ret:
-            for user_id in user_ids.split("|"):
-                user_msg = msg.replace("user_id=", "user_id={}".format(user_id))
-                self.crop.send_text_msg(user_id, user_msg)
         return ret, msg
 
     def clear_dirty_branch(self, user_id, branch_name):
