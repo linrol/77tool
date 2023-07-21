@@ -21,6 +21,7 @@ class Base:
     build_url = "http://ops.q7link.com:8000/qqdeploy/projectbuild/"
     web_hook = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=f28f65f5-c28d-46e5-8006-5f777f02dc71"
     backend_web_hook = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=6bc35c7b-c884-4707-98ba-722dae243d1f"
+    check_version_web_hook = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=9b89b507-f2d4-4149-9e2f-5c6c8056313a"
     project_category = {}
     merge_rule = None
     category_mapping = {"global": ['framework', 'global-apps', 'global-apps-api'],
@@ -201,8 +202,8 @@ class Base:
             return None
         return created_value.split("#")[0]
 
-    # 发送群消息通知
-    def send_group_notify(self, source, target, modules, ret, user, end):
+    # 发送群消息代码合并通知
+    def send_mr_group_notify(self, source, target, modules, ret, user, end):
         try:
             is_backend = end == self.backend
             ret_msg = "成功" if ret else "失败（分支代码存在冲突需手动合并）"
@@ -217,6 +218,14 @@ class Base:
         except Exception as err:
             logger.exception(err)
             return False
+
+    # 发送群消息版本号检查通知
+    @staticmethod
+    def send_msg_group_notify(web_hook, ret, msg):
+        if ret:
+            return
+        msg = {"msgtype": "text", "text": {"content": msg}}
+        post(web_hook, msg)
 
     # 代码合并后回调通知rd平台
     def notify_rd(self, target, merge_msg):

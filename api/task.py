@@ -182,7 +182,6 @@ class Task(Common):
     def check_version(self, branch):
         _name, _date = self.get_branch_date(branch)
         ret, msg = Shell('LuoLin', self.is_test).check_version(branch)
-        logger.info(branch + ":" + msg)
         return ret, msg
 
     def clear_dirty_branch(self, user_id, branch_name):

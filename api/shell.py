@@ -118,11 +118,14 @@ class Shell(Common):
             end = self.get_project_end(projects)
             executor.submit(self.rest_branch_env, end)
 
-    def check_version(self, branch_str):
+    def check_version(self, branch):
         try:
             self.lock_value = self.lock.get_lock("lock", 2)
-            cmd = 'cd ../branch;python3 checkVersion.py -t compare -b {}'.format(branch_str)
-            return self.exec(cmd, level_info=False)
+            cmd = 'cd ../branch;python3 checkVersion.py -t duplicate -b {}'.format(branch)
+            ret, msg = self.exec(cmd, level_info=False)
+            self.send_msg_group_notify(self.check_version_web_hook, ret, msg)
+            logger.info("check version ret[{}] msg[{}]".format(ret, msg))
+            return ret, msg
         except Exception as err:
             logger.exception(err)
             return False, str(err)
@@ -161,7 +164,7 @@ class Shell(Common):
             self.protect_branch(self.target_branch, access_level, projects)
             merge_msg = re.compile('WARNNING：.*目标分支.*已存在.*\n').sub('', merge_msg)
             merge_msg = re.compile('工程.*保护成功.*\n').sub('', merge_msg)
-            self.send_group_notify(self.source_branch, self.target_branch, projects, ret, user_name, end)
+            self.send_mr_group_notify(self.source_branch, self.target_branch, projects, ret, user_name, end)
             self.notify_rd(self.target_branch, merge_msg)
             return True, merge_msg
         except Exception as err:
