@@ -76,15 +76,17 @@ class CheckVersion(Common):
             c_version = check_version.get(p_name, None)
             if c_version is None:
                 continue
-            p_git = self.projects.get(p_name, None)
+            git_name = "parent" if p_name == "framework" else p_name
+            p_git = self.projects.get(git_name, None)
+            if p_git is None:
+                continue
             if c_version[0] == t_version[0] and c_version[1] == t_version[1]:
-                if p_git is None:
-                    is_duplicate = True
-                    print(check_msg.format(p_name, "{}.{}".format(t_version[0], t_version[1]), check_branch))
-                elif p_git.getBranch(check_branch) is not None and \
-                     p_git.getBranch(target_branch) is not None:
-                    is_duplicate = True
-                    print(check_msg.format(p_name, "{}.{}".format(t_version[0], t_version[1]), check_branch))
+                if p_git.getBranch(check_branch) is None:
+                    continue
+                if p_git.getBranch(target_branch) is None:
+                    continue
+                is_duplicate = True
+                print(check_msg.format(p_name, "{}.{}".format(t_version[0], t_version[1]), check_branch))
         return is_duplicate
 
     def compare_version(self, branch_dict, is_correct=False):
