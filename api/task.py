@@ -446,9 +446,9 @@ class Task(Common):
                         rets.append("工程【{}】来源分支【{}】已合并至目标分支【{}】".format(p_name, source, target))
                         continue
                     user_ids, _ = self.get_duty_info(self.is_test, end)
-                    if action_move and target == self.stage_global:
+                    if self.backend == end and action_move and target == self.stage_global:
                         p_name = "global"
-                    if action_move and target == self.perform:
+                    if self.backend == end and action_move and target == self.perform:
                         p_name = self.backend
                     self.send_branch_action(action, user_ids, source, target, p_name, cluster_str)
                     rets.append(task_name)
