@@ -65,7 +65,11 @@ class CheckVersion(Common):
             # 不存在build工程的分支
             return is_duplicate
         # 获取对应分支的config.yaml进行版本号比较
-        check_version = self.get_branch_version(check_branch, True)
+        try:
+            check_version = self.get_branch_version(check_branch, True)
+        except getopt.GetoptError as err:
+            print(err)
+            return is_duplicate
         if len(check_version) < 1:
             return is_duplicate
         for p_name, t_version in target_version.items():
