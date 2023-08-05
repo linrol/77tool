@@ -281,7 +281,7 @@ class Task(Common):
         before_hours = (datetime.utcnow() - timedelta(minutes=180)).isoformat()
         gl = self.get_project('parent').getGl()
         # 发送待合并通知
-        opened_mrs = gl.mergerequests.list(state='opened', all=True, created_after=before_hours)
+        opened_mrs = gl.mergerequests.list(state='opened', scope="all", created_after=before_hours)
         for mr in opened_mrs:
             if mr.assignee is None:
                 continue
@@ -312,7 +312,7 @@ class Task(Common):
             hmset("q7link-branch-merge", {mr_key: assignee_name})
 
         # 发送已合并通知
-        merged_mrs = gl.mergerequests.list(state='merged', all=True, created_after=before_hours)
+        merged_mrs = gl.mergerequests.list(state='merged', scope="all", created_after=before_hours)
         for mr in merged_mrs:
             if mr.merged_by is None:
                 continue
