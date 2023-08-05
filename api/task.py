@@ -279,11 +279,10 @@ class Task(Common):
     # 发送mr提醒通知
     def send_mr_notify(self):
         before_hours = (datetime.utcnow() - timedelta(minutes=180)).isoformat()
-        group = self.get_project('parent').getGroup(self.backend)
+        gl = self.get_project('parent').getGl()
         # 发送待合并通知
-        opened_mr_list = group.mergerequests.list(state='opened', all=True,
-                                                  created_after=before_hours)
-        for mr in opened_mr_list:
+        opened_mrs = gl.mergerequests.list(state='opened', all=True, created_after=before_hours)
+        for mr in opened_mrs:
             if mr.assignee is None:
                 continue
             mr_key = "opened_" + mr.web_url
@@ -308,15 +307,13 @@ class Task(Common):
                                                             mr.target_branch,
                                                             mr.web_url)
             assignee_user_id = self.name2userid(assignee_name)
-            logger.info("send mr to {} url {}".format(assignee_user_id,
-                                                      mr_target_msg))
+            logger.info("send mr to {} url {}".format(assignee_user_id, mr_target_msg))
             self.crop.send_text_msg(assignee_user_id, mr_target_msg)
             hmset("q7link-branch-merge", {mr_key: assignee_name})
 
         # 发送已合并通知
-        merged_mr_list = group.mergerequests.list(state='merged', all=True,
-                                                  updated_after=before_hours)
-        for mr in merged_mr_list:
+        merged_mrs = gl.mergerequests.list(state='merged', all=True, created_after=before_hours)
+        for mr in merged_mrs:
             if mr.merged_by is None:
                 continue
             mr_key = "merged_" + mr.web_url
@@ -342,19 +339,13 @@ class Task(Common):
                 author_userid = self.name2userid(author_name)
             project_full = mr.references.get("full").split("!")[0]
             _, project = project_full.rsplit("/", 1)
-            build_id = "-1"
-            if project in self.projects.keys():
-                if project not in ["build"]:
-                    build_id = self.ops_build(mr.target_branch, False,
-                                              project_full, author_name)
-            mr_source_msg = msg_content["mr_source"].format(mr.web_url,
-                                                            project,
-                                                            merged_username,
-                                                            build_id)
-            logger.info("send mr to {} url {}".format(author_userid,
-                                                      mr_source_msg))
+            mr_source_msg = msg_content["mr_source"].format(mr.web_url, project, merged_username)
+            if project in self.projects.keys() and project not in ["build"] and self.projects.get(project).getEnd() == self.backend:
+                build_id = self.ops_build(mr.target_branch, False, project_full, author_name)
+                hmset("q7link-branch-build", {build_id: author_userid})
+                mr_source_msg += "\n已触发独立编译任务ID:{}，请自行关注编译结果".format(build_id)
+            logger.info("send mr to {} url {}".format(author_userid, mr_source_msg))
             hmset("q7link-branch-merge", {mr_key: author_userid})
-            hmset("q7link-branch-build", {build_id: author_userid})
             self.crop.send_text_msg(author_userid, mr_source_msg)
 
     # 发送编译结果通知
