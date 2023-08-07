@@ -35,7 +35,7 @@ task = Task(crop, True)
 # crop.create_button()
 # Task(crop).clear_dirty_branch_notice(crop)
 
-
+# gitlab代码提交hook
 @app.route("/gitlab/hook", methods=["POST"])
 def gitlab_hook():
     body = json.loads(request.data.decode('utf-8'))
@@ -49,7 +49,7 @@ def gitlab_hook():
     executor.submit(task.check_version, branch)
     return make_response("success")
 
-
+# 发布结果监听，触发代码合并
 @app.route("/listener/deploy", methods=["POST"])
 def listener_deploy():
     body = json.loads(request.data.decode('utf-8'))
@@ -71,7 +71,7 @@ def listener_deploy():
     logger.info(ret_msg)
     return make_response(ret_msg)
 
-
+# 分支清理
 @app.route("/branch/clear", methods=["GET"])
 def branch_clear():
     user_id = request.args.get('user_id')
@@ -79,7 +79,7 @@ def branch_clear():
     executor.submit(Task(crop).clear_dirty_branch, user_id, branch)
     return make_response("success")
 
-
+# 分支版本号矫正
 @app.route("/branch/correct", methods=["GET"])
 def branch_correct():
     try:
@@ -95,7 +95,7 @@ def branch_correct():
         logger.exception(err)
         return make_response(str(err))
 
-
+# 分支封板操作
 @app.route("/branch/seal", methods=["POST"])
 def branch_seal():
     response = {}
@@ -109,7 +109,7 @@ def branch_seal():
         response["msg"] = str(err)
     return jsonify(response)
 
-
+# 后端是否为发布包检查
 @app.route("/branch/release/check", methods=["POST"])
 def branch_release_check():
     response = {}
@@ -124,7 +124,7 @@ def branch_release_check():
         response["msg"] = str(err)
     return jsonify(response)
 
-
+# 前端多列表方案预制restful接口
 @app.route("/data/pre", methods=["POST"])
 def front_data_pre():
     response = {}
@@ -139,13 +139,12 @@ def front_data_pre():
         response["msg"] = str(err)
     return jsonify(response)
 
-
-@scheduler.task('interval', id='job_mr_request_notify', seconds=60,
-                timezone='Asia/Shanghai', max_instances=4)
+# MR定时任务
+@scheduler.task('interval', id='job_mr_request_notify', seconds=60, timezone='Asia/Shanghai', max_instances=4)
 def job_mr_request_notify():
     task.send_mr_notify()
 
-
+# 应用消息消费回调
 @app.route("/callback/<action>", methods=["GET"])
 def verify(action: str):
     msg_signature = request.args.get('msg_signature')
@@ -155,7 +154,7 @@ def verify(action: str):
     ret, echo_str = crypt.VerifyURL(msg_signature, timestamp, nonce, echo_str)
     return echo_str.decode('utf-8') if ret == 0 else "error"
 
-
+# 应用消息消费回调
 @app.route("/callback/data", methods=["POST"])
 def callback():
     msg_signature = request.args.get('msg_signature')
@@ -170,7 +169,7 @@ def callback():
     executor.submit(Handler(crop, xml2dirt(raw)).accept)
     return make_response("success")
 
-
+# 分支管理工具强制更新检查
 @app.route("/check/upgrade", methods=["GET"])
 def check_upgrade():
     version = request.args.get('version')
@@ -181,12 +180,19 @@ def check_upgrade():
     return jsonify(response)
 
 
-# 接受编译结果通知
+# 消费ops编译结果通知
 @app.route("/build/notify", methods=["GET"])
 def build_notify():
     build_id = request.args.get('id')
     ret = request.args.get('ret')
     task.send_build_notify(build_id, ret)
+    return make_response("success")
+
+# 更新应用信息
+@app.route("/app/update", methods=["POST"])
+def app_update():
+    appName = request.args.get('name')
+    notify = request.args.get('notify')
     return make_response("success")
 
 
