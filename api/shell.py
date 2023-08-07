@@ -193,7 +193,7 @@ class Shell(Common):
         finally:
             executor.submit(self.rest_branch_env)
 
-    # 重值值班助手环境，切换到master分支，删除本地的target分支
+    # 重值研发助手环境，切换到master分支，删除本地的target分支
     def rest_branch_env(self, end="backend"):
         try:
             self.checkout_branch(self.master, end)

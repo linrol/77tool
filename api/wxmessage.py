@@ -62,11 +62,11 @@ msg_content = {
     "create_branch_task": {
         "card_type": "button_interaction",
         "source": {
-            "desc": "值班助手",
+            "desc": "研发助手",
             "desc_color": 1
         },
         "main_title": {
-            "title": "值班助手-来自{}的拉分支请求"
+            "title": "研发助手-来自{}的拉分支请求"
         },
         "sub_title_text": "请确认以下信息，同意后自动拉取分支并修改版本号",
         "horizontal_content_list": [
@@ -106,11 +106,11 @@ msg_content = {
     "change_branch_version": {
         "card_type": "button_interaction",
         "source": {
-            "desc": "值班助手",
+            "desc": "研发助手",
             "desc_color": 1
         },
         "main_title": {
-            "title": "值班助手-版本号矫正任务"
+            "title": "研发助手-版本号矫正任务"
         },
         "sub_title_text": "监控到以下目标分支版本号异常(小于基准分支版本号)，同意后将自动矫正版本号",
         "horizontal_content_list": [
@@ -144,11 +144,11 @@ msg_content = {
     "merge_branch_task": {
         "card_type": "button_interaction",
         "source": {
-            "desc": "值班助手",
+            "desc": "研发助手",
             "desc_color": 1
         },
         "main_title": {
-            "title": "值班助手-代码合并任务"
+            "title": "研发助手-代码合并任务"
         },
         "sub_title_text": "检测到{}分支已发布到{}，同意后将开始合并代码",
         "horizontal_content_list": [
@@ -197,11 +197,11 @@ msg_content = {
     "move_branch_task": {
         "card_type": "button_interaction",
         "source": {
-            "desc": "值班助手",
+            "desc": "研发助手",
             "desc_color": 1
         },
         "main_title": {
-            "title": "值班助手-分支迁移任务"
+            "title": "研发助手-分支迁移任务"
         },
         "sub_title_text": "检测到{}分支已发布到{}，同意后将开始迁移模块",
         "horizontal_content_list": [
@@ -383,7 +383,7 @@ def send_create_branch_msg(crop, source, target, projects, task_id, version, **u
         "keyname": "工程模块",
         "value": project_str,
     }]
-    msg_content["create_branch_task"]["main_title"]["title"] = "值班助手-来自{}的拉分支请求".format(applicant_name)
+    msg_content["create_branch_task"]["main_title"]["title"] = "研发助手-来自{}的拉分支请求".format(applicant_name)
     msg_content["create_branch_task"]["horizontal_content_list"] = task_info_list
     msg_content["create_branch_task"]["task_id"] = task_id
     msg_content["create_branch_task"]["button_list"][0]["key"] = "deny@" + task_id
@@ -429,7 +429,7 @@ def build_merge_branch_msg(source, target, project, cluster, task_id):
             "keyname": "工程模块",
             "value": project,
         })
-    msg_content["merge_branch_task"]["main_title"]["title"] = "值班助手-代码合并任务"
+    msg_content["merge_branch_task"]["main_title"]["title"] = "研发助手-代码合并任务"
     msg_content["merge_branch_task"]["sub_title_text"] = "{}已发布至{}，请求将代码合并至{}".format(source, cluster, target)
     msg_content["merge_branch_task"]["horizontal_content_list"] = task_info_list
     msg_content["merge_branch_task"]["task_id"] = task_id
@@ -449,7 +449,7 @@ def build_move_branch_msg(source, target, group, cluster, task_id):
         "keyname": "迁移模块",
         "value": group,
     }]
-    msg_content["move_branch_task"]["main_title"]["title"] = "值班助手-分支迁移任务"
+    msg_content["move_branch_task"]["main_title"]["title"] = "研发助手-分支迁移任务"
     msg_content["move_branch_task"]["sub_title_text"] = "{}已发布至{}，请求将模块迁移至{}".format(source, cluster, target)
     msg_content["move_branch_task"]["horizontal_content_list"] = task_info_list
     msg_content["move_branch_task"]["task_id"] = task_id

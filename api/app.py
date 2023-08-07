@@ -191,8 +191,11 @@ def build_notify():
 # 更新应用信息
 @app.route("/app/update", methods=["POST"])
 def app_update():
-    appName = request.args.get('name')
-    notify = request.args.get('notify')
+    body = json.loads(request.data.decode('utf-8'))
+    name = body.get('name')
+    notify = body.get('notify')
+    notify_msg = body.get('notify_msg')
+    task.app_update(name, notify, notify_msg)
     return make_response("success")
 
 

@@ -164,9 +164,9 @@ class Base:
         try:
             if skip:
                 return
-            caller = "值班助手"
+            caller = "研发助手"
             if call_name is not None:
-                caller = "{}-值班助手".format(call_name)
+                caller = "{}-研发助手".format(call_name)
             params = {"branch": branch, "byCaller": caller}
             if project is not None:
                 params["projects"] = project

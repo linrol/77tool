@@ -140,5 +140,12 @@ class Crop:
             }
         }
         url = "{}/cgi-bin/message/update_template_card?access_token={}"
-        return post(url.format(self.work_wx_url, self.get_access_token()),
-                    params)
+        return post(url.format(self.work_wx_url, self.get_access_token()), params)
+
+    def agent_update(self, name):
+        url = "{}/cgi-bin/agent/get?access_token={}&agentid={}"
+        body = get(url.format(self.work_wx_url, self.get_access_token(), self.get_agent_id()))
+        logger.info("get agent({}) info [{}]".format(self.get_agent_id(), body))
+        params = {"agentid": self.get_agent_id(), "name": name}
+        url = "{}/cgi-bin/agent/set?access_token={}"
+        return post(url.format(self.work_wx_url, self.get_access_token()), params)

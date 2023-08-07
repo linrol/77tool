@@ -6,7 +6,7 @@ from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
 from wxmessage import send_create_branch_msg, build_merge_branch_msg, build_move_branch_msg, msg_content
-from redisclient import save_user_task, get_branch_mapping, hmset, hget, hdel, append
+from redisclient import save_user_task, get_branch_mapping, hmset, hget, hgetall, hdel, append
 from common import Common
 branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
 services2project = {
@@ -567,3 +567,22 @@ class Task(Common):
             logger.exception(err)
             # 发送消息通知
             return str(err)
+
+    def app_update(self, name, notify, notify_msg):
+        to_user_set = set()
+        tasks = hgetall("q7link-user-task")
+        for k, v in tasks.items():
+            vs = v.split("#")
+            if len(vs) < 3:
+                continue
+            user_id = v.split("#")[2]
+            if user_id in to_user_set:
+                continue
+            if self.crop.get("{}-userinfo".format(user_id)) is None:
+                continue
+            to_user_set.add(user_id)
+        to_user_ids = "|".join(list(to_user_set))
+        self.crop.agent_update(name)
+        if not notify:
+            return
+        self.crop.send_text_msg(to_user_ids, notify_msg)
