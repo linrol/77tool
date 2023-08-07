@@ -194,8 +194,9 @@ class Handler(Base):
                 source, target, projects, clear = get_merge_branch_dirt(self.msg_content)
                 end = self.get_project_end(projects)
                 duty_id, duty_name = self.get_duty_info(self.is_test, end)
-                if self.user_id not in duty_id and self.is_trunk(target):
-                    raise Exception("仅限当周值班人：{}操作".format(duty_name))
+                if self.is_trunk(target):
+                    if self.user_id not in duty_id:
+                        raise Exception("仅限当周值班人：{}操作".format(duty_name))
                 self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等片刻!")
             else:
                 source, target, projects = task_contents[2], task_contents[3], task_contents[4].split(",")
@@ -219,9 +220,10 @@ class Handler(Base):
             if task_contents is None:
                 target, projects, is_protect = get_protect_branch_dirt(self.msg_content)
                 end = self.get_project_end(projects)
-                duty_ids, name = self.get_duty_info(self.is_test, end)
-                if task_contents is None and self.user_id not in duty_ids:
-                    raise Exception("仅限当周值班人：{}操作".format(name))
+                duty_id, name = self.get_duty_info(self.is_test, end)
+                if self.is_duty(target):
+                    if self.user_id not in duty_id:
+                        raise Exception("仅限当周值班人：{}操作".format(name))
                 self.crop.send_text_msg(self.user_id, "分支保护任务运行中，请稍等片刻!")
             else:
                 target = task_contents[1]

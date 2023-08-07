@@ -35,6 +35,10 @@ class Base:
             return name, date
         return branch, None
 
+    # 判断是否为主干分支
+    def is_trunk(self, branch):
+        return branch in [self.stage, self.perform, self.master]
+
     # 判断分支是否为sprint｜release
     def is_sprint(self, branch):
         source_prefix, _ = self.get_branch_date(branch)
@@ -95,7 +99,8 @@ class Base:
             return "|".join(user_ids), ",".join(user_names)
 
     # 获取值班目标分支集合
-    def get_duty_branches(self):
+    @staticmethod
+    def get_duty_branches():
         branches = set()
         try:
             mapping = get_branch_mapping()
@@ -104,6 +109,16 @@ class Base:
         except Exception as err:
             logger.exception(err)
         return branches
+
+    # 判断值班分支
+    def is_duty(self, branch):
+        mapping = get_branch_mapping()
+        for k, v in mapping.items():
+            match_source = re.match("^{}$".format(k), branch)
+            prefix, _ = self.get_branch_date(branch)
+            if match_source or prefix in v.split(","):
+                return True
+        return False
 
     # 获取分支合并策略
     def get_merge_rules(self, end, module):
@@ -118,10 +133,6 @@ class Base:
             logger.exception(err)
             return {}
 
-    # 判断是否为主干分支
-    def is_trunk(self, branch):
-        return branch in [self.stage, self.perform, self.master]
-
     # 删除本地分支
     def delete_branch(self, branch, projects):
         if branch is None:
@@ -133,7 +144,8 @@ class Base:
         for project in projects:
             project.deleteLocalBranch(branch)
 
-    def is_chinese(self, word):
+    @staticmethod
+    def is_chinese(word):
         for ch in word:
             if '\u4e00' <= ch <= '\u9fff':
                 return True
