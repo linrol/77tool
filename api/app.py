@@ -40,13 +40,15 @@ task = Task(crop, True)
 def gitlab_hook():
     body = json.loads(request.data.decode('utf-8'))
     update_config = False
+    author_id = None
     for commit in body.get('commits'):
         if "config.yaml" in commit.get('modified', []):
             update_config = True
+            author_id = commit.get('author').get('name')
     if not update_config:
         return "not update version"
     branch = body.get('ref').rsplit("/", 1)[1]
-    executor.submit(task.check_version, branch)
+    executor.submit(task.check_version, branch, author_id)
     return make_response("success")
 
 # 发布结果监听，触发代码合并
@@ -178,7 +180,6 @@ def check_upgrade():
     if version != new_version:
         response["ret"] = False
     return jsonify(response)
-
 
 # 消费ops编译结果通知
 @app.route("/build/notify", methods=["GET"])
