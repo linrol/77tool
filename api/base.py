@@ -217,6 +217,8 @@ class Base:
     # 发送群消息代码合并通知
     def send_mr_group_notify(self, source, target, modules, ret, user, end):
         try:
+            if not self.is_duty(target):
+                return True
             is_backend = end == self.backend
             ret_msg = "成功" if ret else "失败（分支代码存在冲突需手动合并）"
             content_template = msg_content["merge_branch_result"]
