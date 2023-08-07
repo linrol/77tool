@@ -126,7 +126,7 @@ class Task(Common):
         if int(week_later) > int(target_date):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
 
-    # 创建拉值班分支的任务
+    # 创建拉分支的任务
     def new_branch_task(self, end, source, target, projects, **user):
         projects = self.filter_project(target, projects)
         feature_info = self.get_feature_branch(source, target, end, **user)
