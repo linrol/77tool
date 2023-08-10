@@ -316,7 +316,6 @@ class Task(Common):
                                                             mr.target_branch,
                                                             mr.web_url)
             assignee_user_id = self.name2userid(assignee_name)
-            logger.info("send mr to {} url {}".format(assignee_user_id, mr_target_msg))
             self.crop.send_text_msg(assignee_user_id, mr_target_msg)
             hmset("q7link-branch-merge", {mr_key: assignee_name})
 
@@ -353,7 +352,6 @@ class Task(Common):
                 build_id = self.ops_build(mr.target_branch, False, project_full, author_name)
                 hmset("q7link-branch-build", {build_id: author_userid})
                 mr_source_msg += "\n已触发独立编译任务ID:{}，请自行关注编译结果".format(build_id)
-            logger.info("send mr to {} url {}".format(author_userid, mr_source_msg))
             hmset("q7link-branch-merge", {mr_key: author_userid})
             self.crop.send_text_msg(author_userid, mr_source_msg)
 

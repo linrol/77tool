@@ -112,6 +112,7 @@ class Crop:
     def send_text_msg(self, to_user, content):
         if content is None:
             return None
+        logger.info("send user {} msg {}".format(to_user, content))
         return self.send_message(to_user, 'text', {"content": content})
 
     def send_text_card_msg(self, to_user, content):
