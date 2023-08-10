@@ -144,6 +144,7 @@ class Shell(Common):
             backup_msg = re.compile('WARNNING：.*\n').sub('', backup_msg)
             backup_msg = re.compile('工程.*创建分支.*\n').sub('', backup_msg)
             backup_msg = re.compile('工程.*删除分支.*\n').sub('', backup_msg)
+            self.protect_branch(self.target_branch, 'none', projects)
             return True, backup_msg
         except Exception as err:
             logger.exception(err)
