@@ -181,17 +181,16 @@ class Task(Common):
     # 检查版本号
     def check_version(self, branch, author_id):
         _name, _date = self.get_branch_date(branch)
-        ret, msg = Shell(author_id, self.is_test).check_version(branch)
+        conflict, msg = Shell(author_id, self.is_test).check_version(branch)
         author_name = hget("q7link-git-user", author_id)
-        if author_name is None or author_id in ["backend-ci"]:
-            # 根据git的user_id未找到真实姓名
-            return ret, msg
-        user_id = self.name2userid(author_name)
-        if ret or user_id is None:
-            # 未发送冲突或者根据真实姓名获取企微的user_id失败
-            return ret, msg
-        self.crop.send_text_msg(user_id, msg)
-        return ret, msg
+        logger.info("check version notify user [{}]".format(author_id))
+        if conflict:
+            if author_id not in ["backend-ci"]:
+                if author_name is not None:
+                    user_id = self.name2userid(author_name)
+                    if user_id is not None:
+                        self.crop.send_text_msg(user_id, msg)
+        return conflict, msg
 
     def clear_dirty_branch(self, user_id, branch_name):
         if self.is_trunk(branch_name):

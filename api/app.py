@@ -45,6 +45,7 @@ def gitlab_hook():
         if "config.yaml" in commit.get('modified', []):
             update_config = True
             author_id = commit.get('author').get('name')
+            break
     if not update_config:
         return "not update version"
     branch = body.get('ref').rsplit("/", 1)[1]
