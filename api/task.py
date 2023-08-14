@@ -50,7 +50,7 @@ class Task(Common):
             applicant_id = user["applicant"][0]
             applicant_name = user["applicant"][1]
             return "none_version", applicant_id, applicant_name
-        feature_info = hget("q7link-branch-feature", target_branch)
+        feature_info = self.get_branch_feature(target_branch)
         if feature_info is None:
             sql = "select * from zt_project where code = '{}' and type='sprint'".format(target_branch)
             zt_project_info = self.zt_fetchone(sql)
@@ -182,14 +182,12 @@ class Task(Common):
     def check_version(self, branch, author_id):
         _name, _date = self.get_branch_date(branch)
         conflict, msg = Shell(author_id, self.is_test).check_version(branch)
-        author_name = hget("q7link-git-user", author_id)
-        logger.info("check version notify user [{}]".format(author_id))
         if conflict:
-            if author_id not in ["backend-ci"]:
-                if author_name is not None:
-                    user_id = self.name2userid(author_name)
-                    if user_id is not None:
-                        self.crop.send_text_msg(user_id, msg)
+            # 发送冲突提醒
+            unknown_user = author_id in ["backend-ci"]
+            user_name = self.get_branch_creator(branch) if unknown_user else self.userid2name(author_id)
+            logger.info("check version notify user [{}.{}]".format(author_id, user_name))
+            self.crop.send_text_msg(self.name2userid(user_name), msg)
         return conflict, msg
 
     def clear_dirty_branch(self, user_id, branch_name):
@@ -203,11 +201,11 @@ class Task(Common):
         # self.save_branch_pushed()
         clear_branch_msg = "您创建的分支【{}】超过三个月不存在提交记录，可能为脏分支，请确认是否需要删除？\n<a href=\"https://branch.linrol.cn/branch/clear?user_id={}&branch={}\">点击删除</a>\n无需删除请忽略"
         dirty_branches = self.get_dirty_branches()
-        for branch, author in dirty_branches.items():
-            username = hget("q7link-git-user", author)
-            if username is None:
+        for branch, author_id in dirty_branches.items():
+            author_name = self.userid2name(author_id)
+            if author_name is None:
                 continue
-            user_id = self.name2userid(username)
+            user_id = self.name2userid(author_name)
             if user_id == "LuoLin":
                 self.crop.send_text_msg(user_id, clear_branch_msg.format(branch, user_id, branch))
             logger.info(clear_branch_msg.format(branch, user_id, branch))
@@ -300,10 +298,10 @@ class Task(Common):
             git_assignee_id = mr.assignee.get("username")
             if author_id == git_assignee_id:
                 continue
-            author_name = hget("q7link-git-user", author_id)
+            author_name = self.userid2name(author_id)
             if author_name is None:
                 author_name = author_id
-            assignee_name = hget("q7link-git-user", git_assignee_id)
+            assignee_name = self.userid2name(git_assignee_id)
             if assignee_name is None:
                 logger.error("git assignee id [{}] not found".format(git_assignee_id))
                 continue
@@ -332,14 +330,14 @@ class Task(Common):
             merged_userid = mr.merged_by.get("username")
             # if author_id == merged_userid and not is_data_pre:
             #     continue
-            merged_username = hget("q7link-git-user", merged_userid)
+            merged_username = self.userid2name(merged_userid)
             if merged_username is None:
                 merged_username = merged_userid
             if is_data_pre:
                 author_userid = mr.title.replace(data_pre_str, "")
                 author_name = author_userid
             else:
-                author_name = hget("q7link-git-user", author_id)
+                author_name = self.userid2name(author_id)
                 if not author_name:
                     logger.error("author id [{}] not found".format(author_id))
                     continue

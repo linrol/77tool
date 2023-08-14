@@ -44,6 +44,12 @@ class Base:
         source_prefix, _ = self.get_branch_date(branch)
         return source_prefix in ["sprint", "release"]
 
+    @staticmethod
+    def userid2name(git_user_id):
+        if git_user_id is None:
+            return None
+        return hget("q7link-git-user", git_user_id)
+
     # 用户名称转换企业微信ID
     def name2userid(self, user_name):
         try:
@@ -259,6 +265,11 @@ class Base:
     def save_branch_feature(target, source, version, leader_user):
         value = "{}@{}@{}".format(source, version, leader_user)
         hmset("q7link-branch-feature", {target: value})
+
+    # 获取特性分支信息
+    @staticmethod
+    def get_branch_feature(target_branch):
+        return hget("q7link-branch-feature", target_branch)
 
     # 获取校验升级的版本号信息
     @staticmethod

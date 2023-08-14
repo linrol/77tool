@@ -3,6 +3,7 @@ import sys
 import subprocess
 import yaml
 import gitlab
+from datetime import datetime, timedelta
 from base import Base
 from log import logger
 sys.path.append("/Users/linrol/work/sourcecode/qiqi/backend/branch-manage")
@@ -190,3 +191,28 @@ class Common(Base):
                 continue
             ret.add(p_info.getModule())
         return list(ret)
+
+    def get_branch_creator(self, target):
+        creator = None
+        feature_info = self.get_branch_feature(target)
+        if feature_info is not None:
+            creator = feature_info.split("@")[2]
+            return creator
+        one_year = (datetime.utcnow() - timedelta(days=360)).isoformat()
+        i = 0
+        events = self.project_build.getProject().events.list(action='pushed', page=i, per_page=100, after=one_year)
+        while len(events) > 0 and creator is None:
+            for e in events:
+                if e.action_name != 'pushed new':
+                    continue
+                branch = e.push_data.get('ref')
+                if branch is None:
+                    continue
+                if branch != target:
+                    continue
+                creator = e.author_username
+                if creator is not None:
+                    break
+            i += 1
+            events = self.project_build.getProject().events.list(action='pushed', page=i, per_page=100, after=one_year)
+        return self.userid2name(creator)
