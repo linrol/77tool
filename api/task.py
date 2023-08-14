@@ -181,14 +181,15 @@ class Task(Common):
     # 检查版本号
     def check_version(self, branch, author_id):
         _name, _date = self.get_branch_date(branch)
-        conflict, msg = Shell(author_id, self.is_test).check_version(branch)
-        if conflict:
-            # 发送冲突提醒
-            unknown_user = author_id in ["backend-ci"]
-            user_name = self.get_branch_creator(branch) if unknown_user else self.userid2name(author_id)
-            logger.info("check version notify user [{}.{}]".format(author_id, user_name))
-            self.crop.send_text_msg(self.name2userid(user_name), msg)
-        return conflict, msg
+        no_conflict, msg = Shell(author_id, self.is_test).check_version(branch)
+        if no_conflict:
+            return None
+        # 发送冲突提醒
+        unknown_user = author_id in ["backend-ci"]
+        user_name = self.get_branch_creator(branch) if unknown_user else self.userid2name(author_id)
+        logger.info("check version notify user [{}.{}]".format(author_id, user_name))
+        self.crop.send_text_msg(self.name2userid(user_name), msg)
+        return no_conflict, msg
 
     def clear_dirty_branch(self, user_id, branch_name):
         if self.is_trunk(branch_name):
