@@ -9,6 +9,7 @@ import time
 import xml.dom.minidom
 import requests
 import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
@@ -361,19 +362,27 @@ def init_projects(names=None):
   check_upgrade()
   if names is None or len(names) == 0:
     names = ["backend"]
-  projectInfos = {}
-  for end, modules in project_config().items():
-    for module, projects in modules.items():
-      for project, config in projects.items():
-        match_name = project in names
-        match_module = module in names
-        match_end = end in names
-        if match_name or match_module or match_end:
-          # 刷新每个工程的信息，防止因为本地信息和远程信息不同步导致报错
-          # subprocess.getstatusoutput('cd ' + path +' && git fetch -p')
-          projectInfo = ProjectInfo(end, module, project, config)
-          projectInfos[project] = projectInfo
-  return projectInfos
+  futures = []
+  with ThreadPoolExecutor(50) as executor:
+    for end, modules in project_config().items():
+      for module, projects in modules.items():
+        for project, config in projects.items():
+          match_name = project in names
+          match_module = module in names
+          match_end = end in names
+          if match_name or match_module or match_end:
+            # 刷新每个工程的信息，防止因为本地信息和远程信息不同步导致报错
+            # subprocess.getstatusoutput('cd ' + path +' && git fetch -p')
+            futures.append(executor.submit(project_build, end, module, project, config))
+  ret = {}
+  for future in as_completed(futures):
+    project = future.result()
+    name = project.getName()
+    ret[name] = project
+  return ret
+
+def project_build(end, module, project, config):
+  return ProjectInfo(end, module, project, config)
 
 # 获取本地工程路径配置信息
 def project_config():
