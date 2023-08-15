@@ -35,9 +35,9 @@ class GenVersion(Common):
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
             self.last_sprint = None
-            self.last_sprint_version = self.get_adjoin_sprint_version([-14, -28])
+            self.last_sprint_version = self.lookup_sprint_version(31, False)
             self.next_sprint = None
-            self.next_sprint_version = self.get_adjoin_sprint_version([14, 28])
+            self.next_sprint_version = self.lookup_sprint_version(31, True)
 
     def is_feature(self):
         return self.fixed_version is not None
@@ -58,19 +58,20 @@ class GenVersion(Common):
             result.add(name)
         return list(result)
 
-    def get_adjoin_sprint_version(self, days_list):
+    def lookup_sprint_version(self, days, is_forward):
         if self.target_name not in ["sprint", 'release']:
             return {}
         try:
-            for days in days_list:
+            for num in range(1, days):
+                num = num if is_forward else -num
                 for name in ['sprint', 'release']:
                     target_date = datetime.strptime(self.target_date, "%Y%m%d")
-                    adjoin_week_date = target_date + timedelta(days=days)
+                    adjoin_week_date = target_date + timedelta(days=num)
                     branch_name = name + adjoin_week_date.strftime("%Y%m%d")
                     exist = self.branch_is_presence(branch_name)
                     if not exist:
                         continue
-                    if days > 0:
+                    if num > 0:
                         self.next_sprint = branch_name
                     else:
                         self.last_sprint = branch_name
