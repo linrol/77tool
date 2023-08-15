@@ -34,10 +34,8 @@ class GenVersion(Common):
         if self.fixed_version is None:
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
-            self.last_sprint = None
-            self.last_sprint_version = self.lookup_sprint_version(5, False)
-            self.next_sprint = None
-            self.next_sprint_version = self.lookup_sprint_version(5, True)
+            self.last_sprint, self.last_sprint_version = self.lookup_sprint_version(5, False)
+            self.next_sprint, self.next_sprint_version = self.lookup_sprint_version(5, True)
 
     def is_feature(self):
         return self.fixed_version is not None
@@ -68,17 +66,12 @@ class GenVersion(Common):
                     target_date = datetime.strptime(self.target_date, "%Y%m%d")
                     adjoin_week_date = target_date + timedelta(days=num)
                     branch_name = name + adjoin_week_date.strftime("%Y%m%d")
-                    exist = self.branch_is_presence(branch_name)
-                    if not exist:
+                    if not self.project_branch_is_presence("build", branch_name):
                         continue
-                    if num > 0:
-                        self.next_sprint = branch_name
-                    else:
-                        self.last_sprint = branch_name
-                    return self.get_branch_version(branch_name)
-            return {}
+                    return branch_name, self.get_branch_version(branch_name)
+            return None, {}
         except Exception as e:
-            return {}
+            return None, {}
 
     def get_branch_offset(self, project_name):
         try:
