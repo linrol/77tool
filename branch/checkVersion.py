@@ -65,11 +65,7 @@ class CheckVersion(Common):
             # 不存在build工程的分支
             return is_duplicate
         # 获取对应分支的config.yaml进行版本号比较
-        try:
-            check_version = self.get_branch_version(check_branch, True)
-        except getopt.GetoptError as err:
-            print(err)
-            return is_duplicate
+        check_version = self.get_branch_version(check_branch, True)
         if len(check_version) < 1:
             return is_duplicate
         for p_name, t_version in target_version.items():
@@ -155,17 +151,23 @@ if __name__ == "__main__":
             branch = v
         else:
             usage()
-
     check = CheckVersion(project)
-    if check_type == "duplicate":
-        if check.check_duplicate(branch):
-            sys.exit(1)
-        print('enjoy！分支{}版本号冲突检查通过'.format(branch))
-    elif check_type == "compare":
-        compare_dict = dict(zip_longest(branch.split(","), [], fillvalue=True))
-        if len(check.compare_version(compare_dict, True)) > 0:
-            sys.exit(1)
-        print('enjoy！分支{}版本号比较检查通过'.format(branch))
-    else:
+    if check_type not in ["duplicate", "compare"]:
         usage()
+    else:
+        try:
+            if check_type == "duplicate":
+                if check.check_duplicate(branch):
+                    sys.exit(1)
+                print('enjoy！分支{}版本号冲突检查通过'.format(branch))
+            if check_type == "compare":
+                compare_dict = dict(zip_longest(branch.split(","), [], fillvalue=True))
+                if len(check.compare_version(compare_dict, True)) > 0:
+                    sys.exit(1)
+                print('enjoy！分支{}版本号比较检查通过'.format(branch))
+        except Exception as err:
+            print(err)
+
+
+
 
