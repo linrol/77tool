@@ -58,7 +58,7 @@ class GenVersion(Common):
 
     def lookup_sprint_version(self, weeks, is_forward):
         if self.target_name not in ["sprint", 'release']:
-            return {}
+            return None, {}
         try:
             for num in range(1, weeks):
                 num = num * 7 if is_forward else -(num * 7)
