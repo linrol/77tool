@@ -1058,6 +1058,7 @@ CREATE TABLE "baseapp_tab_definition"
     "list_columns_definition_id" VARCHAR(64),
     "title" VARCHAR(64) DEFAULT '',
     "is_default" BOOLEAN DEFAULT false NOT NULL,
+    "apply_scenario_names" JSONB,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
