@@ -1083,6 +1083,7 @@ COMMENT ON COLUMN "baseapp_tab_definition"."query_definition_id" IS '查询方�
 COMMENT ON COLUMN "baseapp_tab_definition"."list_columns_definition_id" IS '列表方案';
 COMMENT ON COLUMN "baseapp_tab_definition"."title" IS '标题';
 COMMENT ON COLUMN "baseapp_tab_definition"."is_default" IS '默认页签';
+COMMENT ON COLUMN "baseapp_tab_definition"."apply_scenario_names" IS '使用场景';
 COMMENT ON COLUMN "baseapp_tab_definition"."created_user_id" IS '创建人';
 COMMENT ON COLUMN "baseapp_tab_definition"."created_time" IS '创建时间';
 COMMENT ON COLUMN "baseapp_tab_definition"."modified_user_id" IS '修改人';
