@@ -348,18 +348,18 @@ class Task(Common):
             mr_source_msg = msg_content["mr_source"].format(mr.web_url, project, merged_username)
             if project in self.projects.keys() and project not in ["build"] and self.projects.get(project).getEnd() == self.backend:
                 build_id = self.ops_build(mr.target_branch, False, project_full, author_name)
-                hmset("q7link-branch-build", {build_id: author_userid})
                 mr_source_msg += "\n已触发独立编译任务ID:{}，请自行关注编译结果".format(build_id)
             hmset("q7link-branch-merge", {mr_key: author_userid})
             self.crop.send_text_msg(author_userid, mr_source_msg)
 
     # 发送编译结果通知
     def send_build_notify(self, build_id, ret):
-        user_id = hget("q7link-branch-build", build_id)
-        if user_id is None:
+        user_name = hget("q7link-branch-build", build_id)
+        if user_name is None:
             return
         ret_msg = "成功" if ret == "true" else "失败"
         build_msg = msg_content["build_ret"].format(build_id, ret_msg)
+        user_id = self.name2userid(user_name)
         self.crop.send_text_msg(user_id, build_msg)
         hdel("q7link-branch-build", build_id)
 

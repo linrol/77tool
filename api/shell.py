@@ -88,7 +88,7 @@ class Shell(Common):
             cmd = 'cd ../branch;python3 changeVersion.py {} {}'.format(self.target_branch, clear_build_params)
             [_, version_msg] = self.exec(cmd, True)
             self.commit_and_push(self.target_branch, 'd' if is_feature_branch else 'hotfix', req_name)
-            self.ops_build(self.target_branch, self.is_test)
+            self.ops_build(self.target_branch, self.is_test, call_name=req_name)
             self.save_branch_created(self.user_id, self.source_branch, self.target_branch, projects)
             created_msg = re.compile('WARNNING：.*\n').sub('', created_msg)
             created_msg = re.compile('工程.*保护成功.*\n').sub('', created_msg)
@@ -185,8 +185,9 @@ class Shell(Common):
             [_, release_version_msg] = self.exec(cmd, True, False)
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
             [_, change_version_msg] = self.exec(cmd, True)
-            self.commit_and_push(self.target_branch, protect, self.user_id)
-            self.ops_build(self.target_branch, not is_build)
+            user_name = self.userid2name(self.user_id)
+            self.commit_and_push(self.target_branch, protect, user_name)
+            self.ops_build(self.target_branch, not is_build, call_name=user_name)
             msg = release_version_msg + change_version_msg
             return True, msg.replace("\n", "").replace("工程", "\n工程")
         except Exception as err:

@@ -44,11 +44,15 @@ class Base:
         source_prefix, _ = self.get_branch_date(branch)
         return source_prefix in ["sprint", "release"]
 
+    # Git或企业微信用户ID转换中文名称
     @staticmethod
-    def userid2name(git_user_id):
-        if git_user_id is None:
+    def userid2name(user_id):
+        if user_id is None:
             return None
-        return hget("q7link-git-user", git_user_id)
+        user_name = hget("q7link-git-user", user_id)
+        if user_name is None:
+            user_name = hget("wwcba5faed367cdeee", "{}-userinfo".format(user_id))
+        return user_name
 
     # 用户名称转换企业微信ID
     def name2userid(self, user_name):
@@ -189,7 +193,9 @@ class Base:
             if project is not None:
                 params["projects"] = project
             res = post_form(self.build_url, params)
-            return res.get("data").get("taskid")
+            build_id = res.get("data").get("taskid")
+            hmset("q7link-branch-build", {build_id: call_name})
+            return build_id
         except Exception as err:
             logger.exception(err)
             return "-1"
