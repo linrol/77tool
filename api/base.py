@@ -66,7 +66,7 @@ class Base:
             body = get(url.format(self.rd_url, user_name))
             return body.get("data")[0].get("user_id")
         except Exception as err:
-            logger.error("name2user error: {}".format(str(err)), exc_info=True)
+            logger.error("name[{}] to userid error: {}".format(user_name, str(err)), exc_info=True)
             return None
 
     # 获取只读权限的值班人
