@@ -334,15 +334,11 @@ class Task(Common):
             merged_username = self.userid2name(merged_userid)
             if merged_username is None:
                 merged_username = merged_userid
-            if is_data_pre:
-                author_userid = mr.title.replace(data_pre_str, "")
-                author_name = author_userid
-            else:
-                author_name = self.userid2name(author_id)
-                if not author_name:
-                    logger.error("author id [{}] not found".format(author_id))
-                    continue
-                author_userid = self.name2userid(author_name)
+            author_name = mr.title.replace(data_pre_str, "") if is_data_pre else self.userid2name(author_id)
+            if not author_name:
+                logger.error("author user [{}] not found".format(author_id))
+                continue
+            author_userid = self.name2userid(author_name)
             project_full = mr.references.get("full").split("!")[0]
             _, project = project_full.rsplit("/", 1)
             mr_source_msg = msg_content["mr_source"].format(mr.web_url, project, merged_username)

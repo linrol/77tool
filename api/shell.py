@@ -49,7 +49,7 @@ class Shell(Common):
             self.chdir_branch()
             if not ret:
                 raise Exception(msg + "\n预制失败，请检查输出日志")
-            mr_title = '<数据预置>前端多列表方案预置-{}'.format(self.user_id)
+            mr_title = '<数据预置>前端多列表方案预置-{}'.format(self.userid2name(self.user_id))
             return self.create_mr(temp_branch, self.target_branch, mr_title, mr_user)
         except Exception as err:
             logger.exception(err)
