@@ -38,18 +38,19 @@ class Shell(Common):
             # 在本地将新分支拉取出来
             self.project_init_data.checkout(temp_branch)
             self.chdir_data_pre()
+            user_name = self.userid2name(self.user_id)
             if data_type == 'new':
-                cmd = 'cd ../dataPre;python3 multi.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, self.user_id, condition_value)
+                cmd = 'cd ../dataPre;python3 multi.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, user_name, condition_value)
                 [ret, msg] = self.exec(cmd, level_info=False)
             elif data_type == 'old':
-                cmd = 'cd ../dataPre;python3 uiconfig.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, self.user_id, condition_value)
+                cmd = 'cd ../dataPre;python3 uiconfig.py {} {} {} {} {}'.format(env, tenant_id, temp_branch, user_name, condition_value)
                 [ret, msg] = self.exec(cmd, level_info=False)
             else:
                 [ret, msg] = False, "unknown cmd"
             self.chdir_branch()
             if not ret:
                 raise Exception(msg + "\n预制失败，请检查输出日志")
-            mr_title = '<数据预置>前端多列表方案预置-{}'.format(self.userid2name(self.user_id))
+            mr_title = '<数据预置>前端多列表方案预置-{}'.format(user_name)
             return self.create_mr(temp_branch, self.target_branch, mr_title, mr_user)
         except Exception as err:
             logger.exception(err)
