@@ -142,6 +142,9 @@ class CommentedTreeBuilder(ET.TreeBuilder):
 
 
 class VersionUtils():
+  def __init__(self):
+    self.ignore = ['autotest-frame-starter']
+
   # 取指定的目录下的指定文件，递归查询子目录的级数为level
   def getxmlfile(self, path, level, fileNames):
     pomfiles = []
@@ -208,10 +211,9 @@ class VersionUtils():
         targetProjectName = dependencieNode.find("{}artifactId".format(XML_NS_INC)).text
         if targetProjectName.endswith("-private"):
           targetProjectName = targetProjectName[:-8]
-          # print(targetProjectName)
 
-        # if targetProjectName in ['testapp','testapp-api','app-common-api']:
-        #   targetProjectName = 'framework'
+        if targetProjectName in self.ignore:
+          continue
 
         if targetProjectName in projectVersionMap:
           newVersion = projectVersionMap[targetProjectName]
