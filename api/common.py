@@ -156,6 +156,8 @@ class Common(Base):
         for group, item in config_yaml.items():
             if type(item) is not dict:
                 continue
+            if group in ["cache"]:
+                continue
             for k, v in item.items():
                 self.project_category[k] = group
                 version[k] = v

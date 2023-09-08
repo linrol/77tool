@@ -120,24 +120,23 @@ class Common:
     def get_branch_version(self, branch, skip_release=False):
         if self.project_build is None:
             raise Exception("工程【build】未找到，请检查git是否存在该项目")
-        project_build_branch = self.project_build.getBranch(branch)
-        if project_build_branch is None:
+        build_branch = self.project_build.getBranch(branch)
+        if build_branch is None:
             raise Exception("工程【build】不存在分支【{}】".format(branch))
         yaml_parse = self.utils.yaml_parse
-        config_yaml = self.utils.get_project_file(self.project_build, branch,
-                                                  'config.yaml', yaml_parse)
-        branch_version = {}
+        config_yaml = self.utils.get_project_file(self.project_build, branch, 'config.yaml', yaml_parse)
+        version = {}
         for group, item in config_yaml.items():
-            if type(item) is dict:
-                for k, v in item.items():
-                    if skip_release and "SNAPSHOT" not in v:
-                        continue
-                    self.branch_group[k] = group
-                    branch_version[k] = v.rsplit(".", 1)
-        # if len(branch_version) < 1:
-            # print("根据分支【{}】获取工程版本号失败".format(branch))
-            # raise Exception("根据分支【{}】获取工程版本号失败".format(branch))
-        return branch_version
+            if type(item) is not dict:
+                continue
+            if group in ["cache"]:
+                continue
+            for k, v in item.items():
+                if skip_release and "SNAPSHOT" not in v:
+                    continue
+                self.branch_group[k] = group
+                version[k] = v.rsplit(".", 1)
+        return version
 
     # 更新版本号
     def update_build_version(self, branch_name, project_versions):
