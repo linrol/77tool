@@ -503,7 +503,7 @@ class Task(Common):
 
     def branch_seal(self, body):
         response = {}
-        user_id, branch, projects, is_seal = body.get("user_id"), body.get("branch"), body.get("projects"), body.get("is_seal") == "true"
+        user_id, branch, projects, is_seal, clear_cache = body.get("user_id"), body.get("branch"), body.get("projects"), body.get("is_seal") == "true", body.get("clear_cache", 'false') == "true"
         modules = []
         shell = Shell(user_id, self.is_test, self.master, branch)
         access = "none" if is_seal else "hotfix"
@@ -519,6 +519,9 @@ class Task(Common):
         front_version = body.get("front_version", "").strip()
         if len(front_version) > 0:
             modules.append("front-apps=reimburse:{}".format(front_version))
+        if clear_cache:
+            cache_version = time.strftime("%Y%m%d%H%M%S")
+            modules.append("cache=local:{}".format(cache_version))
         if is_seal and len(modules) > 0:
             # 后端封版，模块包含apps，global则构建发布包
             protect = access + "," + modules[0]

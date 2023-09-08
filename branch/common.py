@@ -129,12 +129,12 @@ class Common:
         for group, item in config_yaml.items():
             if type(item) is not dict:
                 continue
-            if group in ["cache"]:
-                continue
             for k, v in item.items():
+                self.branch_group[k] = group
+                if group in ["cache"]:
+                    continue
                 if skip_release and "SNAPSHOT" not in v:
                     continue
-                self.branch_group[k] = group
                 version[k] = v.rsplit(".", 1)
         return version
 

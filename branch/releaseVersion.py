@@ -19,39 +19,40 @@ class ReleaseVersion(Common):
         self.source = source
         self.target = target
         self.category = category
-        self.source_version = self.get_branch_version(source)
         self.target_version = self.get_branch_version(target, True)
         self.target_date = target[-8:]
         self.target_name = target.replace(self.target_date, "")
 
     def execute(self):
         try:
-            replace_version = {}
+            if len(self.target_version) < 1:
+                print("工程【All】分支【{}】已为发布版本号".format(self.target))
+                sys.exit(1)
+            replace = {}
             for gp in list(self.category.keys()):
                 if len(self.category.get(gp)) < 1:
                     continue
                 pv = self.category.pop(gp, {})
                 for p, v in pv.items():
-                    replace_version[p] = v
+                    replace[p] = v
                     print("工程【{}】自身版本修改为【{}】".format(p, v))
-
+            # 替换-SNAPSHOT为空串
             for k, v in self.target_version.items():
                 name = self.branch_group.get(k)
                 if name not in self.category.keys():
                     continue
-                if k in replace_version:
+                if k in replace:
                     continue
                 prefix = v[0]
-                min_version = v[1].replace("-SNAPSHOT", "")
-                replace_version[k] = "{}.{}".format(prefix, min_version)
-            if len(replace_version) < 1:
-                print("工程【所有模块】的分支【{}】已为发布版本号".format(self.target))
+                replace[k] = "{}.{}".format(prefix, v[1].replace("-SNAPSHOT", ""))
+            if len(replace) < 1:
+                print("分支【{}】没有需要待构建的快照包版本".format(self.target))
                 sys.exit(1)
-            if not self.check_front_version_release(replace_version):
+            if not self.check_front_version_release(replace):
                 print("ERROR:前端预制目前是快照版本，请联系前端值班提供Release版本后重试")
                 sys.exit(1)
-            self.update_build_version(self.target, replace_version)
-            return replace_version
+            self.update_build_version(self.target, replace)
+            return replace
         except Exception as err:
             print(str(err))
             sys.exit(1)

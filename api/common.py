@@ -156,10 +156,10 @@ class Common(Base):
         for group, item in config_yaml.items():
             if type(item) is not dict:
                 continue
-            if group in ["cache"]:
-                continue
             for k, v in item.items():
                 self.project_category[k] = group
+                if group in ["cache"]:
+                    continue
                 version[k] = v
         if len(version) < 1:
             raise Exception("根据分支【{}】获取工程版本号失败".format(branch))
