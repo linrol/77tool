@@ -318,7 +318,7 @@ class Task(Common):
             hmset("q7link-branch-merge", {mr_key: assignee_name})
 
         # 发送已合并通知
-        merged_mrs = gl.mergerequests.list(state='merged', scope="all", created_after=before_hours)
+        merged_mrs = gl.mergerequests.list(state='merged', scope="all", updated_after=before_hours)
         for mr in merged_mrs:
             if mr.merged_by is None:
                 continue
