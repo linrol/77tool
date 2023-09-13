@@ -34,8 +34,8 @@ class GenVersion(Common):
         if self.fixed_version is None:
             self.target_date = target[-8:]
             self.target_name = target.replace(self.target_date, "")
-            self.last_sprint, self.last_sprint_version = self.lookup_sprint_version(5, False)
-            self.next_sprint, self.next_sprint_version = self.lookup_sprint_version(5, True)
+            self.last_sprint, self.last_sprint_version = self.lookup_sprint_version(60, False)
+            self.next_sprint, self.next_sprint_version = self.lookup_sprint_version(60, True)
 
     def is_feature(self):
         return self.fixed_version is not None
@@ -56,19 +56,23 @@ class GenVersion(Common):
             result.add(name)
         return list(result)
 
-    def lookup_sprint_version(self, weeks, is_forward):
+    def lookup_sprint_version(self, days, is_forward):
         if self.target_name not in ["sprint", 'release']:
             return None, {}
         try:
-            for num in range(1, weeks):
-                num = num * 7 if is_forward else -(num * 7)
-                for name in ['sprint', 'release']:
+            branches = self.project_build.getProject().branches
+            sprint_list = list(map(lambda b: b.name, branches.list(search="^sprint20", all=True)))
+            release_list = list(map(lambda b: b.name, branches.list(search="^release20", all=True)))
+            branch_list = sprint_list + release_list
+            for num in range(1, days):
+                num = num if is_forward else -num
+                for prefix in ['sprint', 'release']:
                     target_date = datetime.strptime(self.target_date, "%Y%m%d")
-                    adjoin_week_date = target_date + timedelta(days=num)
-                    branch_name = name + adjoin_week_date.strftime("%Y%m%d")
-                    if not self.project_branch_is_presence("build", branch_name):
+                    adjoin_date = target_date + timedelta(days=num)
+                    name = prefix + adjoin_date.strftime("%Y%m%d")
+                    if name not in branch_list:
                         continue
-                    return branch_name, self.get_branch_version(branch_name)
+                    return name, self.get_branch_version(name)
             return None, {}
         except Exception as e:
             return None, {}
