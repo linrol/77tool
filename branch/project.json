@@ -246,12 +246,6 @@
         "checkPath": false,
         "isGlobal": true
       },
-      "doc": {
-        "path": "../../../other/openapi-doc",
-        "namespace": "backend/other/openapi-doc",
-        "checkPath": false,
-        "isGlobal": true
-      },
       "qtms": {
         "path": "../../../other/qtms",
         "namespace": "backend/other/qtms",
