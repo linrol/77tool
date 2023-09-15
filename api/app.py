@@ -67,6 +67,8 @@ def listener_deploy():
         return make_response("ignore")
     if "idps" in groups:
         groups.add("qip-front")
+    if "openapi" in groups:
+        groups.add("openapi-doc")
     branches = body.get("branch", body.get("project_desc")).split(",")
     clusters = set(body.get("cluster").split(","))
     ret = Task(crop).build_merge_task(branches, groups, clusters)

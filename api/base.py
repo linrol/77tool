@@ -90,6 +90,7 @@ class Base:
             data = get("{}/api/verify/duty/users".format(self.rd_url)).get("data")
             # body = {"data": {"backend": [{"user_id": "zhaojunlei", "user_name": "赵俊磊"}], "front": [{"user_id": "LiPan", "user_name": "李攀"}]}}
             data["openapi_qtms"] = data.get("openapi")
+            data["openapi-doc"] = data.get("openapi")
             data["idps_front"] = data.get("idps")
             end_duties = data.get(end)
             user_ids = []
