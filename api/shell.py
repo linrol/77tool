@@ -153,10 +153,10 @@ class Shell(Common):
         finally:
             executor.submit(self.rest_branch_env)
 
-    def merge_branch(self, end, projects, clear, user_name, trigger_sync):
+    def merge_branch(self, end, projects, cluster_str, clear, user_name, merge_trigger):
         try:
             self.lock_value = self.lock.get_lock("lock", 600)
-            trigger_sync(self.user_id, projects, self.source_branch, self.target_branch)
+            merge_trigger(self.user_id, self.source_branch, self.target_branch, projects, cluster_str)
             if end == self.backend:
                 projects = [self.backend]
             self.checkout_branch(self.source_branch)

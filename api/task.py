@@ -447,26 +447,35 @@ class Task(Common):
         return rets
 
     # 发现分支代码同步：当主干分支(stage,master)一致时且推送至所有集群时，主干分支自省同步
-    def trigger_sync(self, user_id, projects, source, target):
+    def merge_trigger(self, user_id, source, target, projects, cluster_str):
         try:
-            if self.is_sprint(source):
+            if cluster_str is None:
                 return
-            if self.is_trunk(source):
+            if self.is_sprint(source) or self.is_trunk(source):
+                # 来源分支是班车或者主干时，则跳过
                 return
             if not self.is_trunk(target):
+                # 目标分支非主干分支，则跳过
                 return
+            cluster_count = len(cluster_str.split(","))
+            push_prod = 8 < cluster_count
+            push_stage = "宁夏灰度集群1" in cluster_str
+            perform_present = self.branch_is_present("build", "perform")
+            push_perform = 2 < cluster_count < 9 and perform_present
+            if target != self.stage and push_stage:
+                trunk_branch = self.stage
+            elif target == self.stage and push_perform:
+                trunk_branch = self.perform
+            elif target == self.stage and push_prod:
+                trunk_branch = self.master
+            else:
+                return
+            logger.info("branch trigger sync from {} to {}".format(target, trunk_branch))
             for p_name in projects:
                 project = self.projects.get(p_name)
                 if project.isGlobal():
                     continue
-                if not project.checkMerge(self.stage, self.master):
-                    logger.info("differ from {} to {}".format(self.stage, self.master))
-                    continue
-                if not project.checkMerge(self.master, self.stage):
-                    logger.info("differ from {} to {}".format(self.master, self.stage))
-                    continue
-                trunk_branch = self.stage if target == self.master else self.master
-                self.send_branch_action("merge", user_id, target, trunk_branch, p_name, "全部租户集群")
+                self.send_branch_action("merge", user_id, target, trunk_branch, p_name, cluster_str)
         except Exception as err:
             logger.exception(err)
 
@@ -496,7 +505,7 @@ class Task(Common):
         # 发送应用任务消息并记录任务
         body = self.crop.send_template_card(user_ids, task_params)
         task_code = body.get("response_code")
-        task_value = "{}#{}#{}#{}#{}".format(str(self.is_test), task_code, source, target, project)
+        task_value = "{}#{}#{}#{}#{}#{}".format(str(self.is_test), task_code, source, target, project, cluster_str)
         logger.info("write task[{}->{}]".format(task_key, task_value))
         save_user_task(task_key, task_value)
         return task_key

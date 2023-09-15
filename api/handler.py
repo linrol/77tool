@@ -194,16 +194,18 @@ class Handler(Base):
                 source, target, projects, clear = get_merge_branch_dirt(self.msg_content)
                 end = self.get_project_end(projects)
                 duty_id, duty_name = self.get_duty_info(self.is_test, end)
+                cluster_str = None
                 if self.is_trunk(target):
                     if self.user_id not in duty_id:
                         raise Exception("仅限当周值班人：{}操作".format(duty_name))
                 self.crop.send_text_msg(self.user_id, "分支合并任务运行中，请稍等片刻!")
             else:
-                source, target, projects = task_contents[2], task_contents[3], task_contents[4].split(",")
+                source, target, projects, cluster_str = task_contents[2], task_contents[3], task_contents[4].split(","), task_contents[5]
                 end = self.get_project_end(projects)
                 clear = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
             shell = Shell(self.user_id, self.is_test, source, target)
-            _, ret = shell.merge_branch(end, projects, clear, self.user_name, Task(self.crop).trigger_sync)
+            merge_trigger = Task(self.crop).merge_trigger
+            _, ret = shell.merge_branch(end, projects, cluster_str, clear, self.user_name, merge_trigger)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(ret))
             # 更新ops的蓝绿部署合并代码审批节点
