@@ -460,8 +460,7 @@ class Task(Common):
             cluster_count = len(cluster_str.split(","))
             push_prod = 8 < cluster_count
             push_stage = "宁夏灰度集群1" in cluster_str
-            perform_present = self.branch_is_present("build", "perform")
-            push_perform = 2 < cluster_count < 9 and perform_present
+            push_perform = 2 < cluster_count < 9
             if target != self.stage and push_stage:
                 trunk_branch = self.stage
             elif target == self.stage and push_perform:
@@ -474,6 +473,8 @@ class Task(Common):
             for p_name in projects:
                 project = self.projects.get(p_name)
                 if project.isGlobal():
+                    continue
+                if project.getBranch(trunk_branch) is None:
                     continue
                 self.send_branch_action("merge", user_id, target, trunk_branch, p_name, cluster_str)
         except Exception as err:
