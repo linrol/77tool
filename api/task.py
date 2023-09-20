@@ -530,7 +530,7 @@ class Task(Common):
         if len(front_version) > 0:
             modules.append("front-apps=reimburse:{}".format(front_version))
         if clear_cache:
-            cache_version = time.strftime("%Y%m%d%H%M%S")
+            cache_version = time.strftime("%Y%m%d%H%M")
             modules.append("cache=local:{}".format(cache_version))
         if is_seal and len(modules) > 0:
             # 后端封版，模块包含apps，global则构建发布包

@@ -149,6 +149,7 @@ class Common:
         config = ruamel_yaml.load(open(config_path))
         for project, version in project_versions.items():
             group = self.branch_group.get(project)
+            version = int(version) if version.isdigit() else version
             config[group][project] = version
         with open(config_path, 'w') as f:
             ruamel_yaml.dump(config, f)
