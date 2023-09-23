@@ -92,6 +92,7 @@ mkdir other
 cd other
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/apps/qbos.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/apps/openapi.git
+git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/other/openapi-doc.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/apps/store.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/jsf.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/other/qtms.git
