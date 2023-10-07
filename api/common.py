@@ -74,6 +74,8 @@ class Common(Base):
             project = self.projects.get(name)
             if project is None:
                 continue
+            if project.getBranch(target) is not None:
+                continue
             real_source = project.createBranch(source, target)
             msg += "工程【{}】基于分支【{}】创建分支【{}】成功\n".format(name, real_source, target)
         return True, msg
