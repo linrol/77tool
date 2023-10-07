@@ -4,7 +4,7 @@ from log import logger
 
 
 def get(url):
-    response = requests.get(url)
+    response = requests.get(url, timeout=90)
     body = json.loads(response.text)
     if body.get('errcode', '0') != 0 and 'errmsg' in body:
         logger.error(body.get('errmsg'))
