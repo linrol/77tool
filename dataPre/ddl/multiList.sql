@@ -619,6 +619,8 @@ CREATE TABLE "baseapp_list_column_schema"
     "modified_time" TIMESTAMP,
     "is_search" BOOLEAN DEFAULT false NOT NULL,
     "search_match_type_id" VARCHAR(512),
+    "format_type" VARCHAR(128),
+    "format_params" JSONB,
     "disable_change_is_search" BOOLEAN DEFAULT false NOT NULL,
     "disable_change_search_match_type" BOOLEAN DEFAULT false NOT NULL,
     "is_system" BOOLEAN DEFAULT false NOT NULL,
