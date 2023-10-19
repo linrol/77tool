@@ -74,6 +74,8 @@ class Shell(Common):
     def create_backend_branch(self, fixed_version, projects, req_name):
         try:
             self.lock_value = self.lock.get_lock("lock", 300)
+            if not self.branch_is_present("build", self.source_branch):
+                raise Exception("工程【build】的来源分支【{}】不存在".format(self.source_branch))
             clear_build_params = self.get_clear_build_params(self.target_branch)
             is_feature_branch = fixed_version != "None"
             gen_params = "-v {}".format(fixed_version) if is_feature_branch else "-f"
