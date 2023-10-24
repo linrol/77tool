@@ -623,6 +623,8 @@ CREATE TABLE "baseapp_list_column_schema"
     "search_match_type_id" VARCHAR(512),
     "disable_change_is_search" BOOLEAN DEFAULT false NOT NULL,
     "disable_change_search_match_type" BOOLEAN DEFAULT false NOT NULL,
+    "formatType" VARCHAR(64),
+    "formatParams" JSONB,
     "is_system" BOOLEAN DEFAULT false NOT NULL,
     "is_init_data" BOOLEAN DEFAULT false NOT NULL,
     "is_deleted" BOOLEAN DEFAULT false NOT NULL,
