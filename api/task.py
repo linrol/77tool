@@ -517,15 +517,20 @@ class Task(Common):
         modules = []
         shell = Shell(user_id, self.is_test, self.master, branch)
         access = "none" if is_seal else "hotfix"
+        without_backend = True
         for project in projects:
             is_backend = project in ["apps", "global"]
             if is_backend:
+                without_backend = False
                 modules = [project] if len(modules) == 0 else ["all"]
             if project not in self.projects.keys() and not is_backend:
                 ret, msg = self.protect_git_branch(branch, project, access)
             else:
                 ret, msg = self.protect_branch(branch, access, [project])
             response[project] = {"ret": ret, "msg": msg}
+        if without_backend:
+            return response
+        # 后端封板
         front_version = body.get("front_version", "").strip()
         if len(front_version) > 0:
             modules.append("front-apps=reimburse:{}".format(front_version))
