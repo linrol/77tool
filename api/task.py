@@ -514,23 +514,21 @@ class Task(Common):
     def branch_seal(self, body):
         response = {}
         user_id, branch, projects, is_seal, clear_cache = body.get("user_id"), body.get("branch"), body.get("projects"), body.get("is_seal") == "true", body.get("clear_cache", 'false') == "true"
-        modules = []
         shell = Shell(user_id, self.is_test, self.master, branch)
         access = "none" if is_seal else "hotfix"
-        without_backend = True
         for project in projects:
             is_backend = project in ["apps", "global"]
-            if is_backend:
-                without_backend = False
-                modules = [project] if len(modules) == 0 else ["all"]
             if project not in self.projects.keys() and not is_backend:
                 ret, msg = self.protect_git_branch(branch, project, access)
             else:
                 ret, msg = self.protect_branch(branch, access, [project])
             response[project] = {"ret": ret, "msg": msg}
-        if without_backend:
+        modules = list(set(projects).intersection({"apps", "global"}))
+        if len(modules) < 1:
             return response
-        # 后端封板
+        # 后端封板/取消封板
+        if len(modules) > 1:
+            modules = ["all"]
         front_version = body.get("front_version", "").strip()
         if len(front_version) > 0:
             modules.append("front-apps=reimburse:{}".format(front_version))
