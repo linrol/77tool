@@ -19,13 +19,14 @@ class ReleaseVersion(Common):
         self.source = source
         self.target = target
         self.category = category
-        self.target_version = self.get_branch_version(target, True)
         self.target_date = target[-8:]
         self.target_name = target.replace(self.target_date, "")
 
-    def execute(self):
+    # 构建正式包
+    def build(self):
         try:
-            if len(self.target_version) < 1:
+            version = self.get_branch_version(self.target, True)
+            if len(version) < 1:
                 print("工程【All】分支【{}】已为发布版本号".format(self.target))
                 sys.exit(1)
             replace = {}
@@ -37,7 +38,7 @@ class ReleaseVersion(Common):
                     replace[p] = v
                     print("工程【{}】自身版本修改为【{}】".format(p, v))
             # 替换-SNAPSHOT为空串
-            for k, v in self.target_version.items():
+            for k, v in version.items():
                 name = self.branch_group.get(k)
                 if name not in self.category.keys():
                     continue
@@ -48,7 +49,7 @@ class ReleaseVersion(Common):
             if len(replace) < 1:
                 print("分支【{}】没有需要待构建的快照包版本".format(self.target))
                 sys.exit(1)
-            if not self.check_front_version_release(replace):
+            if not self.check_front_version_release(replace, version.get("reimburse")):
                 print("ERROR:前端预制目前是快照版本，请联系前端值班提供Release版本后重试")
                 sys.exit(1)
             self.update_build_version(self.target, replace)
@@ -58,20 +59,50 @@ class ReleaseVersion(Common):
             sys.exit(1)
 
     # 检查前端预制数据是否为发布包版本号
-    def check_front_version_release(self, replace_version):
+    @staticmethod
+    def check_front_version_release(replace_version, front_version):
         if "reimburse" in replace_version:
             return True
         if module not in module_mapping.keys():
             return True
         if module in ["global"]:
             return True
-        front_version = self.target_version.get("reimburse")
         if front_version is None:
             return True
         for v in front_version:
             if "SNAPSHOT" in v:
                 return False
         return True
+
+    # 回退正式包并删除仓库的jar包
+    def destroy(self):
+        try:
+            replace = {}
+            version = self.get_branch_version(self.target, False)
+            for name, p in self.projects.items():
+                if p.getModule() != "platform":
+                    continue
+                if p.getBranch(self.target) is None:
+                    continue
+                version[name] = version.get("framework")
+            for k, v in version.items():
+                if "SNAPSHOT" in v:
+                    continue
+                group = self.branch_group.get(k)
+                if group not in self.category.keys():
+                    continue
+                if not self.project_branch_is_presence(k, self.target):
+                    continue
+                replace[k] = "{}.{}-SNAPSHOT".format(v[0], v[1])
+            if len(replace) < 1:
+                print("分支【{}】没有需要回退的发布包版本".format(self.target))
+                sys.exit(1)
+            # todo nexus api delete jar
+            self.update_build_version(self.target, replace)
+            return replace
+        except Exception as err:
+            print(str(err))
+            sys.exit(1)
 
 
 # 修改版本号
@@ -96,4 +127,4 @@ if __name__ == "__main__":
             gv = pg.split("=")
             g = gv[0]
             mapping[g] = dict(i.split(":") for i in gv[1].split(","))
-        ReleaseVersion(source_branch, target_branch, mapping).execute()
+        ReleaseVersion(source_branch, target_branch, mapping).build()
