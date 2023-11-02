@@ -2,6 +2,10 @@ import os
 import ruamel.yaml
 import redis
 import subprocess
+import requests
+import json
+NEXUS_URL = 'http://nexus.q7link.com:8081'
+auth = ('admin', 'mici407,wash')
 
 
 class Node(object):
@@ -215,4 +219,31 @@ class Common:
         key2 = "*_{}_*".format(target_name)
         weight = self.weights.get(key2)
         return int(weight)
+
+    @staticmethod
+    def nexus_search(repository, group_id, artifact_id, version):
+        search_url = "{}/service/rest/v1/search?repository={}&maven.groupId={}&maven.artifactId={}&maven.extension=jar&version={}".format(NEXUS_URL, repository, group_id, artifact_id, version)
+        headers = {'content-type': 'application/json', 'charset': 'utf-8'}
+        response = requests.get(search_url, auth=auth, headers=headers)
+        data = json.loads(response.content.decode())
+        print(data)
+        return data
+
+    @staticmethod
+    def nexus_delete(module_id):
+        delete_url = "{}/service/rest/v1/components/{}".format(NEXUS_URL, module_id)
+        headers = {'content-type': 'application/json', 'charset': 'utf-8'}
+        print(delete_url)
+        response = requests.delete(delete_url, auth=auth, headers=headers)
+        return response.status_code == 204
+
+    def nexus_delete(self, repository, group_id, artifact_id, version):
+        ret = self.nexus_search(repository, group_id, artifact_id, version)
+        items = ret.get('items')
+        if len(items) != 1:
+            print("not found jar")
+        else:
+            item_id = items[0].get("id")
+            ret = self.nexus_delete(item_id)
+            print("delete ret {}".format(ret))
 

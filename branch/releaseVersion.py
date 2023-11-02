@@ -86,18 +86,23 @@ class ReleaseVersion(Common):
                     continue
                 version[name] = version.get("framework")
             for k, v in version.items():
-                if "SNAPSHOT" in v:
+                if "SNAPSHOT" in v[1]:
                     continue
-                group = self.branch_group.get(k)
-                if group not in self.category.keys():
-                    continue
+                # group = self.branch_group.get(k)
+                # if group not in self.category.keys():
+                #     continue
                 if not self.project_branch_is_presence(k, self.target):
                     continue
                 replace[k] = "{}.{}-SNAPSHOT".format(v[0], v[1])
+                # todo nexus api delete jar
+                # "com.q7link.framework"
+                # group_id = "com.q7link.application"
+                # delete_version = "{}.{}".format(v[0], v[1])
+                # self.nexus_delete("maven-releases", group_id, k, delete_version)
+                # self.nexus_delete("maven-releases", group_id, k + "-private", delete_version)
             if len(replace) < 1:
                 print("分支【{}】没有需要回退的发布包版本".format(self.target))
                 sys.exit(1)
-            # todo nexus api delete jar
             self.update_build_version(self.target, replace)
             return replace
         except Exception as err:
