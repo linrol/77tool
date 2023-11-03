@@ -5,7 +5,7 @@ import subprocess
 import requests
 import json
 NEXUS_URL = 'http://nexus.q7link.com:8081'
-auth = ('admin', 'mici407,wash')
+auth = ('branch-ci', 'branch-ci')
 
 
 class Node(object):

@@ -2,7 +2,7 @@ import requests
 import json
 
 NEXUS_URL = 'http://nexus.q7link.com:8081'
-auth = ('admin', 'mici407,wash')
+auth = ('branch-ci', 'branch-ci')
 GROUP_ID = 'com.q7link.application'
 
 
