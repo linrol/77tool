@@ -1,5 +1,7 @@
 # coding:utf-8
 import sys
+import traceback
+
 import utils
 from common import Common
 
@@ -80,33 +82,27 @@ class ReleaseVersion(Common):
             replace = {}
             version = self.get_branch_version(self.target, False)
             for name, p in self.projects.items():
-                if p.getModule() != "platform":
-                    continue
                 if p.getBranch(self.target) is None:
                     continue
-                version[name] = version.get("framework")
-            for k, v in version.items():
-                if "SNAPSHOT" in v[1]:
+                name_alias = "framework" if p.getModule() == "platform" else name
+                v = version.get(name_alias)
+                if v is None:
                     continue
-                # group = self.branch_group.get(k)
-                # if group not in self.category.keys():
-                #     continue
-                if not self.project_branch_is_presence(k, self.target):
-                    continue
-                replace[k] = "{}.{}-SNAPSHOT".format(v[0], v[1])
-                # todo nexus api delete jar
-                # "com.q7link.framework"
-                # group_id = "com.q7link.application"
-                # delete_version = "{}.{}".format(v[0], v[1])
-                # self.nexus_delete("maven-releases", group_id, k, delete_version)
-                # self.nexus_delete("maven-releases", group_id, k + "-private", delete_version)
+                jar_version = "{}.{}".format(v[0], v[1])
+                self.maven_delete(name, jar_version)
+                if "api" in name:
+                    self.maven_delete("{}-private".format(name), jar_version)
+                if "parent" == name:
+                    self.maven_delete("app-parent", jar_version)
+                    self.maven_delete("app-api-parent", jar_version)
+                replace[name_alias] = "{}-SNAPSHOT".format(jar_version)
             if len(replace) < 1:
                 print("分支【{}】没有需要回退的发布包版本".format(self.target))
                 sys.exit(1)
             self.update_build_version(self.target, replace)
             return replace
         except Exception as err:
-            print(str(err))
+            traceback.print_exc()
             sys.exit(1)
 
 

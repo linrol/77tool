@@ -11,11 +11,10 @@ def search(repository, group_id, artifact_id, version):
     headers = {'content-type': 'application/json', 'charset': 'utf-8'}
     response = requests.get(search_url, auth=auth, headers=headers)
     data = json.loads(response.content.decode())
-    print(data)
     return data
 
 
-def delete(module_id):
+def nexus_delete(module_id):
     delete_url = "{}/service/rest/v1/components/{}".format(NEXUS_URL, module_id)
     headers = {'content-type': 'application/json', 'charset': 'utf-8'}
     print(delete_url)
@@ -23,16 +22,16 @@ def delete(module_id):
     return response.status_code == 204
 
 
-def delete(repository, group_id, artifact_id, version):
+def maven_delete(repository, group_id, artifact_id, version):
     ret = search(repository, group_id, artifact_id, version)
     items = ret.get('items')
     if len(items) != 1:
-        print("not found jar")
+        print("maven({}:{}:{}) not found ".format(group_id, artifact_id, version))
     else:
         item_id = items[0].get("id")
-        ret = delete(item_id)
-        print("delete ret {}".format(ret))
+        ret = nexus_delete(item_id)
+        print("maven({}:{}:{}) delete {}".format(group_id, artifact_id, version, ret))
 
 
 if __name__ == '__main__':
-    delete("maven-releases", GROUP_ID, "budget-api", "1.26.3")
+    maven_delete("maven-releases", GROUP_ID, "budget-api-private", "2.0.4")

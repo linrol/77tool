@@ -4,7 +4,7 @@ import redis
 import subprocess
 import requests
 import json
-NEXUS_URL = 'http://nexus.q7link.com:8081'
+nexus_url = 'http://nexus.q7link.com:8081'
 auth = ('branch-ci', 'branch-ci')
 
 
@@ -221,29 +221,33 @@ class Common:
         return int(weight)
 
     @staticmethod
-    def nexus_search(repository, group_id, artifact_id, version):
-        search_url = "{}/service/rest/v1/search?repository={}&maven.groupId={}&maven.artifactId={}&maven.extension=jar&version={}".format(NEXUS_URL, repository, group_id, artifact_id, version)
-        headers = {'content-type': 'application/json', 'charset': 'utf-8'}
-        response = requests.get(search_url, auth=auth, headers=headers)
-        data = json.loads(response.content.decode())
-        print(data)
-        return data
+    def nexus_search(repository, group_ids, artifact_id, version):
+        for group_id in group_ids:
+            path = "{}/service/rest/v1/search?repository={}&maven.groupId={}&maven.artifactId={}&maven.extension=jar&version={}"
+            search_url = path.format(nexus_url, repository, group_id, artifact_id, version)
+            headers = {'content-type': 'application/json', 'charset': 'utf-8'}
+            response = requests.get(search_url, auth=auth, headers=headers)
+            data = json.loads(response.content.decode())
+            if len(data.get('items')) > 0:
+                return data.get('items')
+        return None
 
     @staticmethod
     def nexus_delete(module_id):
-        delete_url = "{}/service/rest/v1/components/{}".format(NEXUS_URL, module_id)
+        delete_url = "{}/service/rest/v1/components/{}".format(nexus_url, module_id)
         headers = {'content-type': 'application/json', 'charset': 'utf-8'}
         print(delete_url)
         response = requests.delete(delete_url, auth=auth, headers=headers)
         return response.status_code == 204
 
-    def nexus_delete(self, repository, group_id, artifact_id, version):
-        ret = self.nexus_search(repository, group_id, artifact_id, version)
-        items = ret.get('items')
-        if len(items) != 1:
-            print("not found jar")
+    def maven_delete(self, artifact_id, version):
+        repository = "maven-releases"
+        group_ids = ["com.q7link.application", "com.q7link.framework"]
+        jars = self.nexus_search(repository, group_ids, artifact_id, version)
+        if jars is None:
+            print("maven({}:{}) not found".format(artifact_id, version))
         else:
-            item_id = items[0].get("id")
+            item_id = jars[0].get("id")
             ret = self.nexus_delete(item_id)
-            print("delete ret {}".format(ret))
+            print("maven({}:{}) delete {}".format(artifact_id, version, ret))
 
