@@ -16,9 +16,8 @@ module_mapping = {
 
 
 class ReleaseVersion(Common):
-    def __init__(self, source, target, category):
+    def __init__(self, target, category):
         super().__init__(utils)
-        self.source = source
         self.target = target
         self.category = category
         self.target_date = target[-8:]
@@ -108,13 +107,13 @@ class ReleaseVersion(Common):
 
 # 修改版本号
 # 例：修改hotfix分支的版本号，并且修改工程自身版本号，清空开发脚本
-# python3 releaseVersion.py stage sprint20220818 all/global/apps other=budget:2.1,budget-api:2.2,project:2.3,framework:2.4
+# python3 releaseVersion.py build/destroy sprint20220818 all/global/apps other=budget:2.1,budget-api:2.2,project:2.3,framework:2.4
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("ERROR: 输入参数错误, 正确的参数为：<source_branch> <target_branch> <module> <other=budget:2.1>")
+        print("ERROR: 输入参数错误, 正确的参数为：<action> <target_branch> <module> <other=budget:2.1>")
         sys.exit(1)
     else:
-        source_branch = sys.argv[1]
+        action = sys.argv[1]
         target_branch = sys.argv[2]
         module = sys.argv[3]
         mapping = {}
@@ -128,4 +127,5 @@ if __name__ == "__main__":
             gv = pg.split("=")
             g = gv[0]
             mapping[g] = dict(i.split(":") for i in gv[1].split(","))
-        ReleaseVersion(source_branch, target_branch, mapping).build()
+        release = ReleaseVersion(target_branch, mapping)
+        getattr(release, action)()
