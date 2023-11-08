@@ -6,7 +6,7 @@ XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 class Dependency(Common):
 
     def __init__(self):
-        self.ignore = ['grpc-clients', 'testapp', 'base-common-test', 'idgen-client', 'crypto']
+        self.ignore = ['grpc-clients', 'testapp', 'base-common-test', 'idgen-client', 'crypto', 'autotest-frame-starter']
         super().__init__()
 
     def getfile(self, path, level, file_names):
@@ -80,7 +80,7 @@ class Dependency(Common):
         while node is not None:
             print("weight:{}, projects:{}".format(weight, node.data))
             node = node.after
-            weight -= 10
+            weight -= 20
 
 
 class Builder(et.TreeBuilder):
@@ -107,9 +107,18 @@ class DependencyNode(object):
                 ret.append(k)
                 continue
             before_vs = self.get_before_data(before, list())
-            if set(v) <= set(before_vs):
+            diff = set(v) - set(before_vs)
+            if len(diff) == 0:
                 ret.append(k)
                 continue
+            unknown = diff - data.keys()
+            if len(unknown) > 0:
+                print("工程【{}】依赖的【{}】不存在".format(k, unknown))
+                exit(-1)
+        if len(ret) == 0:
+            loop_path = "->".join(self.get_loop_path(data, list(data.values())[0], []))
+            print("工程存在循环依赖，无法生成有向图({})".format(loop_path))
+            exit(-1)
         ret.sort()
         node = DependencyNode(ret, before)
         for k in ret:
@@ -124,6 +133,15 @@ class DependencyNode(object):
         v.extend(before.data)
         return self.get_before_data(before.before, v)
 
+    def get_loop_path(self, data, p_list, path):
+        for p in p_list:
+            if p not in data.keys():
+                continue
+            if p in path:
+                return path
+            path.append(p)
+            return self.get_loop_path(data, data.get(p), path)
+
 
 if __name__ == '__main__':
-    Dependency().cal("sprint20230824")
+    Dependency().cal("sprint20231106")
