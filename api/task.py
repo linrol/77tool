@@ -133,7 +133,7 @@ class Task(Common):
     # 断言值班分支的来源是否正确，目标分支的上线日期等
     def assert_duty(self, source, target):
         if not self.match_branch_mapping(source, target):
-            raise Exception("不受支持的来源分支，请检查或联系助手管理人员配置分支映射关系")
+            raise Exception("不受支持的来源分支，请检查或联系管理者配置分支映射关系")
         target_name, target_date = self.get_branch_date(target)
         week_later = (datetime.now() + timedelta(days=-7)).strftime("%Y%m%d")
         if int(week_later) > int(target_date):
