@@ -41,39 +41,43 @@ class Task(Common):
         project = self.get_project(project_name)
         return project.getBranch(branch)
 
-    def get_feature_branch(self, source_branch, target_branch, end, **user):
-        s_duty, t_duty, _, _ = self.is_duty_branch(source_branch, target_branch)
-        if s_duty and t_duty:
-            # 值班分支
+    def cal_new_branch_version(self, source, target, end, **user):
+        target_name, _ = self.get_branch_date(target)
+        if target_name in self.get_duty_targets():
+            # 目标分支是值班分支
+            self.assert_duty(source, target)
             return None
+        applicant_id = user["applicant"][0]
+        applicant_name = user["applicant"][1]
         if end != self.backend:
-            applicant_id = user["applicant"][0]
-            applicant_name = user["applicant"][1]
-            return "none_version", applicant_id, applicant_name
-        feature_info = self.get_branch_feature(target_branch)
+            user["watchman"] = (applicant_id, applicant_name)
+            return "none_version"
+        feature_info = self.get_branch_feature(target)
         if feature_info is None:
-            sql = "select * from zt_project where code = '{}' and type='sprint'".format(target_branch)
+            sql = "select * from zt_project where code = '{}' and type='sprint'".format(target)
             zt_project_info = self.zt_fetchone(sql)
             if zt_project_info is None:
-                return None
+                self.raise_branch_init(source, target, applicant_name)
             app = zt_project_info.get("app")
             pm = zt_project_info.get("PM")
             account = (pm if (app is None or app.isspace()) else app).replace(",", "")
             sql = "select * from zt_user where account = '{}'".format(account)
             zt_user_info = self.zt_fetchone(sql)
             if zt_user_info is None:
-                return None
+                self.raise_branch_init(source, target, applicant_name)
             leader_user = zt_user_info.get("realname", None)
-            version = self.gen_feature_version(source_branch)
-            self.save_branch_feature(target_branch, source_branch, version, leader_user)
-            return version, self.name2userid(leader_user), leader_user
-        source = feature_info.split("@")[0]
-        if source != source_branch:
-            logger.info("Waring: 特性分支创建时来源分支为【{}】".format(source))
+            version = self.gen_feature_version(source)
+            self.save_branch_feature(target, source, version, leader_user)
+            user["watchman"] = (self.name2userid(leader_user), leader_user)
+            return version
+        _source = feature_info.split("@")[0]
+        if _source != source:
+            logger.info("Waring: 特性分支初始化时来源分支为【{}】".format(_source))
             # raise Exception("Waring: 特性分支创建时来源分支为【{}】".format(source))
         version = feature_info.split("@")[1]
         approve = feature_info.split("@")[2]
-        return version, self.name2userid(approve), approve
+        user["watchman"] = (self.name2userid(approve), approve)
+        return version
 
     def filter_project(self, target, projects):
         project_str = ",".join(projects)
@@ -126,18 +130,31 @@ class Task(Common):
         if int(week_later) > int(target_date):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
 
+    # 断言值班分支的来源是否正确，目标分支的上线日期等
+    def assert_duty(self, source, target):
+        if not self.match_branch_mapping(source, target):
+            raise Exception("不受支持的来源分支，请检查或联系助手管理人员配置分支映射关系")
+        target_name, target_date = self.get_branch_date(target)
+        week_later = (datetime.now() + timedelta(days=-7)).strftime("%Y%m%d")
+        if int(week_later) > int(target_date):
+            raise Exception("目标分支的上线日期过小，请检查分支名称日期")
+
+    # 提示用户进行分支初始化操作
+    @staticmethod
+    def raise_branch_init(source, target, user_name):
+        tips = "目标分支为特性分支时，需按以下格式初始化后可操作(可修改分支版本号，负责人等信息)：" + \
+               "\n====================" + \
+               "\n操　　作：初始化特性分支" + \
+               "\n来源分支：" + source + \
+               "\n目标分支：" + target + \
+               "\n分支版本号：{}" + \
+               "\n分支负责人：" + user_name
+        raise Exception(tips)
+
     # 创建拉分支的任务
     def new_branch_task(self, end, source, target, projects, **user):
         projects = self.filter_project(target, projects)
-        feature_info = self.get_feature_branch(source, target, end, **user)
-        if feature_info is None:
-            # 值班分支
-            version = None
-            self.check_new_branch(source, target, user["applicant"][1])
-        else:
-            # 特性分支
-            version = feature_info[0]
-            user["watchman"] = feature_info[1:]
+        version = self.cal_new_branch_version(source, target, end, **user)
         multi_source = self.split_multi_source(source, target, projects)
         for source, projects in multi_source.items():
             if len(projects) < 1:
@@ -366,7 +383,7 @@ class Task(Common):
             tmp.add(services2project.get(s, s))
         projects = list(tmp)
         rets = []
-        duty_branches = self.get_duty_branches()
+        duty_branches = self.get_duty_targets()
         for source_name in branches:
             if self.is_chinese(source_name):
                 continue

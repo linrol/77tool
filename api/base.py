@@ -111,7 +111,7 @@ class Base:
 
     # 获取值班目标分支集合
     @staticmethod
-    def get_duty_branches():
+    def get_duty_targets():
         branches = set()
         try:
             mapping = get_branch_mapping()
@@ -120,6 +120,17 @@ class Base:
         except Exception as err:
             logger.exception(err)
         return branches
+
+    # 判断值班目标分支是否匹配来源分支
+    def match_branch_mapping(self, source, target):
+        prefix, _ = self.get_branch_date(target)
+        mapping = get_branch_mapping()
+        for k, v in mapping.items():
+            if prefix not in v.split(","):
+                continue
+            if re.match("^{}$".format(k), source):
+                return True
+        return False
 
     # 判断值班分支
     def is_duty(self, branch):
