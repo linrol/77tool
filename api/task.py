@@ -41,7 +41,7 @@ class Task(Common):
         project = self.get_project(project_name)
         return project.getBranch(branch)
 
-    def cal_new_branch_version(self, source, target, end, **user):
+    def cal_new_branch_version(self, source, target, end, user):
         target_name, _ = self.get_branch_date(target)
         if target_name in self.get_duty_targets():
             # 目标分支是值班分支
@@ -154,7 +154,7 @@ class Task(Common):
     # 创建拉分支的任务
     def new_branch_task(self, end, source, target, projects, **user):
         projects = self.filter_project(target, projects)
-        version = self.cal_new_branch_version(source, target, end, **user)
+        version = self.cal_new_branch_version(source, target, end, user)
         multi_source = self.split_multi_source(source, target, projects)
         for source, projects in multi_source.items():
             if len(projects) < 1:
