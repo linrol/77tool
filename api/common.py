@@ -98,6 +98,21 @@ class Common(Base):
             logger.error(str(err))
             return False, ""
 
+    # 判断分支是否被保护（no one权限）
+    def is_protected(self, branch):
+        is_protected = False
+        for project in self.projects.values():
+            if project.getEnd() != self.backend:
+                continue
+            try:
+                p_branch = project.getProject().protectedbranches.get(branch)
+            except gitlab.exceptions.GitlabGetError:
+                continue
+            if p_branch.merge_access_levels[0].get('access_level') != 0:
+                return False
+            is_protected = True
+        return is_protected
+
     # 保护分支
     def protect_branch(self, branch, protect, projects=None):
         if projects is None:
