@@ -138,8 +138,8 @@ class Task(Common):
         week_later = (datetime.now() + timedelta(days=-7)).strftime("%Y%m%d")
         if int(week_later) > int(target_date):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
-        if self.is_protected(target):
-            raise Exception("目标分支权限被保护，请联系值班确认是否合并代码中或处理权限")
+        # if self.is_protected(target):
+            # raise Exception("目标分支权限被保护，请联系值班确认是否合并代码中或处理权限")
 
     # 提示用户进行分支初始化操作
     def raise_branch_init(self, source, target, user_name):
