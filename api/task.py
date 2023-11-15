@@ -45,7 +45,7 @@ class Task(Common):
         target_name, _ = self.get_branch_date(target)
         if target_name in self.get_duty_targets():
             # 目标分支是值班分支
-            self.assert_duty(source, target)
+            self.assert_duty(end, source, target)
             return None
         applicant_id = user["applicant"][0]
         applicant_name = user["applicant"][1]
@@ -131,15 +131,15 @@ class Task(Common):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
 
     # 断言值班分支的来源是否正确，目标分支的上线日期等
-    def assert_duty(self, source, target):
+    def assert_duty(self, end, source, target):
         if not self.match_branch_mapping(source, target):
             raise Exception("不受支持的来源分支，请检查或联系管理者配置分支映射关系")
         _, target_date = self.get_branch_date(target)
         week_later = (datetime.now() + timedelta(days=-7)).strftime("%Y%m%d")
         if int(week_later) > int(target_date):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
-        # if self.is_protected(target):
-            # raise Exception("目标分支权限被保护，请联系值班确认是否合并代码中或处理权限")
+        if self.backend == end and self.is_protected(target):
+            raise Exception("目标分支权限被保护，请联系值班确认是否合并代码中或处理权限")
 
     # 提示用户进行分支初始化操作
     def raise_branch_init(self, source, target, user_name):
