@@ -306,16 +306,13 @@ class ProjectInfo():
       mr = self.getMr(mr.iid)
       status = mr.merge_status
       if status == 'can_be_merged':
-        self.closeMr(mr)
-        # mr.delete()
+        self.deleteMr(mr)
         return False
       if status in ['cannot_be_merged', 'cannot_be_merged_recheck']:
-        self.closeMr(mr)
-        # mr.delete()
+        self.deleteMr(mr)
         return True
       if elapsed > 30:
-        self.closeMr(mr)
-        # mr.delete()
+        self.deleteMr(mr)
         return True
       elapsed += 3
       time.sleep(3)
@@ -332,9 +329,8 @@ class ProjectInfo():
       raise Exception("工程【】从【】合并至【】存在冲突", project, source, target)
     return mr.merge()
 
-  def closeMr(self, mr):
-    mr.state_event = 'close'
-    mr.save()
+  def deleteMr(self, mr):
+    mr.delete()
 
   # 获取项目成员
   def getProjectMember(self, query):

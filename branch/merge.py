@@ -41,34 +41,30 @@ class Merge(Common):
                 continue
 
     def check_conflict(self):
-        conflict_project = []
+        conflicts = []
         for p, p_info in self.projects.items():
             if self.is_trunk(self.target):
                 continue
             if p_info.getBranch(self.target) is None:
                 continue
-            # title = "Merge branch {} into {}".format(self.source, self.target)
-            # if not p_info.checkConflicts(self.source, self.target, title):
-            #     continue
-            path = p_info.getPath()
-            cmd = "cd {};git merge-base origin/{} origin/{}".format(path, self.source, self.target)
-            [ret, base_sha] = subprocess.getstatusoutput(cmd)
-            if ret != 0:
-                conflict_project.append(p)
-                continue
-            cmd = "cd {};git merge-tree {} origin/{} origin/{}".format(path, base_sha, self.source, self.target)
+            title = "test check conflicts"
+            if self.end != self.backend and not p_info.checkConflicts(self.source, self.target, title):
+                continue  # 非后端工程优先使用gitlab的冲突检查
             try:
-                [ret, merge_ret] = subprocess.getstatusoutput(cmd)
+                path = p_info.getPath()
+                cmd = "cd {};git merge-base origin/{} origin/{}".format(path, self.source, self.target)
+                [ret, base_sha] = subprocess.getstatusoutput(cmd)
                 if ret != 0:
-                    conflict_project.append(p)
+                    conflicts.append(p)
                     continue
-                if "changed in both" in merge_ret:
-                    conflict_project.append(p)
-                continue
+                cmd = "cd {};git merge-tree {} origin/{} origin/{}".format(path, base_sha, self.source, self.target)
+                [ret, merge_ret] = subprocess.getstatusoutput(cmd)
+                if ret != 0 or "changed in both" in merge_ret:
+                    conflicts.append(p)
+                    continue
             except Exception as err:
-                conflict_project.append(p)
-                continue
-        return conflict_project
+                conflicts.append(p)
+        return conflicts
 
     def merge(self):
         wait_created = []
