@@ -223,7 +223,7 @@ class Common:
     @staticmethod
     def nexus_search(repository, group_ids, artifact_id, version):
         for group_id in group_ids:
-            path = "{}/service/rest/v1/search?repository={}&maven.groupId={}&maven.artifactId={}&maven.extension=jar&version={}"
+            path = "{}/service/rest/v1/search?repository={}&maven.groupId={}&maven.artifactId={}&version={}"
             search_url = path.format(nexus_url, repository, group_id, artifact_id, version)
             headers = {'content-type': 'application/json', 'charset': 'utf-8'}
             response = requests.get(search_url, auth=auth, headers=headers)
