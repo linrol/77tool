@@ -87,6 +87,8 @@ class ReleaseVersion(Common):
                 v = version.get(name_alias)
                 if v is None:
                     continue
+                if "SNAPSHOT" in v[1]:
+                    continue
                 jar_version = "{}.{}".format(v[0], v[1])
                 self.maven_delete(name, jar_version)
                 if "api" in name:
