@@ -5,6 +5,7 @@ import utils
 import traceback
 import requests
 import uuid
+import re
 from common import Common
 from datetime import datetime, timedelta
 
@@ -174,10 +175,12 @@ class GenVersion(Common):
         return ret
 
     def gen_feature_version(self, project_name):
-        source_version = self.source_version.get(project_name)
-        if source_version is None:
+        ver = self.source_version.get(project_name)
+        if ver is None:
             return None
-        return "{}.{}".format(source_version[0], self.fixed_version[4:])
+        prefix = re.match("[0-9]+[.][0-9]+", ver[0]).group()
+        suffix = re.search(r"\b(\d+[.]\w+-SNAPSHOT)\b", self.fixed_version).group(1)
+        return "{}.{}".format(prefix, suffix)
 
     def get_last_min_version(self, project_name, prefix, s_min):
         last_version = self.last_sprint_version.get(project_name, None)
