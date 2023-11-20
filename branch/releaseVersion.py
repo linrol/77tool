@@ -93,6 +93,8 @@ class ReleaseVersion(Common):
                 self.maven_delete(name, jar_version)
                 if "api" in name:
                     self.maven_delete("{}-private".format(name), jar_version)
+                else:
+                    self.maven_delete("{}-gen".format(name), jar_version)
                 if "parent" == name:
                     self.maven_delete("app-parent", jar_version)
                     self.maven_delete("app-api-parent", jar_version)
