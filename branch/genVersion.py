@@ -179,7 +179,7 @@ class GenVersion(Common):
         if ver is None:
             return None
         prefix = re.match("[0-9]+[.][0-9]+", ver[0]).group()
-        suffix = re.search(r"\b(\d+[.]\w+-SNAPSHOT)\b", self.fixed_version).group(1)
+        suffix = re.search(r"\b(\d+[.][\w_-]+-SNAPSHOT)\b", self.fixed_version).group(1)
         return "{}.{}".format(prefix, suffix)
 
     def get_last_min_version(self, project_name, prefix, s_min):
