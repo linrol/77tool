@@ -21,6 +21,7 @@ services2project = {
     "bpmn-reconclle": "q7link-services",
     "bankstmt": "q7link-services",
     "search": "q7link-services",
+    "search-710": "q7link-services",
     "idgen": "q7link-services",
     "bankverify": "q7link-services",
 }
