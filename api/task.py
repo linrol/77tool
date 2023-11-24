@@ -304,7 +304,7 @@ class Task(Common):
 
     # 发送mr提醒通知
     def send_mr_notify(self):
-        before_hours = (datetime.utcnow() - timedelta(minutes=180)).isoformat()
+        before_hours = (datetime.utcnow() - timedelta(minutes=30)).isoformat()
         gl = self.get_project('parent').getGl()
         # 发送待合并通知
         opened_mrs = gl.mergerequests.list(state='opened', scope="all", created_after=before_hours)
