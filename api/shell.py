@@ -179,12 +179,12 @@ class Shell(Common):
         finally:
             executor.submit(self.rest_branch_env)
 
-    def build_package(self, params, protect, is_build):
+    def package(self, action, params, protect, is_build):
         try:
             # self.ops_switch_build("stop")
             self.lock_value = self.lock.get_lock("lock", 300)
             self.checkout_branch(self.target_branch)
-            cmd = 'cd ../branch;python3 releaseVersion.py build {} {}'.format( self.target_branch, params)
+            cmd = 'cd ../branch;python3 releaseVersion.py {} {} {}'.format( action, self.target_branch, params)
             [_, release_version_msg] = self.exec(cmd, True, False)
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
             [_, change_version_msg] = self.exec(cmd, True)

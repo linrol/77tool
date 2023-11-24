@@ -278,7 +278,7 @@ class Task(Common):
     def branch_correct(self, correct_user, branch, project):
         shell = Shell(correct_user, self.is_test, self.master, branch)
         params = "none other={}".format(project)
-        _, msg = shell.build_package(params, "hotfix,all", True)
+        _, msg = shell.package("build", params, "hotfix,all", True)
         logger.info("branch correct [{}] [{}] ret[{}]".format(branch, project, msg))
         duty_users, _ = self.get_duty_info(True)
         self.crop.send_text_msg(duty_users, msg)
@@ -557,8 +557,9 @@ class Task(Common):
         if is_seal and len(modules) > 0:
             # 后端封版，模块包含apps，global则构建发布包
             protect = access + "," + modules[0]
+            action = "destroy" if body.get("delete_jar", 'false') == "true" else "build"
             is_build = body.get("is_build", "") == 'true'
-            shell.build_package(" ".join(modules), protect, is_build)
+            shell.package(action, " ".join(modules), protect, is_build)
         return response
 
     # 检查是否为发布包

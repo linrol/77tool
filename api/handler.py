@@ -254,7 +254,7 @@ class Handler(Base):
             target, params, protect, is_build = get_build_dirt(self.msg_content)
             self.crop.send_text_msg(self.user_id, "构建发布包任务运行中，请稍等片刻!")
             shell = Shell(self.user_id, self.is_test, self.master, target)
-            _, ret = shell.build_package(params, protect, is_build)
+            _, ret = shell.package("build", params, protect, is_build)
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(ret))
             return ret
