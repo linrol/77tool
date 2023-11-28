@@ -554,12 +554,11 @@ class Task(Common):
         if clear_cache:
             cache_version = time.strftime("%Y%m%d%H%M")
             modules.append("cache=local:{}".format(cache_version))
-        if is_seal and len(modules) > 0:
-            # 后端封版，模块包含apps，global则构建发布包
-            protect = access + "," + modules[0]
-            action = "destroy" if body.get("delete_jar", 'false') == "true" else "build"
-            is_build = body.get("is_build", "") == 'true'
-            shell.package(action, " ".join(modules), protect, is_build)
+        # 后端封版，模块包含apps，global则构建或回退发布包
+        protect = access + "," + modules[0]
+        action = "destroy" if body.get("delete_jar", 'false') == "true" else "build"
+        is_build = body.get("is_build", "") == 'true'
+        shell.package(action, " ".join(modules), protect, is_build)
         return response
 
     # 检查是否为发布包
