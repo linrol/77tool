@@ -397,8 +397,8 @@ class Task(Common):
             push_prod = append("q7link-cluster-release", source_name, cluster_str) > 8
             push_cluster_1 = "宁夏灰度集群1" in clusters
             clusters.discard("宁夏灰度集群1")
-            push_cluster_0 = "宁夏灰度集群0" in clusters and len(clusters) == 1
-            clusters.discard("宁夏灰度集群0")
+            push_cluster_0 = "北京灰度集群0" in clusters and len(clusters) == 1
+            clusters.discard("北京灰度集群0")
             push_global = "宁夏生产global集群" in clusters and len(clusters) == 1
             clusters.discard("宁夏生产global集群")
             push_perform = 0 < len(clusters) < 6
