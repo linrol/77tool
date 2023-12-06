@@ -394,7 +394,7 @@ class Task(Common):
                 continue
             is_sprint = source_prefix in ["sprint", "release"]
             cluster_str = ",".join(clusters)
-            push_prod = append("q7link-cluster-release", source_name, cluster_str) > 8
+            push_prod = append("q7link-cluster-release", source_name, cluster_str) > 9
             push_cluster_1 = "宁夏灰度集群1" in clusters
             clusters.discard("宁夏灰度集群1")
             push_cluster_0 = "北京灰度集群0" in clusters and len(clusters) == 1

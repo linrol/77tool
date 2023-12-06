@@ -58,7 +58,7 @@ def append(name, key, value):
     if has_value is not None:
         value = ",".join(set((value + "," + has_value).split(",")))
     connection.hmset(name, {key: value})
-    return len(value.split(","))
+    return len(list(filter(lambda c: c not in ['宁夏生产global集群', ''], value.split(","))))
 
 
 def duplicate_msg(msg):
