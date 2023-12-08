@@ -2,6 +2,7 @@ from shell import Shell
 from task import Task
 from log import logger
 from base import Base
+from zentao import create_task
 from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_protect_branch_dirt, get_move_branch_dirt
 from redisclient import duplicate_msg, get_user_task
 
@@ -92,7 +93,8 @@ class Handler(Base):
                '分支合并' in self.msg_content or \
                '分支保护' in self.msg_content or \
                '构建发布包' in self.msg_content or \
-               '初始化特性分支' in self.msg_content
+               '初始化特性分支' in self.msg_content or \
+               '禅道@' in self.msg_content
 
     # 消费数据回调：拉分支、修改版本号、打tag、预制列表方案
     def accept_message(self):
@@ -115,6 +117,10 @@ class Handler(Base):
             return self.build_package()
         elif '初始化特性分支' in self.msg_content:
             return self.init_feature_branch()
+        elif '初始化特性分支' in self.msg_content:
+            return self.init_feature_branch()
+        elif '禅道@' in self.msg_content:
+            return self.created_zentao_task()
 
     # 执行脚本预制列表方案
     def data_pre(self, pre_type):
@@ -296,3 +302,7 @@ class Handler(Base):
             # 发送消息通知
             self.crop.send_text_msg(self.user_id, str(err))
             return str(err)
+
+    def created_zentao_task(self):
+        ret = create_task(self.msg_content)
+        self.crop.send_text_msg(self.user_id, str(ret))
