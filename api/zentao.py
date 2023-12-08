@@ -7,7 +7,7 @@ base = 'http://zentao.77hub.com/zentao/api.php/v1/'
 def get_token(username, password):
     headers = {'Content-Type': 'application/json'}
     data = {"account": username, "password": password}
-    response = requests.post(base + "/tokens", headers=headers, data=json.dumps(data))
+    response = requests.post(base + "tokens", headers=headers, data=json.dumps(data))
     print(response.status_code)
     if response.status_code == 200 or response.status_code == 201:
         print("访问成功")
@@ -36,9 +36,11 @@ def create_task(context):
         "deadline": time.strftime("%Y-%m-%d"),
         "estimate": task_cost
     }
-    response = requests.post(base + '/executions/1955/tasks', headers=headers, data=json.dumps(data))
+    response = requests.post(base + 'executions/1955/tasks', headers=headers, data=json.dumps(data))
     if response.status_code == 200 or response.status_code == 201:
         resp = response.json()
         return "任务创建成功【id:{}, name:{}】".format(resp['id'], resp['name'])
     else:
         return response.text
+
+create_task("禅道@自动化创建禅道任务@1")
