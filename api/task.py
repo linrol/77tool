@@ -379,7 +379,7 @@ class Task(Common):
         hdel("q7link-branch-build", build_id)
 
     # 解析并构建代码合并任务
-    def build_merge_task(self, branches, services, clusters):
+    def build_merge_task(self, branches, services, cluster_str, cluster_ids):
         tmp = set()
         for s in services:
             tmp.add(services2project.get(s, s))
@@ -393,15 +393,20 @@ class Task(Common):
             if len(duty_branches) > 0 and source_prefix not in duty_branches:
                 continue
             is_sprint = source_prefix in ["sprint", "release"]
-            cluster_str = ",".join(clusters)
             push_prod = append("q7link-cluster-release", source_name, cluster_str) > 7
-            push_cluster_1 = "宁夏灰度集群1" in clusters
-            clusters.discard("宁夏灰度集群1")
-            push_cluster_0 = "北京灰度集群0" in clusters and len(clusters) == 1
-            clusters.discard("北京灰度集群0")
-            push_global = "宁夏生产global集群" in clusters and len(clusters) == 1
-            clusters.discard("宁夏生产global集群")
-            push_perform = 0 < len(clusters) < 6
+            # 宁夏灰度集群1
+            cluster1 = "cn-northwest-1"
+            push_cluster_1 = cluster1 in cluster_ids
+            cluster_ids.discard(cluster1)
+            # 北京灰度集群0
+            cluster0 = "cn-apnorthbj-1"
+            push_cluster_0 = cluster0 in cluster_ids and len(cluster_ids) == 1
+            cluster_ids.discard(cluster0)
+            # 宁夏生产global集群
+            cluster_global = "cn-northwest-global"
+            push_global = cluster_global in cluster_ids and len(cluster_ids) == 1
+            cluster_ids.discard(cluster_global)
+            push_perform = 0 < len(cluster_ids) < 6
             for p_name in projects:
                 project = self.projects.get(p_name)
                 if project is None:
@@ -430,9 +435,6 @@ class Task(Common):
                     target = merge_params[2]
                     rule_ret = eval(v, params)
                     if not rule_ret:
-                        # rule_log = "project {} eval rule {}({}) by params({}) ret:{}".format(p_name, v, k, params_str, rule_ret)
-                        # logger.warn(rule_log)
-                        # ret.append("工程【{}】来源分支【{}】合并至目标分支【{}】不满足配置条件".format(p_name, source, target))
                         continue
                     if project.getBranch(source) is None:
                         rets.append("工程【{}】来源分支【{}】不存在".format(p_name, source))
@@ -477,9 +479,9 @@ class Task(Common):
                 # 目标分支非主干分支，则跳过
                 return
             cluster_count = len(cluster_str.split(","))
-            push_prod = 8 < cluster_count
-            push_stage = "宁夏灰度集群1" in cluster_str
-            push_perform = 2 < cluster_count < 9
+            push_prod = 7 < cluster_count
+            push_stage = "宁夏灰度1" in cluster_str
+            push_perform = 2 < cluster_count and (not push_prod)
             if target != self.stage and push_stage:
                 trunk_branch = self.stage
             elif target == self.stage and push_perform:

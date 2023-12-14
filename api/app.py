@@ -70,8 +70,9 @@ def listener_deploy():
     if "openapi" in groups:
         groups.add("openapi-doc")
     branches = body.get("branch", body.get("project_desc")).split(",")
-    clusters = set(body.get("cluster").split(","))
-    ret = Task(crop).build_merge_task(branches, groups, clusters)
+    cluster_ids = set(body.get("clusterId").split(","))
+    cluster_str = body.get("cluster")
+    ret = Task(crop).build_merge_task(branches, groups, cluster_str, cluster_ids)
     ret_msg = ";\n".join(ret)
     logger.info(ret_msg)
     return make_response(ret_msg)
