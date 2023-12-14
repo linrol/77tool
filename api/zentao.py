@@ -43,4 +43,4 @@ def create_task(context):
     else:
         return response.text
 
-create_task("禅道@自动化创建禅道任务@1")
+# create_task("禅道@自动化创建禅道任务@1")
