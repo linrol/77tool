@@ -93,6 +93,7 @@ CREATE TABLE "baseapp_query_definition_group"
     "last_request_id" VARCHAR(128) DEFAULT '',
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
+    "multi_langs" JSONB,
     "customized_fields" JSONB,
     PRIMARY KEY ("id")
 );
