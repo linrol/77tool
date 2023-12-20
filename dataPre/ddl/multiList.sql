@@ -31,6 +31,7 @@ CREATE TABLE "baseapp_query_definition"
     "last_request_id" VARCHAR(128) DEFAULT '',
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
+    "multi_langs" JSONB,
     "customized_fields" JSONB,
     "deleted_fields" JSONB,
     PRIMARY KEY ("id")
@@ -165,6 +166,7 @@ CREATE TABLE "baseapp_query_item"
     "last_request_id" VARCHAR(128) DEFAULT '',
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
+    "multi_langs" JSONB,
     "customized_fields" JSONB,
     PRIMARY KEY ("id")
 );
@@ -256,6 +258,7 @@ CREATE TABLE "baseapp_query_item_schema"
     "parent_name" VARCHAR(128) DEFAULT '',
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
+    "multi_langs" JSONB,
     "customized_fields" JSONB,
     PRIMARY KEY ("id")
 );
@@ -344,6 +347,7 @@ CREATE TABLE "baseapp_query_list_definition"
     "last_request_id" VARCHAR(128) DEFAULT '',
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
+    "multi_langs" JSONB,
     "customized_fields" JSONB,
     "apply_scenario_names" JSONB,
     PRIMARY KEY ("id")
@@ -482,6 +486,7 @@ CREATE TABLE "baseapp_list_column"
     "last_request_id" VARCHAR(128) DEFAULT '',
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
+    "multi_langs" JSONB,
     "customized_fields" JSONB,
     PRIMARY KEY ("id")
 );
@@ -633,6 +638,7 @@ CREATE TABLE "baseapp_list_column_schema"
     "last_request_id" VARCHAR(128) DEFAULT '',
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
+    "multi_langs" JSONB,
     "customized_fields" JSONB,
     PRIMARY KEY ("id")
 );
@@ -716,6 +722,7 @@ CREATE TABLE "baseapp_list_columns_definition"
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
     "ui_option" JSONB,
+    "multi_langs" JSONB,
     "customized_fields" JSONB,
     "deleted_fields" JSONB,
     PRIMARY KEY ("id")
@@ -777,6 +784,7 @@ CREATE TABLE "baseapp_list_columns_schema"
     "last_request_id" VARCHAR(128) DEFAULT '',
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
+    "multi_langs" JSONB,
     "customized_fields" JSONB,
     PRIMARY KEY ("id")
 );
@@ -924,6 +932,7 @@ CREATE TABLE "baseapp_list_sort_definition"
     "last_request_id" VARCHAR(128) DEFAULT '',
     "last_modified_user_id" VARCHAR(64),
     "last_modified_time" TIMESTAMP,
+    "multi_langs" JSONB,
     "customized_fields" JSONB,
     PRIMARY KEY ("id")
 );
