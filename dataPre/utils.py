@@ -8,7 +8,7 @@ import gitlab
 from pathlib import Path
 
 URL='http://gitlab.q7link.com'
-TOKEN='xy1MZeykVxGQh7mvB4a3'
+TOKEN=''
 
 
 # jsonFields = ['content']
@@ -223,7 +223,7 @@ def chectout_branch(projectName, rootPath, branchName):
 
 #根据工程名称获取Gitlab工程对象
 def get_project(projectName):
-  gl = gitlab.Gitlab(URL, TOKEN)
+  gl = gitlab.Gitlab(URL, os.environ.get("GIT_TOKEN", TOKEN))
   gl.auth()
   projects = gl.projects.list(search=projectName)
   if len(projects) > 0:
