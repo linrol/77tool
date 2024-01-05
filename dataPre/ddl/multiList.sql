@@ -340,6 +340,7 @@ CREATE TABLE "baseapp_query_list_definition"
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
     "modified_time" TIMESTAMP,
+    "is_auto_created" BOOLEAN DEFAULT false NOT NULL,
     "is_system" BOOLEAN DEFAULT false NOT NULL,
     "is_init_data" BOOLEAN DEFAULT false NOT NULL,
     "is_deleted" BOOLEAN DEFAULT false NOT NULL,
