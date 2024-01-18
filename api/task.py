@@ -136,6 +136,8 @@ class Task(Common):
         if not self.match_branch_mapping(source, target):
             raise Exception("不受支持的来源分支，请检查或联系管理者配置分支映射关系")
         _, target_date = self.get_branch_date(target)
+        if target_date is None:
+            raise Exception("目标分支缺少上线日期，请检查分支名称日期")
         week_later = (datetime.now() + timedelta(days=-7)).strftime("%Y%m%d")
         if int(week_later) > int(target_date):
             raise Exception("目标分支的上线日期过小，请检查分支名称日期")
@@ -624,3 +626,9 @@ class Task(Common):
         if not notify:
             return
         self.crop.send_text_msg(to_user_ids, notify_msg)
+
+
+if __name__ == '__main__':
+    test = Task(None)
+    # 测试发起拉分支请求
+    # test.new_branch_task("backend", "stage", "release", ["budget-api"])
