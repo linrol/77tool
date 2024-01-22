@@ -11,8 +11,7 @@ menu_help = {
                   "\n>列表组：<font color=\"comment\">输入列表方案组名称，例：Budget_Plan_Change_list,ProjectList</font>" 
                   "\n>合并人：<font color=\"comment\">输入分支有权限合并者人姓名，例：罗林</font>" 
                   "\n>" 
-                  "\n>修改本模版后发送，预制成功后将会消息通知" 
-                  "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
+                  "\n>修改本模版后发送，预制成功后发送MR链接回执通知",
   "data_pre_old": ">**老列表方案（固定值不要删除）** " 
                   "\n>环　境：<font color=\"comment\">输入预制数据来源环境，例：temp1</font>" 
                   "\n>租　户：<font color=\"comment\">输入预制数据来源租户，例：47L0LP505840001</font>" 
@@ -20,31 +19,30 @@ menu_help = {
                   "\n>列表组：<font color=\"comment\">输入${entityName}.${listName}，例：AssetSplit.global-search-list</font>" 
                   "\n>合并人：<font color=\"comment\">输入分支有权限合并者人姓名，例：罗林</font>" 
                   "\n>" 
-                  "\n>修改本模版后发送，预制成功后会消息通知" 
-                  "\n>或点击[去小程序操作](https://work.weixin.qq.com)",
+                  "\n>修改本模版后发送，预制成功后发送MR链接回执通知",
   "branch_create": ">**<font color=\"info\">拉分支（固定值不要删除）</font>** " 
                    "\n>来源分支：<font color=\"comment\">输入基于哪个分支拉取，例：stage</font>" 
-                   "\n>目标分支：<font color=\"comment\">输入拉取后的分支名称，例：sprint20230818</font>" 
+                   "\n>目标分支：<font color=\"comment\">输入拉取后的分支名称，例：sprint20240115</font>" 
                    "\n>工程模块：<font color=\"comment\">输入需要拉模块或工程，例：app-common,budget,front-theory</font>"
                    "\n><font color=\"warning\">功能说明，基于来源分支创建目标分支的工程模块，根据权重、系数和偏移量计算更新目标分支版本号</font>",
   "branch_move": ">**<font color=\"info\">分支迁移（固定值不要删除）</font>** "
-                 "\n>迁移分支：<font color=\"comment\">输入需要迁移的分支名称，例：sprint20230818</font>"
+                 "\n>迁移分支：<font color=\"comment\">输入需要迁移的分支名称，例：sprint20240115</font>"
                  "\n>迁出分支：<font color=\"comment\">输入需要迁出的分支名称，例：stage-global</font>"
                  "\n>迁移模块：<font color=\"comment\">输入需要迁移的工程模块，例：global</font>"
                  "\n><font color=\"warning\">功能说明，将迁移分支备份至迁出分支，并删除迁移分支的工程模块</font>",
   "branch_merge": ">**<font color=\"info\">分支合并（固定值不要删除）</font>** "
-                   "\n>来源分支：<font color=\"comment\">输入将被合并的分支名称，例：sprint20230818</font>"
+                   "\n>来源分支：<font color=\"comment\">输入将被合并的分支名称，例：sprint20240115</font>"
                    "\n>目标分支：<font color=\"comment\">输入需要合并至的分支名称，例：stage</font>"
                    "\n>工程模块：<font color=\"comment\">输入需要合并的模块或工程，例：front-theory,front-goserver,apps,global</font>"
                    "\n>删除来源：<font color=\"comment\">分支合并成功后是否删除来源分支，例：true,false(单选值)</font>"
                    "\n><font color=\"warning\">功能说明，将来源分支合并至目标分支，预检测存在冲突将放弃合并</font>",
   "branch_protect": ">**<font color=\"info\">分支保护（固定值不要删除）</font>** "
-                    "\n>目标分支：<font color=\"comment\">输入将被保护的分支名称，例：sprint20230818</font>"
+                    "\n>目标分支：<font color=\"comment\">输入将被保护的分支名称，例：sprint20240115</font>"
                     "\n>工程模块：<font color=\"comment\">输入要保护的工程或模块，例：front-theory,front-goserver</font>"
                     "\n>是否保护：<font color=\"comment\">保护或取消保护分支，例：true,false(单选值)</font>"
                     "\n><font color=\"warning\">功能说明，将目标分支对应的工程模块分支保护或取消保护</font>",
   "build_release_package": ">**<font color=\"info\">构建发布包（固定值不要删除）</font>** "
-                           "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20230818</font>"
+                           "\n>目标分支：<font color=\"comment\">输入需要构建发布包的分支名称，例：sprint20240115</font>"
                            "\n>构建模块：<font color=\"comment\">输入需要构建发布包的模块，例：all,global,apps(单选值)</font>"
                            "\n>前端预制：<font color=\"comment\">输入需要替换的front-apps.reimburse版本号，前端值班提供(此参数可空)</font>"
                            "\n>立即编译：<font color=\"comment\">构建发布包后是否立即编译，例：true,false(单选值)</font>"
@@ -82,7 +80,7 @@ msg_content = {
             },
             {
                 "keyname": "目标分支",
-                "value": "sprint20230818"
+                "value": "sprint20240115"
             },
             {
                 "keyname": "工程模块",
@@ -120,7 +118,7 @@ msg_content = {
             },
             {
                 "keyname": "目标分支",
-                "value": "sprint20230818"
+                "value": "sprint20240115"
             },
             {
                 "keyname": "监控信息",
@@ -158,7 +156,7 @@ msg_content = {
             },
             {
                 "keyname": "目标分支",
-                "value": "sprint20230818"
+                "value": "sprint20240115"
             },
             {
                 "keyname": "工程模块",
@@ -211,7 +209,7 @@ msg_content = {
             },
             {
                 "keyname": "目标分支",
-                "value": "sprint20230818"
+                "value": "sprint20240115"
             },
             {
                 "keyname": "迁移模块",
