@@ -1,5 +1,6 @@
 import argparse
 import json
+from datetime import datetime
 from flask import Flask, request, make_response, jsonify
 from flask_apscheduler import APScheduler
 from concurrent.futures import ThreadPoolExecutor
@@ -12,6 +13,7 @@ from wxmessage import xml2dirt
 executor = ThreadPoolExecutor()
 app = Flask(__name__)
 scheduler = APScheduler()
+processes = []
 
 
 class Config(object):
@@ -34,6 +36,20 @@ crypt = crop.get_crypt()
 task = Task(crop, True)
 # crop.create_button()
 # Task(crop).clear_dirty_branch_notice(crop)
+@app.before_request
+def before_request():
+    global processes
+    now_time = datetime.now().strftime("%Y%m%d%H%M%S")
+    request.environ["date"] = now_time
+    processes.append(request.environ["date"] + "_" + request.url)
+@app.after_request
+def after_request(response):
+    global processes
+    processes.remove(request.environ["date"] + "_" + request.url)
+    return response
+@app.route('/processes')
+def is_processing():
+    return jsonify(processes=processes)
 
 # gitlab代码提交hook
 @app.route("/gitlab/hook", methods=["POST"])
