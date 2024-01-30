@@ -38,6 +38,8 @@ class ReleaseVersion(Common):
                 for p, v in pv.items():
                     replace[p] = v
                     print("工程【{}】自身版本修改为【{}】".format(p, v))
+            stage_version = self.get_branch_version("stage")
+            compare_error = False
             # 替换-SNAPSHOT为空串
             for k, v in version.items():
                 name = self.branch_group.get(k)
@@ -45,8 +47,15 @@ class ReleaseVersion(Common):
                     continue
                 if k in replace:
                     continue
+                stage_v = stage_version.get(k)
+                if self.compare_version(v, stage_v) < 1:
+                    v_info = "{}.{} < {}.{}".format(v[0], v[1], stage_v[0], stage_v[1])
+                    print("工程【{}】目标分支【{}】落后基准分支【stage】版本号({})，请调整后重新封版打包".format(k, self.target, v_info))
+                    compare_error = True
                 prefix = v[0]
                 replace[k] = "{}.{}".format(prefix, v[1].replace("-SNAPSHOT", ""))
+            if compare_error:
+                sys.exit(1)
             if len(replace) < 1:
                 print("分支【{}】没有需要待构建的快照包版本".format(self.target))
                 sys.exit(1)

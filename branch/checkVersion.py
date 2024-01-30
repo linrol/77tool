@@ -89,7 +89,7 @@ class CheckVersion(Common):
                 print(check_msg.format(p_name, "{}.{}".format(t_version[0], t_version[1]), check_branch))
         return is_duplicate
 
-    def compare_version(self, branch_dict, is_correct=False):
+    def compare(self, branch_dict, is_correct=False):
         correct = {}
         compare_ret = set()
         compare_msg = "工程【{}】分支版本号【{}】落后于分支版本号【{}】"
@@ -162,7 +162,7 @@ if __name__ == "__main__":
                 print('enjoy！分支{}版本号冲突检查通过'.format(branch))
             if check_type == "compare":
                 compare_dict = dict(zip_longest(branch.split(","), [], fillvalue=True))
-                if len(check.compare_version(compare_dict, True)) > 0:
+                if len(check.compare(compare_dict, True)) > 0:
                     sys.exit(1)
                 print('enjoy！分支{}版本号比较检查通过'.format(branch))
         except Exception as err:

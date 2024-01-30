@@ -196,8 +196,29 @@ class Common:
                 return False
         return True
 
+    # 版本号比较
+    @staticmethod
+    def compare_version(v1, v2):
+        if v1 is None or v2 is None:
+            return 0
+        v1prefix = int(v1[0].replace(".", ""))
+        v2prefix = int(v2[0].replace(".", ""))
+        if v1prefix < v2prefix:
+            return -1
+        if v1prefix > v2prefix:
+            return 1
+        v1value = int(v1[1].replace("-SNAPSHOT", ""))
+        v2value = int(v2[1].replace("-SNAPSHOT", ""))
+        if v1value == v2value:
+            return 0
+        elif v1value < v2value:
+            return -1
+        else:
+            return 1
+
     # 判断版本号是否为布包版
-    def is_release(self, versions):
+    @staticmethod
+    def is_release(versions):
         for v in versions:
             if "SNAPSHOT" not in v:
                 continue
