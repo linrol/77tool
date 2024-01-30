@@ -16,6 +16,7 @@ def usage():
     -f --force update version
     -s --source update from branch version
     -t --target update to branch version
+    -d --target online date
     -p --project gen project list
     ''')
     sys.exit(1)
@@ -23,7 +24,7 @@ def usage():
 
 
 class GenVersion(Common):
-    def __init__(self, force, version, source, target, project_names):
+    def __init__(self, force, version, source, target, date, project_names):
         super().__init__(utils)
         self.force = force
         self.fixed_version = version
@@ -33,8 +34,8 @@ class GenVersion(Common):
         self.target_version = self.get_branch_version(target)
         self.project_names = self.filter_project(project_names)
         if self.fixed_version is None:
-            self.target_date = target[-8:]
-            self.target_name = target.replace(self.target_date, "")
+            self.target_date = date or target[-8:]
+            self.target_name = target[:-8]
             self.last_sprint, self.last_sprint_version = self.lookup_sprint_version(60, False)
             self.next_sprint, self.next_sprint_version = self.lookup_sprint_version(60, True)
 
@@ -254,15 +255,18 @@ class GenVersion(Common):
 # 生成版本号
 if __name__ == "__main__":
     try:
-        arg_str = ["help", "force", "version=", "source=", "target=", "project="]
-        opts, args = getopt.getopt(sys.argv[1:], "hfv:s:t:p:", arg_str)
+        arg_str = ["help", "force", "version=", "source=", "target=", "date=", "project="]
+        opts, args = getopt.getopt(sys.argv[1:], "hfv:s:t:d:p:", arg_str)
         opts_dict = dict(opts)
         force_update = not opts_dict.keys().isdisjoint({"-f", "--force"})
         source_branch = opts_dict.get("-s", opts_dict.get("-source"))
         target_branch = opts_dict.get("-t", opts_dict.get("-target"))
+        online_date = opts_dict.get("-d", opts_dict.get("-date", None))
         fixed_version = opts_dict.get("-v", opts_dict.get("-version", None))
         projects = opts_dict.get("-p", opts_dict.get("-project")).split(",")
-        GenVersion(force_update, fixed_version, source_branch, target_branch, projects).execute()
+        if "all" in projects:
+            projects = ["apps", "global", "platform", "framework"]
+        GenVersion(force_update, fixed_version, source_branch, target_branch, online_date, projects).execute()
     except getopt.GetoptError as err:
         print(err)
         traceback.print_exc()
