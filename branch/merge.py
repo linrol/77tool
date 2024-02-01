@@ -140,7 +140,10 @@ class Merge(Common):
             return str("后端工程打Tag成功")
         date = datetime.now().strftime("%Y%m%d%H%M")
         for p_name, p_info in self.projects.items():
-            tag_name = "{}-{}".format(date, self.target)
+            if self.is_trunk(self.source):
+                tag_name = "{}-{}".format(date, self.target)
+            else:
+                tag_name = self.source
             p_info.createTag(tag_name, self.target)
             print('工程【{}】分支【{}】打Tag【{}】成功'.format(p_name, self.target, tag_name))
         return str("前端工程打Tag成功")
