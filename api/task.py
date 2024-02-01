@@ -395,6 +395,7 @@ class Task(Common):
             if len(duty_branches) > 0 and source_prefix not in duty_branches:
                 continue
             is_sprint = source_prefix in ["sprint", "release"]
+            is_perform_patch = source_prefix in ["perform-patch"]
             push_prod = append("q7link-cluster-release", source_name, cluster_str) > 7
             # 宁夏灰度集群1
             cluster1 = "cn-northwest-1"
@@ -417,6 +418,7 @@ class Task(Common):
                 end = project.getEnd()
                 params = {
                     "is_sprint": is_sprint,
+                    "is_perform_patch": is_perform_patch,
                     "source_release": self.backend == end and self.has_release(source_name),
                     "is_global": project.isGlobal(),
                     "cluster_global": push_global,
