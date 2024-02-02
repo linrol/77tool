@@ -1,7 +1,7 @@
 import argparse
 import json
 from datetime import datetime
-from flask import Flask, request, make_response, jsonify
+from flask import Flask, request, make_response, jsonify, render_template
 from flask_apscheduler import APScheduler
 from concurrent.futures import ThreadPoolExecutor
 from log import logger
@@ -219,6 +219,15 @@ def app_update():
     task.app_update(name, notify, notify_msg)
     return make_response("success")
 
+@app.route("/version/compare")
+def version_compare():
+    return render_template("version.html")
+
+@app.route("/version/data", methods=["POST"])
+def version_data():
+    body = json.loads(request.data.decode('utf-8'))
+    return jsonify(task.version_data(body.get("bs")))
+
 
 if __name__ == "__main__":
     app.config.from_object(Config())
@@ -226,4 +235,6 @@ if __name__ == "__main__":
     # scheduler.api_enabled = True
     scheduler.init_app(app)
     scheduler.start()
+    # vue 语法{{}}冲突
+    app.jinja_options = {'variable_start_string': '{{{', 'variable_end_string': '}}}'}
     app.run(host="0.0.0.0", debug=True, use_reloader=False, port=args.port)

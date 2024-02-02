@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工程模块版本号对比</title>
+    <!-- 引入 Vue.js 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <!-- 添加 Font Awesome 链接 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+
+        #app {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow-x: auto; /* 添加水平滚动条 */
+            table-layout: auto; /* 第一列宽度自适应 */
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            white-space: nowrap; /* 防止文字换行 */
+            font-size: 14px; /* 调整字体大小 */
+        }
+
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        .deleteIcon {
+            cursor: pointer;
+            color: #ff3333;
+        }
+
+        .highlight {
+            background-color: #ffedba;
+        }
+
+        #controlPanel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        #highlightButton, #addBranchButton {
+            cursor: pointer;
+            padding: 5px;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px; /* 调整按钮字体大小 */
+        }
+
+        #highlightButton {
+            background-color: #4caf50;
+            color: #fff;
+            margin-right: 10px;
+        }
+
+        #addBranchButton {
+            background-color: #2196f3;
+            color: #fff;
+        }
+
+        label {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        #hideSameVersions {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <h1>工程模块版本号对比</h1>
+
+    <div id="controlPanel">
+        <div>
+            <label for="branchName">分支名称：</label>
+            <input type="text" v-model="branchName">
+            <button id="addBranchButton" @click="addBranch">添加分支</button>
+        </div>
+        <div>
+            <button id="highlightButton" @click="toggleHighlight">切换高亮显示</button>
+            <input type="checkbox" id="hideSameVersions" v-model="hideSameVersions">
+            <label for="hideSameVersions">隐藏相同版本</label>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>模块</th>
+                <th v-for="(branch, index) in branches" :key="index">
+                    {{ branch }}
+                    <i class="fas fa-trash-alt deleteIcon" @click="deleteBranch(index)"></i>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(module, mIndex) in modules" :key="mIndex" v-show="!hideSameVersions || shouldShowModule(module)">
+                <td>{{ module.name }}</td>
+                <td v-for="(branch, bIndex) in branches" :key="bIndex" :class="{ 'highlight': isDifferentVersion(module, branch) && highlightVersions }">
+                    {{ module.branches[branch] }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            branchName: '',
+            hideSameVersions: false,
+            highlightVersions: false,
+            bs: ['master', 'perform', 'stage'],
+            modules: [
+                { name: '模块1', branches: { '分支1': '1.0.1', '分支2': '1.0.1' } },
+                { name: '模块2', branches: { '分支1': '1.1.0', '分支2': '2.2.0' } }
+                // 可以根据需要添加更多模块（60个模块的数据）
+            ],
+        },
+        computed: {
+            branches() {
+                const nonNumeric = [];
+                const numeric = [];
+
+                for (const branch in this.modules[0].branches) {
+                    if (isNaN(branch)) {
+                        nonNumeric.push(branch);
+                    } else {
+                        numeric.push(branch);
+                    }
+                }
+
+                return [...nonNumeric, ...numeric];
+            },
+        },
+        mounted() {
+            this.loadData(); // 在实例挂载后，请求数据
+        },
+        methods: {
+            async loadData() {
+                try {
+                    const response = await fetch('/version/data', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            bs: this.bs,
+                        })
+                    }); // 替换成实际的接口地址
+                    const data = await response.json();
+                    this.modules = data; // 假设接口返回的数据是 modules
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                }
+            },
+            addBranch() {
+                const newBranchName = this.branchName || '新分支';
+                this.bs.push(newBranchName);
+                this.loadData();
+            },
+            deleteBranch(branchIndex) {
+                const branchName = this.branches[branchIndex];
+                this.branches.splice(branchIndex, 1);
+
+                for (const module of this.modules) {
+                    Vue.delete(module.branches, branchName);
+                }
+            },
+            shouldShowModule(module) {
+                if (this.hideSameVersions) {
+                    const versions = Object.values(module.branches);
+                    return versions.some((version, index, array) => version !== array[0]);
+                }
+                return true;
+            },
+            isDifferentVersion(module, branch) {
+                const versions = Object.values(module.branches);
+                const uniqueVersions = [...new Set(versions)];
+                return uniqueVersions.length > 1 && versions.includes(module.branches[branch]);
+            },
+            toggleHighlight() {
+                this.highlightVersions = !this.highlightVersions;
+            },
+        },
+    });
+</script>
+
+</body>
+</html>

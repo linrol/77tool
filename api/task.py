@@ -2,6 +2,8 @@ import random
 import string
 import time
 import re
+import json
+from collections import OrderedDict
 from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
@@ -612,6 +614,18 @@ class Task(Common):
             logger.exception(err)
             # 发送消息通知
             return str(err)
+
+    def version_data(self, branches):
+        vs = {}
+        ret = []
+        for branch in branches:
+            branch_versions = self.get_branch_version(branch)
+            for p, v in branch_versions.items():
+                vs.setdefault(p, OrderedDict())[branch] = v
+        for name, bs in vs.items():
+            ret.append({"name": name, "branches": bs})
+        print(json.dumps(ret))
+        return ret
 
     def app_update(self, name, notify, notify_msg):
         to_user_set = set()
