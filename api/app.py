@@ -226,8 +226,8 @@ def version_compare():
 @app.route("/version/data", methods=["POST"])
 def version_data():
     body = json.loads(request.data.decode('utf-8'))
-    return jsonify(task.version_data(body.get("bs")))
-
+    ret = task.version_data(body.get("bs"))
+    return jsonify(ret)
 
 if __name__ == "__main__":
     app.config.from_object(Config())
@@ -236,5 +236,6 @@ if __name__ == "__main__":
     scheduler.init_app(app)
     scheduler.start()
     # vue 语法{{}}冲突
+    app.config['JSON_SORT_KEYS'] = False
     app.jinja_options = {'variable_start_string': '{{{', 'variable_end_string': '}}}'}
     app.run(host="0.0.0.0", debug=True, use_reloader=False, port=args.port)

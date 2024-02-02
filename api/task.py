@@ -2,8 +2,6 @@ import random
 import string
 import time
 import re
-import json
-from collections import OrderedDict
 from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
@@ -621,10 +619,9 @@ class Task(Common):
         for branch in branches:
             branch_versions = self.get_branch_version(branch)
             for p, v in branch_versions.items():
-                vs.setdefault(p, OrderedDict())[branch] = v
+                vs.setdefault(p, {})[branch] = v
         for name, bs in vs.items():
             ret.append({"name": name, "branches": bs})
-        print(json.dumps(ret))
         return ret
 
     def app_update(self, name, notify, notify_msg):
