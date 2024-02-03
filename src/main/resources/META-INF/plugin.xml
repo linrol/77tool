@@ -1,18 +1,79 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.linrol.77tool</id>
-    <name>77tool Template</name>
-    <vendor>linrol</vendor>
+    <name>77tool</name>
+    <vendor email="linrol@gmail.com" url="https://github.com/linrol/77tool">linrol</vendor>
 
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.vcs</depends>
+    <depends>Git4Idea</depends>
 
-    <resource-bundle>messages.MyBundle</resource-bundle>
+    <resource-bundle>messages.77tool</resource-bundle>
 
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.linrol.77tool.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <applicationConfigurable
+          parentId="tools"
+          instance="com.github.linrol.tool.state.ToolSettingsConfigurable"
+          id="org.intellij.sdk.settings.AppSettingsConfigurable"
+          displayName="77tool Settings"/>
+        <applicationService serviceImplementation="com.github.linrol.tool.state.ToolSettingsState"/>
+        <toolWindow id="77tool" canCloseContents="false" anchor="bottom" factoryClass="com.github.linrol.tool.tollwindow.ToolWindowFactory"/>
+        <vcs.changes.localCommitExecutor implementation="com.github.linrol.tool.branch.commit.extension.CommitMergeRequestExecutor"/>
+
+        <projectService serviceInterface="com.intellij.openapi.vcs.AbstractVcsHelper"
+          serviceImplementation="com.github.linrol.tool.extend.vcs.AbstractVcsHelperImplEx" overrides="true"/>
+
+        <!--<pushDialogActionsProvider implementation="com.github.linrol.tool.branch.build.OpsBuildAfterPushActionProvider"/>-->
     </extensions>
 
-    <applicationListeners>
-        <listener class="com.github.linrol.77tool.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
-    </applicationListeners>
+    <actions>
+        <!-- 77tool组 -->
+        <group id="com.github.linrol.tool.77toolGroup" text="77tool" popup="true">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="com.github.linrol.tool.branch.commit.CommitMergeRequestAction"/>
+        </group>
+
+        <!-- Commit And Create Merge Request -->
+        <action id="com.github.linrol.tool.branch.commit.CommitMergeRequestAction" class="com.github.linrol.tool.branch.commit.CommitMergeRequestAction"
+          text="Commit And Merge Request"
+          description="Commit And create merge request"
+          icon="CollaborationToolsIcons.PullRequestOpen">
+            <add-to-group group-id="com.github.linrol.tool.77toolGroup" anchor="last"/>
+            <add-to-group group-id="VcsNavBarToolbarActions" anchor="before" relative-to-action="Vcs.ShowTabbedFileHistory" />
+            <add-to-group group-id="Git.MainMenu" anchor="before" relative-to-action="Vcs.Push"/>
+            <add-to-group group-id="GitRepositoryActions" anchor="before" relative-to-action="Vcs.Push"/>
+        </action>
+
+        <!-- Only Create Merge Request -->
+        <action id="com.github.linrol.tool.branch.merge.request.MergeRequestAction" class="com.github.linrol.tool.branch.merge.request.MergeRequestAction"
+          text="Merge Request"
+          description="Create merge request">
+            <add-to-group group-id="Vcs.Push.Actions" anchor="after" relative-to-action="Vcs.Push.Force"/>
+        </action>
+
+        <!-- Push And Ops Build -->
+        <action id="com.github.linrol.tool.branch.build.OpsBuildAfterPushAction" class="com.github.linrol.tool.branch.build.OpsBuildAfterPushAction"
+          text="Push And Ops Build"
+          description="Push and ops build">
+            <add-to-group group-id="Vcs.Push.Actions" anchor="after" relative-to-action="com.github.linrol.tool.branch.merge.request.MergeRequestAction"/>
+        </action>
+
+        <!-- Local Common Merge -->
+        <action id="com.github.linrol.tool.branch.merge.local.CommonMergeAction" class="com.github.linrol.tool.branch.merge.local.CommonMergeAction"
+          text="Common Merge"
+          description="Multi project common merge"
+          icon="/icons/multi-merge.svg">
+            <add-to-group group-id="com.github.linrol.tool.77toolGroup" anchor="first"/>
+            <add-to-group group-id="GitRepositoryActions" anchor="before" relative-to-action="com.github.linrol.tool.branch.commit.CommitMergeRequestAction"/>
+        </action>
+
+        <!-- Update Action -->
+        <action id="com.github.linrol.tool.branch.update.UpdateAction" class="com.github.linrol.tool.branch.update.UpdateAction" text="Update"
+          description="Update remote to local">
+        </action>
+
+    </actions>
 </idea-plugin>
