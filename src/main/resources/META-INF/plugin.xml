@@ -27,7 +27,7 @@
         <projectService serviceInterface="com.intellij.openapi.vcs.AbstractVcsHelper"
           serviceImplementation="com.github.linrol.tool.extend.vcs.AbstractVcsHelperImplEx" overrides="true"/>
 
-        <!--<pushDialogActionsProvider implementation="com.github.linrol.tool.branch.build.OpsBuildAfterPushActionProvider"/>-->
+        <!--<pushDialogActionsProvider implementation="com.github.linrol.tool.branch.trigger.OpsBuildAfterPushActionProvider"/>-->
     </extensions>
 
     <actions>
@@ -55,7 +55,7 @@
         </action>
 
         <!-- Push And Ops Build -->
-        <action id="com.github.linrol.tool.branch.build.OpsBuildAfterPushAction" class="com.github.linrol.tool.branch.build.OpsBuildAfterPushAction"
+        <action id="com.github.linrol.tool.branch.trigger.OpsBuildAfterPushAction" class="com.github.linrol.tool.branch.trigger.OpsBuildAfterPushAction"
           text="Push And Ops Build"
           description="Push and ops build">
             <add-to-group group-id="Vcs.Push.Actions" anchor="after" relative-to-action="com.github.linrol.tool.branch.merge.request.MergeRequestAction"/>

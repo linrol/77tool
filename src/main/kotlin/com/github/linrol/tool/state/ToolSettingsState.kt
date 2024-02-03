@@ -6,7 +6,7 @@ import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 
-@State(name = "org.intellij.tool.state.ToolSettingsStat", storages = [Storage("77toolSettingsPlugin.xml")])
+@State(name = "com.github.linrol.tool.state.ToolSettingsStat", storages = [Storage("77toolSettingsPlugin.xml")])
 class ToolSettingsState : PersistentStateComponent<ToolSettingsState?> {
     // push后触发编译
     var buildAfterPush: Boolean = true

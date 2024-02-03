@@ -7,11 +7,11 @@ fun environment(key: String) = providers.environmentVariable(key)
 plugins {
     id("java") // Java support
     id("com.github.ben-manes.versions") version "0.39.0" // dependenciesUpdates
-    alias(libs.plugins.kotlin) // Kotlin support
-    alias(libs.plugins.gradleIntelliJPlugin) // Gradle IntelliJ Plugin
-    alias(libs.plugins.changelog) // Gradle Changelog Plugin
-    alias(libs.plugins.qodana) // Gradle Qodana Plugin
-    alias(libs.plugins.kover) // Gradle Kover Plugin
+    id("org.jetbrains.kotlin.jvm") version "1.9.10" // Kotlin support
+    id("org.jetbrains.intellij") version "1.17.0" // Gradle IntelliJ Plugin
+    id("org.jetbrains.changelog") version "2.0.0" // Gradle Changelog Plugin
+    id("org.jetbrains.qodana") version "0.1.13" // Gradle Qodana Plugin
+    id("org.jetbrains.kotlinx.kover") version "0.7.5" // Gradle Kover Plugin
 }
 
 group = properties("pluginGroup").get()
@@ -27,17 +27,16 @@ repositories {
 
 // Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
 dependencies {
-    // implementation ("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10")
     implementation ("org.jdom:jdom2:2.0.6.1")
     implementation ("com.squareup.okhttp3:okhttp:3.1.0")
+    // implementation ("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10")
 }
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.
 kotlin {
     @Suppress("UnstableApiUsage")
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-        vendor.set(JvmVendorSpec.JETBRAINS)
+        languageVersion.set(JavaLanguageVersion.of(8))
     }
 }
 
@@ -146,13 +145,13 @@ tasks {
 
     jar {
         manifest {
-            attributes["Main-Class"] = "org.intellij.tool.branch.merge.local.CommonMergeAction"
+            attributes["Main-Class"] = "com.github.linrol.tool.branch.merge.local.CommonMergeAction"
         }
         // 包含所有依赖项
         from(configurations.runtimeClasspath.get().map {
             if (it.isDirectory) it else zipTree(it)
         })
-        exclude("okhttp3/internal/Platform\$Android.class")
+        // exclude("okhttp3/internal/Platform\$Android.class")
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 }
