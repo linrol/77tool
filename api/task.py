@@ -617,6 +617,8 @@ class Task(Common):
         vs = {}
         ret = []
         for branch in branches:
+            if not self.branch_is_present("build", branch):
+                continue
             branch_versions = self.get_branch_version(branch)
             for p, v in branch_versions.items():
                 vs.setdefault(p, {})[branch] = v
