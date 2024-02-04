@@ -124,7 +124,7 @@ tasks {
     }
 
     runPluginVerifier {
-        ideVersions.set(listOf("IC-2018.3.6"))
+        ideVersions.set(listOf("IC-2021.3"))
     }
 
     signPlugin {
