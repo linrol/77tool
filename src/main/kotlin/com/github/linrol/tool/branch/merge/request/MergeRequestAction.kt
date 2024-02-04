@@ -12,9 +12,10 @@ import org.apache.commons.lang3.exception.ExceptionUtils
 import com.github.linrol.tool.base.BasePushAction
 import com.github.linrol.tool.branch.command.GitCommand
 import com.github.linrol.tool.model.GitCmd
+import com.intellij.dvcs.push.ui.PushActionBase
 import org.jetbrains.annotations.Nls
 
-class MergeRequestAction : BasePushAction("Merge Request") {
+class MergeRequestAction : PushActionBase("Merge Request") {
     override fun isEnabled(dialog: VcsPushUi): Boolean {
         return true
     }

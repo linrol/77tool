@@ -16,8 +16,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils
 import com.github.linrol.tool.base.BasePushAction
 import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.state.ToolSettingsState
+import com.intellij.dvcs.push.ui.PushActionBase
 
-class OpsBuildAfterPushAction: BasePushAction("Push And Build") {
+class OpsBuildAfterPushAction: PushActionBase("Push And Build") {
     override fun actionPerformed(project: Project, dialog: VcsPushUi) {
         try {
             GitCmd.clear()

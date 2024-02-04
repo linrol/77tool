@@ -22,7 +22,6 @@
           displayName="77tool Settings"/>
         <applicationService serviceImplementation="com.github.linrol.tool.state.ToolSettingsState"/>
         <toolWindow id="77tool" canCloseContents="false" anchor="bottom" factoryClass="com.github.linrol.tool.tollwindow.ToolWindowFactory"/>
-        <vcs.changes.localCommitExecutor implementation="com.github.linrol.tool.branch.commit.extension.CommitMergeRequestExecutor"/>
 
         <projectService serviceInterface="com.intellij.openapi.vcs.AbstractVcsHelper"
           serviceImplementation="com.github.linrol.tool.extend.vcs.AbstractVcsHelperImplEx" overrides="true"/>
