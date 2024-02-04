@@ -2,6 +2,7 @@ package com.github.linrol.tool.extend.vcs;
 
 import static com.intellij.openapi.vcs.VcsNotifier.STANDARD_NOTIFICATION;
 
+import com.github.linrol.tool.extend.vcs.resolve.ResolveConflicts;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -20,7 +21,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.github.linrol.tool.extend.vcs.resolve.ResolveConflicts;
 import org.jetbrains.annotations.NotNull;
 
 public class AbstractVcsHelperImplEx extends AbstractVcsHelperImpl {
