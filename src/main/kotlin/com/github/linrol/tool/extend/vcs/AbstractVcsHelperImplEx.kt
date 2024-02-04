@@ -21,39 +21,43 @@ open class AbstractVcsHelperImplEx protected constructor(private val project: Pr
 
     override fun showMergeDialog(files: List<VirtualFile>, provider: MergeProvider, mergeDialogCustomizer: MergeDialogCustomizer): List<VirtualFile> {
         if (files.isEmpty()) return emptyList()
-        try {
-            autoResolve(files, provider)
+        val conflictFiles = try {
+             autoResolve(files, provider)
         } catch (e: Throwable) {
             e.printStackTrace()
             VcsNotifier.getInstance(project).notify(VcsNotifier.STANDARD_NOTIFICATION.createNotification(e.toString(), NotificationType.ERROR))
+            files
         }
-        val virtualFiles = super.showMergeDialog(files, provider, mergeDialogCustomizer)
+        val virtualFiles = super.showMergeDialog(conflictFiles, provider, mergeDialogCustomizer)
         changeVersionAfterMerged(files, virtualFiles)
         return virtualFiles
     }
 
-    private fun autoResolve(files: List<VirtualFile>, provider: MergeProvider) {
-        val toAddMap: MutableMap<VirtualFile?, MutableList<FilePath>> = HashMap()
-        files.filter {file ->
+    private fun autoResolve(files: List<VirtualFile>, provider: MergeProvider) :List<VirtualFile> {
+        val toAddMap: MutableMap<VirtualFile, MutableList<FilePath>> = HashMap()
+        val conflictFiles = files.filter { file ->
             val conflicts = ResolveConflicts.getInstance(project, provider, file)
             conflicts?.let {
-                val resolveChangeAuto = conflicts.resolveChangeAuto()
-                val root = VcsUtil.getVcsRootFor(project, file)
-                val toAdds = toAddMap.getOrDefault(root, ArrayList())
-                toAdds.add(VcsUtil.getFilePath(file))
-                toAddMap[root] = toAdds
-                !resolveChangeAuto
+                val isResolve = conflicts.resolveChangeAuto()
+                takeIf { isResolve } ?.run {
+                    val root = VcsUtil.getVcsRootFor(project, file)!!
+                    val toAdds = toAddMap.getOrDefault(root, ArrayList())
+                    toAdds.add(VcsUtil.getFilePath(file))
+                    toAddMap[root] = toAdds
+                }
+                !isResolve
             } ?: true
         }
         ProgressManager.getInstance().runProcessWithProgressSynchronously({
-            toAddMap.forEach { (root: VirtualFile?, toAdd: List<FilePath>?) ->
+            toAddMap.forEach { (root: VirtualFile, toAdd: List<FilePath>) ->
                 try {
-                    GitFileUtils.addPathsForce(project, root!!, toAdd)
+                    GitFileUtils.addPathsForce(project, root, toAdd)
                 } catch (e: VcsException) {
                     throw RuntimeException(e)
                 }
             } }, VcsBundle.message("multiple.file.merge.dialog.progress.title.resolving.conflicts"), true, project
         )
+        return conflictFiles
     }
 
     private fun changeVersionAfterMerged(files: List<VirtualFile>, virtualFiles: List<VirtualFile>) {
