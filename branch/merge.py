@@ -94,6 +94,7 @@ class Merge(Common):
             wait_push[name] = path
         if len(wait_push) < 1 and len(wait_created) < 1:
             print("工程从分支【{}】合并至【{}】失败：无代码Changes变化".format(self.source, self.target))
+            return
         self.push(wait_push)
         self.created(wait_created)
         self.tag()
