@@ -118,8 +118,7 @@ class Shell(Common):
             logger.exception(err)
             return False, str(err)
         finally:
-            end = self.get_project_end(projects)
-            executor.submit(self.rest_branch_env, end)
+            executor.submit(self.rest_branch_env)
 
     def check_version(self, branch):
         try:
@@ -200,9 +199,10 @@ class Shell(Common):
             executor.submit(self.rest_branch_env)
 
     # 重值研发助手环境，切换到master分支，删除本地的target分支
-    def rest_branch_env(self, end="backend"):
+    def rest_branch_env(self):
         try:
-            self.checkout_branch(self.master, end)
+            self.checkout_branch(self.master, self.backend)
+            self.checkout_branch(self.master, self.front)
             self.delete_branch(self.target_branch, self.projects.values())
             self.delete_branch(self.source_branch, self.projects.values())
             if self.lock_value is not None:
