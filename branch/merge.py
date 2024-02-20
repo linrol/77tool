@@ -92,6 +92,8 @@ class Merge(Common):
                 print("工程【{}】分支【{}】合并至分支【{}】失败【{}】".format(name, self.source, self.target, merge_msg))
                 sys.exit(1)
             wait_push[name] = path
+        if len(wait_push) < 1 and len(wait_created) < 1:
+            print("工程从分支【{}】合并至【{}】失败：无代码Changes变化".format(self.source, self.target))
         self.push(wait_push)
         self.created(wait_created)
         self.tag()
@@ -127,6 +129,8 @@ class Merge(Common):
     def tag(self):
         try:
             if not self.is_trunk(self.target):
+                return True, str("目标分支非主干，无需打Tag")
+            if self.target == "perform":
                 return True, str("目标分支非主干，无需打Tag")
             return True, self.create_tag()
         except Exception as err:
