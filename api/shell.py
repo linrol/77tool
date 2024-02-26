@@ -186,7 +186,7 @@ class Shell(Common):
             cmd = 'cd ../branch;python3 releaseVersion.py {} {} {}'.format( action, self.target_branch, params)
             [ret, release_version_msg] = self.exec(cmd)
             if not ret:
-                return False, str(release_version_msg)
+                return True, str(release_version_msg)
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
             [_, change_version_msg] = self.exec(cmd, True)
             user_name = self.userid2name(self.user_id)
