@@ -184,7 +184,9 @@ class Shell(Common):
             self.lock_value = self.lock.get_lock("lock", 300)
             self.checkout_branch(self.target_branch)
             cmd = 'cd ../branch;python3 releaseVersion.py {} {} {}'.format( action, self.target_branch, params)
-            [_, release_version_msg] = self.exec(cmd, True, False)
+            [ret, release_version_msg] = self.exec(cmd)
+            if not ret:
+                return False, str(release_version_msg)
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
             [_, change_version_msg] = self.exec(cmd, True)
             user_name = self.userid2name(self.user_id)
