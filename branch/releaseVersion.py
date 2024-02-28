@@ -38,6 +38,7 @@ class ReleaseVersion(Common):
                 for p, v in pv.items():
                     replace[p] = v
                     print("工程【{}】自身版本修改为【{}】".format(p, v))
+            is_sprint = self.target_name in ["sprint", "release"]
             stage_version = self.get_branch_version("stage")
             compare_error = False
             # 替换-SNAPSHOT为空串
@@ -48,7 +49,7 @@ class ReleaseVersion(Common):
                 if k in replace:
                     continue
                 stage_v = stage_version.get(k)
-                if self.compare_version(v, stage_v) < 1:
+                if is_sprint and self.compare_version(v, stage_v) < 1:
                     v_info = "{}.{} < {}.{}".format(v[0], v[1], stage_v[0], stage_v[1])
                     print("工程【{}】目标分支【{}】落后基准分支【stage】版本号({})，请调整后重新封版打包".format(k, self.target, v_info))
                     compare_error = True
