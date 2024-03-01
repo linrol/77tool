@@ -26,6 +26,7 @@
         <projectService serviceInterface="com.intellij.openapi.vcs.AbstractVcsHelper"
           serviceImplementation="com.github.linrol.tool.extend.vcs.AbstractVcsHelperImplEx" overrides="true"/>
 
+        <vcs.changes.localCommitExecutor implementation="com.github.linrol.tool.branch.commit.extension.CommitMergeRequestExecutor"/>
         <!--<pushDialogActionsProvider implementation="com.github.linrol.tool.branch.trigger.OpsBuildAfterPushActionProvider"/>-->
     </extensions>
 
