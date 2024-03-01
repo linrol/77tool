@@ -153,6 +153,20 @@ class ProjectInfo():
     #删除本地分支(使用-d，如果没有合并到当前分支，删除会报错)
     subprocess.getstatusoutput('cd ' + self.__path +' && git branch -D ' + deleteBranch)
 
+  # 删除除特定外所有其他本地分支
+  def deleteAllLocalBranch(self):
+    if self.__path is None:
+      return
+    [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git branch | grep -v "$(git rev-parse --abbrev-ref HEAD)"')
+    if result != 0:
+      return
+    print("工程【{}】开始删除本地分支...".format(self.__name))
+    [result, msg] = subprocess.getstatusoutput('cd ' + self.__path +' && git branch | grep -v "$(git rev-parse --abbrev-ref HEAD)" | xargs git branch -D')
+    if result != 0:
+      print("工程【{}】删除失败".format(self.__name))
+    else:
+      print(msg)
+
   # 删除远程分支
   def deleteRemoteBranch(self, deleteBranch):
     if(deleteBranch == 'master' or deleteBranch == 'stage'):
