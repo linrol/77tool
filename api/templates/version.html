@@ -126,7 +126,7 @@
             <tr v-for="(module, mIndex) in modules" :key="mIndex" v-show="!hideSameVersions || shouldShowModule(module)">
                 <td>{{ module.name }}</td>
                 <td v-for="(branch, bIndex) in branches" :key="bIndex" :class="{ 'highlight': isDifferentVersion(module, branch) && highlightVersions }">
-                    {{ module.branches[branch] }}
+                    {{ module.branches[branch] }}{{diff(mIndex, bIndex)}}
                 </td>
             </tr>
         </tbody>
@@ -209,6 +209,20 @@
             toggleHighlight() {
                 this.highlightVersions = !this.highlightVersions;
             },
+            diff(mIndex, bIndex) {
+                preBranch = this.branches[bIndex - 1]
+                if (!preBranch) {
+                    return ""
+                }
+                thisBranch = this.branches[bIndex]
+                preVersion = this.modules[mIndex].branches[preBranch].split(".")[2]
+                thisVersion = this.modules[mIndex].branches[thisBranch].split(".")[2]
+                if (isNaN(preVersion) || isNaN(thisVersion)) {
+                    return ""
+                }
+                diffNum = parseInt(thisVersion) - parseInt(preVersion)
+                return (diffNum >= 0 ? "(+" : "(-") + diffNum + ")"
+            }
         },
     });
 </script>
