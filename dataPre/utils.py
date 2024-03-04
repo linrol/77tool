@@ -16,7 +16,7 @@ TOKEN=''
 isSystemTable = ['baseapp_bill_type_template', 'baseapp_list_column', 'baseapp_list_column_schema', 'baseapp_list_columns_definition', 'baseapp_list_columns_schema', 'baseapp_list_columns_schema_context_field', 'baseapp_list_columns_schema_sort_field', 'baseapp_query_list_definition', 'baseapp_query_item', 'baseapp_query_item_schema', 'baseapp_query_definition', 'baseapp_query_schema', 'baseapp_query_definition_group','baseapp_list_column_group','baseapp_menu_func','baseapp_menu','baseapp_report_definition']
 
 class ColumnInfo():
-  excludeFields = ['entry_src_system_id', 'external_system_code', 'external_object_type', 'external_object_id', 'created_user_id', 'created_time', 'modified_user_id', 'modified_time', 'is_init_data', 'is_deleted', 'last_request_id', 'last_modified_user_id', 'last_modified_time', 'customized_fields','data_version']
+  excludeFields = ['entry_src_system_id', 'external_system_code', 'external_object_type', 'external_object_id', 'created_user_id', 'created_time', 'modified_user_id', 'modified_time', 'is_init_data', 'is_deleted', 'last_request_id', 'last_modified_user_id', 'last_modified_time', 'customized_fields', 'data_version', 'multi_langs']
   def __init__(self, name, type, index):
     self.__name = name
     self.__type = type
