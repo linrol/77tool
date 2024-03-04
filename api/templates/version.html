@@ -112,7 +112,7 @@
             <button id="addBranchButton" @click="addBranch">添加分支</button>
         </div>
         <div>
-            <button id="highlightButton" @click="toggleHighlight">切换高亮显示</button>
+            <button id="highlightButton" @click="toggleHighlight">高亮显示版本对比</button>
             <input type="checkbox" id="hideSameVersions" v-model="hideSameVersions">
             <label for="hideSameVersions">隐藏相同版本</label>
         </div>
@@ -131,9 +131,9 @@
         <tbody>
             <tr v-for="(module, mIndex) in modules" :key="mIndex" v-show="!hideSameVersions || shouldShowModule(module)">
                 <td>{{ module.name }}</td>
-                <td v-for="(branch, bIndex) in branches" :key="bIndex" :class="{ 'highlight': isDifferentVersion(module, branch) && highlightVersions }">
+                <td v-for="(branch, bIndex) in branches" :key="bIndex">
                     {{ module.branches[branch] }}
-                    <label :class="diffColor(mIndex, bIndex)">{{diff(mIndex, bIndex)}}</label>
+                    <label :class="diffColor(mIndex, bIndex)" v-show="highlightVersions">{{diff(mIndex, bIndex)}}</label>
                 </td>
             </tr>
         </tbody>
