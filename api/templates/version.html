@@ -92,6 +92,12 @@
         #hideSameVersions {
             margin-right: 10px;
         }
+        .red {
+            color: red;
+        }
+        .green {
+            color: #4caf50;
+        }
     </style>
 </head>
 <body>
@@ -126,7 +132,8 @@
             <tr v-for="(module, mIndex) in modules" :key="mIndex" v-show="!hideSameVersions || shouldShowModule(module)">
                 <td>{{ module.name }}</td>
                 <td v-for="(branch, bIndex) in branches" :key="bIndex" :class="{ 'highlight': isDifferentVersion(module, branch) && highlightVersions }">
-                    {{ module.branches[branch] }}{{diff(mIndex, bIndex)}}
+                    {{ module.branches[branch] }}
+                    <label :class="diffColor(mIndex, bIndex)">{{diff(mIndex, bIndex)}}</label>
                 </td>
             </tr>
         </tbody>
@@ -215,13 +222,20 @@
                     return ""
                 }
                 thisBranch = this.branches[bIndex]
-                preVersion = this.modules[mIndex].branches[preBranch].split(".")[2]
-                thisVersion = this.modules[mIndex].branches[thisBranch].split(".")[2]
+                preVersion = this.modules[mIndex].branches[preBranch].split(".")[2].replace("-SNAPSHOT", "")
+                thisVersion = this.modules[mIndex].branches[thisBranch].split(".")[2].replace("-SNAPSHOT", "")
                 if (isNaN(preVersion) || isNaN(thisVersion)) {
                     return ""
                 }
                 diffNum = parseInt(thisVersion) - parseInt(preVersion)
                 return (diffNum >= 0 ? "(+" : "(-") + diffNum + ")"
+            },
+            diffColor(mIndex, bIndex) {
+                num = this.diff(mIndex, bIndex).replace("(", "").replace(")", "")
+                return {
+                    'red': num < 0,
+                    'green': num >= 0
+                }
             }
         },
     });
