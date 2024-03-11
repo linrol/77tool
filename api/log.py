@@ -7,7 +7,8 @@ import os
 class LogFormatter(logging.Formatter):
     # 处理消息中的换行，替换为空格
     def format(self, record):
-        record.msg = record.msg.replace('\n', ' ')
+        if record is not None and isinstance(record.msg, str):
+            record.msg = record.msg.replace('\n', ' ')
         return super().format(record)
 
 
