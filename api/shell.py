@@ -91,7 +91,7 @@ class Shell(Common):
             cmd = 'cd ../branch;python3 changeVersion.py {} {}'.format(self.target_branch, clear_build_params)
             [_, version_msg] = self.exec(cmd, True)
             self.commit_and_push(self.target_branch, 'd' if is_feature_branch else 'hotfix', req_name)
-            self.ops_build(self.target_branch, self.is_test, call_name=req_name)
+            self.ops_build(self.target_branch, self.is_test, user_name=req_name)
             self.save_branch_created(self.user_id, self.source_branch, self.target_branch, projects)
             created_msg = re.compile('WARNNING：.*\n').sub('', created_msg)
             created_msg = re.compile('工程.*保护成功.*\n').sub('', created_msg)
@@ -179,25 +179,24 @@ class Shell(Common):
             executor.submit(self.rest_branch_env)
 
     def package(self, action, params, protect, is_build):
+        user_name = None
         try:
-            # self.ops_switch_build("stop")
+            user_name = self.userid2name(self.user_id)
+            if action not in ["build", "destroy"]:
+                return True, str("")
             self.lock_value = self.lock.get_lock("lock", 300)
             self.checkout_branch(self.target_branch)
             cmd = 'cd ../branch;python3 releaseVersion.py {} {} {}'.format( action, self.target_branch, params)
-            [ret, release_version_msg] = self.exec(cmd)
-            if not ret:
-                return True, str(release_version_msg)
+            [_, release_version_msg] = self.exec(cmd, True)
             cmd = 'cd ../branch;python3 changeVersion.py {}'.format(self.target_branch)
             [_, change_version_msg] = self.exec(cmd, True)
-            user_name = self.userid2name(self.user_id)
             self.commit_and_push(self.target_branch, protect, user_name)
-            self.ops_build(self.target_branch, not is_build, call_name=user_name)
-            msg = release_version_msg + change_version_msg
-            return True, msg.replace("\n", "").replace("工程", "\n工程")
+            return True, (release_version_msg + change_version_msg).replace("\n", "").replace("工程", "\n工程")
         except Exception as err:
             logger.exception(err)
-            return False, str(err)
+            return True, str(err)
         finally:
+            self.ops_build(self.target_branch, not is_build, user_name=user_name)
             executor.submit(self.rest_branch_env)
 
     # 重值研发助手环境，切换到master分支，删除本地的target分支

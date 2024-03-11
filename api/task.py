@@ -562,7 +562,8 @@ class Task(Common):
             modules.append("cache=local:{}".format(cache_version))
         # 后端封版，模块包含apps，global则构建或回退发布包
         protect = access + "," + modules[0]
-        action = "destroy" if body.get("delete_jar", 'false') == "true" else "build"
+        delete_jar = body.get("delete_jar", 'false') == "true"
+        action = "build" if is_seal else ("destroy" if delete_jar else "none")
         is_build = body.get("is_build", "") == 'true'
         ret, msg = shell.package(action, " ".join(modules), protect, is_build)
         response["apps"] = {"ret": ret, "msg": msg}

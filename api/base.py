@@ -194,19 +194,19 @@ class Base:
         return list(ends)[0]
 
     # 触发ops编译
-    def ops_build(self, branch, skip=False, project=None, call_name=None):
+    def ops_build(self, branch, skip=False, project=None, user_name=None):
         try:
             if skip:
                 return
             caller = "研发助手"
-            if call_name is not None:
-                caller = "{}-研发助手".format(call_name)
+            if user_name is not None:
+                caller = "{}-研发助手".format(user_name)
             params = {"branch": branch, "byCaller": caller}
             if project is not None:
                 params["projects"] = project
             res = post_form(self.build_url, params)
             build_id = res.get("data").get("taskid")
-            hmset("q7link-branch-build", {build_id: call_name})
+            hmset("q7link-branch-build", {build_id: user_name})
             return build_id
         except Exception as err:
             logger.exception(err)
