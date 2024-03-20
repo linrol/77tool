@@ -1,6 +1,11 @@
 package com.github.linrol.tool.utils
 
+import com.github.linrol.tool.branch.protect.ProtectLevel
+import com.github.linrol.tool.constants.ACCESS_TOKEN
+import com.github.linrol.tool.constants.GITLAB_URL
+import com.github.linrol.tool.model.RepositoryChange
 import com.intellij.concurrency.JobScheduler
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
@@ -20,14 +25,17 @@ import git4idea.commands.GitLineHandler
 import git4idea.config.GitExecutableManager
 import git4idea.fetch.GitFetchResult
 import git4idea.fetch.GitFetchSupport
+import git4idea.history.GitHistoryTraverser.StartNode.*
 import git4idea.repo.GitRepository
-import com.github.linrol.tool.model.RepositoryChange
+import org.gitlab4j.api.GitLabApi
+import org.gitlab4j.api.models.AccessLevel
 import java.io.IOException
 import java.net.URI
 import java.util.*
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
+
 
 /**
  * GitLab specific untils
@@ -36,6 +44,8 @@ import java.util.regex.Pattern
  * @since 28.10.2015
  */
 object GitLabUtil {
+    val log = logger<GitLabUtil>()
+
     fun getGitRepository(project: Project, file: VirtualFile): GitRepository? {
         val manager = GitUtil.getRepositoryManager(project)
         val repositories = manager.repositories
@@ -127,6 +137,40 @@ object GitLabUtil {
         // catch newly added remote
         repository.update()
         return true
+    }
+
+    fun protectBranch(path: String, branchName: String, level: ProtectLevel):Boolean {
+        return try {
+            // 创建 GitLabApi 实例
+            val gitLabApi = GitLabApi(GITLAB_URL, ACCESS_TOKEN)
+            // 获取项目
+            val projectId = gitLabApi.projectApi.getProject(path).id
+            // 设置分支保护
+            val protectAppi = gitLabApi.protectedBranchesApi
+            try {
+                protectAppi.unprotectBranch(projectId, branchName)
+                true
+            } finally {
+                when (level) {
+                    ProtectLevel.Noone -> {
+                        protectAppi.protectBranch(projectId, branchName, AccessLevel.NONE, AccessLevel.NONE)
+                    }
+                    ProtectLevel.Hotfix -> {
+                        protectAppi.protectBranch(projectId, branchName, AccessLevel.NONE, AccessLevel.MAINTAINER)
+                    }
+                    ProtectLevel.Release -> {
+                        protectAppi.protectBranch(projectId, branchName, AccessLevel.MAINTAINER, AccessLevel.MAINTAINER)
+                    }
+                    ProtectLevel.Dev -> {
+                        protectAppi.protectBranch(projectId, branchName, AccessLevel.DEVELOPER, AccessLevel.DEVELOPER)
+                    }
+                    else -> {}
+                }
+            }
+        } catch (e: Exception) {
+            log.error(e)
+            false
+        }
     }
 
     /**

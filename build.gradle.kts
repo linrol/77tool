@@ -29,6 +29,7 @@ repositories {
 dependencies {
     implementation ("org.jdom:jdom2:2.0.6.1")
     implementation ("com.squareup.okhttp3:okhttp:3.1.0")
+    implementation ("org.gitlab4j:gitlab4j-api:4.17.0")
     // implementation ("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10")
 }
 
