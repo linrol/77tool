@@ -27,7 +27,6 @@ import git4idea.fetch.GitFetchResult
 import git4idea.fetch.GitFetchSupport
 import git4idea.history.GitHistoryTraverser.StartNode.*
 import git4idea.repo.GitRepository
-import org.gitlab4j.api.GitLabApi
 import org.gitlab4j.api.models.AccessLevel
 import java.io.IOException
 import java.net.URI
@@ -144,9 +143,9 @@ object GitLabUtil {
         return true
     }
 
-    fun getRepositoryBranches(path: String): Map<String, String> {
+    fun getRepositoryBranches(path: String): List<String> {
         // 创建 GitLabApi 实例
-        return gitLabApi.repositoryApi.getBranches(path).associateBy ( {it.name}, {it.name} )
+        return gitLabApi.repositoryApi.getBranches(path).map { it.name }
     }
 
     fun getBuildVersion(path: String, branch: String, module:String): String {

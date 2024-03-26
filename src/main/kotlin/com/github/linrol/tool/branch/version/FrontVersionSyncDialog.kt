@@ -1,6 +1,6 @@
 package com.github.linrol.tool.branch.version
 
-import com.github.linrol.tool.constants.GIT_BUILD_PATH
+import com.github.linrol.tool.constants.BUILD_GIT_PATH
 import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.utils.GitLabUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
@@ -33,7 +33,6 @@ class FrontVersionSyncDialog(
     private val version = createComboBoxWithAutoCompletion("请选择同步到后端的版本号")
     private val innerPanel = createInnerPanel()
     private val panel = createPanel()
-    private val buildBranches = GitLabUtil.getRepositoryBranches(GIT_BUILD_PATH)
     private val frontGoServer = GitLabUtil.getRepository(project, "front-goserver")
     companion object {
         val log = logger<FrontVersionSyncDialog>()
@@ -99,7 +98,9 @@ class FrontVersionSyncDialog(
 
     private fun comboBoxBindDatas() {
         val branchModel = branch.model as? MutableCollectionComboBoxModel
-        branchModel?.update(buildBranches.keys.sortedBy { calBranchWeight(it) })
+        GitLabUtil.getRepositoryBranches(BUILD_GIT_PATH).sortedBy { calBranchWeight(it) }.let {
+            branchModel?.update(it)
+        }
         branch.addItemListener {
             val branchName = it.item.toString()
             version.setPlaceholder("后端分支版本为(${getBuildFrontVersion(branchName)})")
@@ -142,15 +143,15 @@ class FrontVersionSyncDialog(
             val gitUserName = frontGoServer?.root?.let {
                 GitUserRegistry.getInstance(project).getUser(it)?.name
             } ?: ""
-            GitLabUtil.updateBuildVersion(GIT_BUILD_PATH, branchName, "reimburse", versionNo, gitUserName).takeIf { ret -> ret }?.let {
-                GitCmd.log(project, "分支(${branchName})预制数据版本号(front-apps.reimburse)成功更新为:$versionNo")
+            GitLabUtil.updateBuildVersion(BUILD_GIT_PATH, branchName, "reimburse", versionNo, gitUserName).takeIf { ret -> ret }?.let {
+                GitCmd.log(project, "分支【${branchName}】预制数据版本号(front-apps.reimburse)成功更新为:$versionNo")
             }
         }
         super.doOKAction()
     }
 
     private fun getBuildFrontVersion(branchName: String): String {
-        return GitLabUtil.getBuildVersion(GIT_BUILD_PATH, branchName, "reimburse")
+        return GitLabUtil.getBuildVersion(BUILD_GIT_PATH, branchName, "reimburse")
     }
 
     private fun calBranchWeight(branch: String): Int {
