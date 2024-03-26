@@ -83,5 +83,13 @@
             <add-to-group group-id="com.github.linrol.tool.77toolGroup" anchor="after" relative-to-action="com.github.linrol.tool.branch.commit.CommitMergeRequestAction"/>
         </action>
 
+        <!-- Front Init-Data Version Sync -->
+        <action id="com.github.linrol.tool.branch.version.FrontVersionSyncAction" class="com.github.linrol.tool.branch.version.FrontVersionSyncAction"
+          text="Front Version Sync"
+          description="Front init-data version sync"
+          icon="/icons/sync.svg">
+            <add-to-group group-id="com.github.linrol.tool.77toolGroup" anchor="after" relative-to-action="com.github.linrol.tool.branch.protect.ProtectBranchAction"/>
+        </action>
+
     </actions>
 </idea-plugin>

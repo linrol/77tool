@@ -15,6 +15,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vcs.changes.Change
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ThrowableConvertor
 import com.intellij.util.containers.Convertor
@@ -80,6 +81,11 @@ object GitLabUtil {
         return repoFilesMap.entries.map { RepositoryChange(it.key, it.value) }
     }
 
+    fun getRepository(project: Project, module:String): GitRepository? {
+        val manager = GitUtil.getRepositoryManager(project)
+        return manager.repositories.firstOrNull{ it.root.name == module}
+    }
+
     fun getRepositories(project: Project): List<GitRepository> {
         val manager = GitUtil.getRepositoryManager(project)
         return manager.repositories
@@ -137,6 +143,55 @@ object GitLabUtil {
         // catch newly added remote
         repository.update()
         return true
+    }
+
+    fun getRepositoryBranches(path: String): Map<String, String> {
+        // 创建 GitLabApi 实例
+        val gitLabApi = GitLabApi(GITLAB_URL, ACCESS_TOKEN)
+        return gitLabApi.repositoryApi.getBranches(path).associateBy ( {it.name}, {it.name} )
+    }
+
+    fun getBuildVersion(path: String, branch: String, module:String): String {
+        val gitLabApi = GitLabApi(GITLAB_URL, ACCESS_TOKEN)
+        val fileText =  gitLabApi.repositoryFileApi.getRawFile(path, branch, "config.yaml")
+            .bufferedReader()
+            .use { it.readText() }
+        val versionRegex = Regex("""${module}:\s*(.+)""")
+        val matchResult = versionRegex.find(fileText) ?: return "unknown version"
+        return matchResult.groupValues[1].trim()
+    }
+
+    fun updateBuildVersion(path: String, branch: String, module:String, updateVersion: String, username: String): Boolean {
+        return try {
+            val gitLabApi = GitLabApi(GITLAB_URL, ACCESS_TOKEN)
+            val configFile = gitLabApi.repositoryFileApi.getFile(path,  "config.yaml", branch)
+            val updatedText = Regex("""${module}:\s*(.+)""").replace(configFile.decodedContentAsString) {
+                "${module}: $updateVersion"
+            }
+            configFile.encodeAndSetContent(updatedText)
+            gitLabApi.repositoryFileApi.updateFile(path, configFile, branch, "${branch}-task-0000-更新前端预制数据版本号(77tool:${username})")
+            return true
+        } catch (e: Exception) {
+            log.error(e)
+            return false
+        }
+    }
+
+    fun getFrontLocalXmlVersions(repo: GitRepository?): List<String> {
+        repo ?: return emptyList()
+        val versionRegex = Regex("<version>(.*?)</version>")
+        val versions = mutableListOf<String>()
+        listOf("trek/init-data/main/snapshot.xml", "trek/init-data/main/release.xml").forEach{ relPath ->
+            repo.root.findFileByRelativePath(relPath)?.canonicalPath?.let { path ->
+                LocalFileSystem.getInstance().findFileByPath(path)?.contentsToByteArray()?.let { byte ->
+                    val content = String(byte)
+                    versionRegex.find(content)?.let { match ->
+                        versions.add(match.groupValues[1])
+                    }
+                }
+            }
+        }
+        return versions
     }
 
     fun protectBranch(path: String, branchName: String, level: ProtectLevel):Boolean {

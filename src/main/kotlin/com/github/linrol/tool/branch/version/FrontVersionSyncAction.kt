@@ -1,18 +1,19 @@
-package com.github.linrol.tool.branch.merge.local
+package com.github.linrol.tool.branch.version
 
 import com.github.linrol.tool.utils.GitLabUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-class CommonMergeAction : DumbAwareAction() {
+class FrontVersionSyncAction: DumbAwareAction()  {
+
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
-        CommonMergeDialog(project, e).showAndGet()
+        FrontVersionSyncDialog(project, e).showAndGet()
     }
 
     override fun update(e: AnActionEvent) {
         val project = e.project ?: return
-        val repo = GitLabUtil.getRepository(project, "build")
+        val repo = GitLabUtil.getRepository(project, "front-goserver")
         e.presentation.isEnabledAndVisible = repo != null
     }
 }
