@@ -1,8 +1,7 @@
 package com.github.linrol.tool.utils
 
 import com.github.linrol.tool.branch.protect.ProtectLevel
-import com.github.linrol.tool.constants.ACCESS_TOKEN
-import com.github.linrol.tool.constants.GITLAB_URL
+import com.github.linrol.tool.constants.gitLabApi
 import com.github.linrol.tool.model.RepositoryChange
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.diagnostic.logger
@@ -147,12 +146,10 @@ object GitLabUtil {
 
     fun getRepositoryBranches(path: String): Map<String, String> {
         // 创建 GitLabApi 实例
-        val gitLabApi = GitLabApi(GITLAB_URL, ACCESS_TOKEN)
         return gitLabApi.repositoryApi.getBranches(path).associateBy ( {it.name}, {it.name} )
     }
 
     fun getBuildVersion(path: String, branch: String, module:String): String {
-        val gitLabApi = GitLabApi(GITLAB_URL, ACCESS_TOKEN)
         val fileText =  gitLabApi.repositoryFileApi.getRawFile(path, branch, "config.yaml")
             .bufferedReader()
             .use { it.readText() }
@@ -163,17 +160,16 @@ object GitLabUtil {
 
     fun updateBuildVersion(path: String, branch: String, module:String, updateVersion: String, username: String): Boolean {
         return try {
-            val gitLabApi = GitLabApi(GITLAB_URL, ACCESS_TOKEN)
             val configFile = gitLabApi.repositoryFileApi.getFile(path,  "config.yaml", branch)
             val updatedText = Regex("""${module}:\s*(.+)""").replace(configFile.decodedContentAsString) {
                 "${module}: $updateVersion"
             }
             configFile.encodeAndSetContent(updatedText)
             gitLabApi.repositoryFileApi.updateFile(path, configFile, branch, "${branch}-task-0000-更新前端预制数据版本号(77tool:${username})")
-            return true
+            true
         } catch (e: Exception) {
             log.error(e)
-            return false
+            false
         }
     }
 
@@ -196,8 +192,6 @@ object GitLabUtil {
 
     fun protectBranch(path: String, branchName: String, level: ProtectLevel):Boolean {
         return try {
-            // 创建 GitLabApi 实例
-            val gitLabApi = GitLabApi(GITLAB_URL, ACCESS_TOKEN)
             // 获取项目
             val projectId = gitLabApi.projectApi.getProject(path).id
             // 设置分支保护
