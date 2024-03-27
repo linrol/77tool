@@ -3,8 +3,8 @@ from task import Task
 from log import logger
 from base import Base
 from zentao import create_task
-from wxmessage import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_protect_branch_dirt, get_move_branch_dirt
 from redisclient import duplicate_msg, get_user_task
+from constant import menu_help, get_pre_dirt, get_branch_dirt, get_init_feature_dirt, get_build_dirt, get_merge_branch_dirt, get_protect_branch_dirt, get_move_branch_dirt
 
 
 class Handler(Base):

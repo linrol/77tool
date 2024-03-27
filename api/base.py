@@ -5,7 +5,7 @@ import json
 from request import post_form, put_form, get, post
 from log import logger
 from redisclient import get_branch_mapping, hget, hgetall, hget_key, hmset, get_version
-from wxmessage import msg_content
+from constant import msg_content
 
 
 class Base:

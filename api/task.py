@@ -5,10 +5,9 @@ import re
 from datetime import datetime, date, timedelta
 from log import logger
 from shell import Shell
-from wxmessage import send_create_branch_msg, build_merge_branch_msg, build_move_branch_msg, msg_content
-from redisclient import save_user_task, get_branch_mapping, hmset, hget, hgetall, hdel, append
 from common import Common
-branch_check_list = ["sprint", "stage-patch", "emergency1", "emergency"]
+from constant import send_create_branch_msg, build_merge_branch_msg, build_move_branch_msg, msg_content
+from redisclient import save_user_task, get_branch_mapping, hmset, hget, hgetall, hdel, append
 services2project = {
     "h5": "front-theory",
     "web": "front-theory",
