@@ -1,4 +1,5 @@
 import re
+import json
 import xmltodict
 import unicodedata as ucd
 from redisclient import get_branch_mapping
@@ -239,6 +240,22 @@ msg_content = {
 target_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
 
 
+def module2projects(projects):
+    with open("../branch/project.json", "r", encoding="utf-8") as f:
+        content = json.load(f)
+    for end, modules in content.items():
+        if end in projects:
+            projects.remove(end)
+            projects.update(set(modules.keys()))
+        for module, ps in modules.items():
+            if module in projects:
+                projects.remove(module)
+                projects.update(set(ps.keys()))
+    exclude_projects = {"build", "parent", "testapp", "base-common-test"}
+    projects.difference_update(exclude_projects)
+    return list(projects)
+
+
 def xml2dirt(raw_xml):
     data = xmltodict.parse(raw_xml).get("xml")
     return data
@@ -291,10 +308,8 @@ def get_branch_dirt(msg_content):
     require_keys = {"来源分支", "目标分支", "工程模块"}.difference(branch_map.keys())
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
-    projects = list(map(project_convert, branch_map.get('工程模块').split(",")))
-    exclude_projects = ["build", "parent", "testapp", "base-common-test"]
-    projects = list(filter(lambda name: name not in exclude_projects, projects))
-    return branch_map.get('来源分支'), branch_map.get('目标分支'), projects
+    projects = set(map(project_convert, branch_map.get('工程模块').split(",")))
+    return branch_map.get('来源分支'), branch_map.get('目标分支'), module2projects(projects)
 
 
 def get_init_feature_dirt(msg_content):
