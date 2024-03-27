@@ -2,7 +2,6 @@ import time
 from request import get, post
 from redisclient import hget, hmset
 from wxcrypt import WXBizMsgCrypt
-from wxmessage import msg
 from log import logger
 
 
@@ -99,10 +98,12 @@ class Crop:
         logger.info(body)
 
     def send_message(self, to_user, msg_type, content):
-        msg['touser'] = to_user
-        msg["msgtype"] = msg_type
-        msg["agentid"] = self.get_agent_id()
-        msg[msg_type] = content
+        msg = {
+            "touser": to_user,
+            "msgtype": msg_type,
+            "agentid": self.get_agent_id(),
+            msg_type: content
+        }
         url = '{}/cgi-bin/message/send?access_token={}'
         return post(url.format(self.work_wx_url, self.get_access_token()), msg)
 

@@ -1,9 +1,7 @@
 import re
 import json
-import xmltodict
 import unicodedata as ucd
 from redisclient import get_branch_mapping
-
 menu_help = {
   "data_pre_new": ">**新列表方案（固定值不要删除）** " 
                   "\n>环　境：<font color=\"comment\">输入预制数据来源环境，例：temp1</font>" 
@@ -49,13 +47,6 @@ menu_help = {
                            "\n>立即编译：<font color=\"comment\">构建发布包后是否立即编译，例：true,false(单选值)</font>"
                            "\n><font color=\"warning\">功能说明，将目标分支的对应的工程模块构建release包并对分支封板</font>"
 }
-
-msg = {
-  "touser": "",
-  "msgtype": "",
-  "agentid": ""
-}
-
 msg_content = {
     "oauth_text_msg": "首次使用，请先进行gitlab身份认证\n复制链接{}在浏览器中打开\n或点击<a href=\"{}\">去授权</a>",
     "create_branch_task": {
@@ -254,11 +245,6 @@ def module2projects(projects):
     exclude_projects = {"build", "parent", "testapp", "base-common-test"}
     projects.difference_update(exclude_projects)
     return list(projects)
-
-
-def xml2dirt(raw_xml):
-    data = xmltodict.parse(raw_xml).get("xml")
-    return data
 
 
 def is_chinese(word):
