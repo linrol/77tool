@@ -5,7 +5,7 @@ import json
 from request import post_form, put_form, get, post
 from log import logger
 from redisclient import get_branch_mapping, hget, hgetall, hget_key, hmset, get_version
-from constant import msg_content
+from constant import msg_content, project_json
 
 
 class Base:
@@ -175,10 +175,8 @@ class Base:
 
     # 获取项目所属端
     def get_project_end(self, projects):
-        with open("../branch/project.json", "r", encoding="utf-8") as f:
-            content = json.load(f)
         ends = set()
-        for end, modules in content.items():
+        for end, modules in project_json.items():
             if end in projects:
                 ends.add(end)
             for module, ps in modules.items():

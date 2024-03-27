@@ -229,12 +229,12 @@ msg_content = {
     "merge_branch_result": "【分支合并通知】\n来源分支：{}\n目标分支：{}\n合并模块：{}\n合并结果：{}\n操  作  人：{}"
 }
 target_regex = r'20[2-9][0-9][0-1][0-9][0-3][0-9]$'
+with open("../branch/project.json", "r", encoding="utf-8") as f:
+    project_json = json.load(f)
 
 
 def module2projects(projects):
-    with open("../branch/project.json", "r", encoding="utf-8") as f:
-        content = json.load(f)
-    for end, modules in content.items():
+    for end, modules in project_json.items():
         if end in projects:
             projects.remove(end)
             projects.update(set(modules.keys()))
