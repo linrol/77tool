@@ -149,12 +149,6 @@
       },
       "identity-api": {
         "path": "../../global/identity-api"
-      },
-      "reconcile": {
-        "path": "../../global/reconcile"
-      },
-      "reconcile-api": {
-        "path": "../../global/reconcile-api"
       }
     },
     "platform": {
