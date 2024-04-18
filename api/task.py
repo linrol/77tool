@@ -567,7 +567,6 @@ class Task(Common):
         ret, msg = shell.package(action, " ".join(modules), protect, is_build)
         response["apps"] = {"ret": ret, "msg": msg}
         response["global"] = {"ret": ret, "msg": msg}
-        if not ret: self.crop.send_text_msg(user_id, msg)
         return response
 
     # 检查是否为发布包
