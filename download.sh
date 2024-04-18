@@ -57,8 +57,6 @@ mkdir global
 cd global
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/global/identity-api.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/global/identity.git
-git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/global/reconcile-api.git
-git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/global/reconcile.git
 
 cd ../
 mkdir platform
