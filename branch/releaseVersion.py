@@ -108,6 +108,10 @@ class ReleaseVersion(Common):
                 if "parent" == name:
                     self.maven_delete("app-parent", jar_version)
                     self.maven_delete("app-api-parent", jar_version)
+                if "base-common-test" == name:
+                    self.maven_delete("{}-api".format(name), jar_version)
+                    self.maven_delete("{}-api-private".format(name), jar_version)
+                    self.maven_delete("{}-gen".format(name), jar_version)
                 replace[name_alias] = "{}-SNAPSHOT".format(jar_version)
             if len(replace) < 1:
                 print("分支【{}】没有需要回退的发布包版本".format(self.target))
