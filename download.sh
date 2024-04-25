@@ -30,6 +30,8 @@ git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/factg
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/factgl.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/graphql.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/init-data.git
+git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/integration-api.git
+git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/integration.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/innertrans-api.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/innertrans.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/inv-common.git

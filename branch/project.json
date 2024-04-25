@@ -79,6 +79,12 @@
       "init-data": {
         "path": "../../apps/init-data"
       },
+      "integration": {
+        "path": "../../apps/integration"
+      },
+      "integration-api": {
+        "path": "../../apps/integration-api"
+      },
       "innertrans": {
         "path": "../../apps/innertrans"
       },
