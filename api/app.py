@@ -125,9 +125,8 @@ def branch_seal():
         body = json.loads(request.data.decode('utf-8'))
         logger.info("branch_seal:" + str(body))
         response = Task(crop).branch_seal(body)
-        response_values = list(response.values())
-        seal_msg = response_values[0].get("msg")
-        # crop.send_text_msg(body.get("user_id"), seal_msg)
+        msg = "\n".join(list(filter(lambda f: f, map(lambda i: i.get("msg"), response.values()))))
+        crop.send_text_msg(body.get("user_id"), msg)
     except Exception as err:
         logger.exception(err)
         response["ret"] = False

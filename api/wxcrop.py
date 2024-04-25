@@ -115,6 +115,8 @@ class Crop:
             return None
         if content is None:
             return None
+        if len(content) == 0:
+            return None
         logger.info("send user {} msg {}".format(to_user, content))
         return self.send_message(to_user, 'text', {"content": content})
 
