@@ -168,6 +168,8 @@ class CommonMergeDialog(
             val sourceRepos = repos.filter { it.branches.remoteBranches.any { branch -> branch.nameForRemoteOperations == source } }
             val diffRepos = Sets.difference(sourceRepos.map { it.root.name }.toSet(), commonRepos.map { it.root.name }.toSet())
             if (!diffRepos.isEmpty()) {
+                GitCmd.clear()
+                GitCmd.log(project, "目标分支缺少工程模块【${diffRepos.joinToString(",")}】")
                 validators.add(ValidationInfo("目标分支缺少工程模块【${diffRepos.joinToString(",")}】", moduleBox))
             }
         }
