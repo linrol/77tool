@@ -56,7 +56,7 @@ class OpsBuildAfterPushAction: PushActionBase("Push And Build") {
 
     private fun reposBuild(project: Project, repos: List<Repository>) {
         val branch2Paths: Map<String, String> = repos.groupBy { (it as GitRepository).currentBranchName.toString() }.mapValues {
-            it.value.joinToString(",") { repo ->
+            it.value.filter { repo -> (repo as GitRepository).root.name != "build" }.joinToString(",") { repo ->
                 val gitRepo = repo as GitRepository
                 gitRepo.remotes.first().firstUrl?.substringAfter("com/")?.substringBefore(".git") ?: gitRepo.root.name
             }
