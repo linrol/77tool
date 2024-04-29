@@ -69,7 +69,7 @@ class CommonMergeDialog(
 
     override fun getPreferredFocusedComponent() = branchSource
 
-    override fun doValidateAll(): List<ValidationInfo> = validates()
+    override fun doValidateAll(): List<ValidationInfo> = validates(false)
 
     private fun createPanel() =
             JPanel().apply {
@@ -137,9 +137,12 @@ class CommonMergeDialog(
         moduleModel?.update(list)
         moduleBox.selectAll()
         moduleBox.setSelectedIndex(0)
+        moduleBox.addPropertyChangeListener {
+            validates(true)
+        }
     }
 
-    private fun validates(): List<ValidationInfo> {
+    private fun validates(tiggerListener: Boolean): List<ValidationInfo> {
         val validators = mutableListOf<ValidationInfo>()
         val source = branchSource.getText()
         val target = branchTarget.getText()
@@ -168,8 +171,10 @@ class CommonMergeDialog(
             val sourceRepos = repos.filter { it.branches.remoteBranches.any { branch -> branch.nameForRemoteOperations == source } }
             val diffRepos = Sets.difference(sourceRepos.map { it.root.name }.toSet(), commonRepos.map { it.root.name }.toSet())
             if (!diffRepos.isEmpty()) {
-                GitCmd.clear()
-                GitCmd.log(project, "目标分支缺少工程模块【${diffRepos.joinToString(",")}】")
+                if (tiggerListener) {
+                    GitCmd.clear()
+                    GitCmd.log(project, "目标分支缺少工程模块【${diffRepos.joinToString(",")}】")
+                }
                 validators.add(ValidationInfo("目标分支缺少工程模块【${diffRepos.joinToString(",")}】", moduleBox))
             }
         }
