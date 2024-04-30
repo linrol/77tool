@@ -31,7 +31,7 @@ class ProtectBranchDialog(
 ) : DialogWrapper(project, /* canBeParent */ true) {
 
     private val branch = createComboBoxWithAutoCompletion("请选择被保护的分支")
-    private val branchLevel = createComboBox("请选择被保护的分支权限")
+    private val branchLevel = createComboBox()
     private val innerPanel = createInnerPanel()
     private val panel = createPanel()
 
@@ -97,7 +97,7 @@ class ProtectBranchDialog(
                 )
             }
 
-    private fun createComboBox(placeholder: String) = ComboBox(arrayOf("Noone", "Hotfix", "Release", "Dev", "Delete"))
+    private fun createComboBox() = ComboBox(arrayOf("Noone", "Hotfix", "Release", "Dev", "Delete"))
 
     private fun render() {
         window.pack()
