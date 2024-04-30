@@ -20,20 +20,20 @@ open class AbstractVcsHelperImplEx protected constructor(private val project: Pr
 
 
     override fun showMergeDialog(files: List<VirtualFile>, provider: MergeProvider, mergeDialogCustomizer: MergeDialogCustomizer): List<VirtualFile> {
-        if (files.isEmpty()) return emptyList()
         val conflictFiles = try {
-             autoResolve(files, provider)
+            autoResolve(files, provider)
         } catch (e: Throwable) {
             e.printStackTrace()
             VcsNotifier.getInstance(project).notify(VcsNotifier.STANDARD_NOTIFICATION.createNotification(e.toString(), NotificationType.ERROR))
             files
         }
-        val virtualFiles = super.showMergeDialog(conflictFiles, provider, mergeDialogCustomizer)
-        changeVersionAfterMerged(files, virtualFiles)
-        return virtualFiles
+        val resolvedFiles = if (conflictFiles.isEmpty()) emptyList() else super.showMergeDialog(conflictFiles, provider, mergeDialogCustomizer)
+        changeVersionAfterMerged(conflictFiles, resolvedFiles)
+        return resolvedFiles
     }
 
     private fun autoResolve(files: List<VirtualFile>, provider: MergeProvider) :List<VirtualFile> {
+        if (files.isEmpty()) return emptyList()
         val toAddMap: MutableMap<VirtualFile, MutableList<FilePath>> = HashMap()
         val conflictFiles = files.filter { file ->
             val conflicts = ResolveConflicts.getInstance(project, provider, file)
@@ -60,8 +60,8 @@ open class AbstractVcsHelperImplEx protected constructor(private val project: Pr
         return conflictFiles
     }
 
-    private fun changeVersionAfterMerged(files: List<VirtualFile>, virtualFiles: List<VirtualFile>) {
-        if (virtualFiles.isNotEmpty() && virtualFiles.size == files.size) {
+    private fun changeVersionAfterMerged(conflictFiles: List<VirtualFile>, resolvedFiles: List<VirtualFile>) {
+        if (conflictFiles.size == resolvedFiles.size) {
             if (callAfterMerged != null) {
                 callAfterMerged!!.run()
             }
