@@ -1,6 +1,5 @@
 package com.github.linrol.tool.branch.merge.local
 
-import com.github.linrol.tool.utils.GitLabUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
@@ -10,9 +9,9 @@ class CommonMergeAction : DumbAwareAction() {
         CommonMergeDialog(project, e).showAndGet()
     }
 
-    override fun update(e: AnActionEvent) {
-        val project = e.project ?: return
-        val repo = GitLabUtil.getRepository(project, "build")
-        e.presentation.isEnabledAndVisible = repo != null
-    }
+//    override fun update(e: AnActionEvent) {
+//        val project = e.project ?: return
+//        val repo = GitLabUtil.getRepository(project, "build")
+//        e.presentation.isEnabledAndVisible = repo != null
+//    }
 }
