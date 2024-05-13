@@ -2,11 +2,11 @@ package com.github.linrol.tool.lang
 
 import com.github.linrol.tool.utils.TimeUtils
 import com.google.gson.JsonParser
-import com.intellij.find.impl.FindResultUsageInfo
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.usages.Usage
@@ -37,19 +37,26 @@ class FrontLangAction : DumbAwareAction() {
         }
         val csvData = mutableListOf<String>()
         usages.filterIsInstance<UsageInfo2UsageAdapter>().forEach {
-            val usageInfo = it.usageInfo as FindResultUsageInfo
+            var startOffset = it.getMergedInfos().first().navigationRange.startOffset
+            var endOffset = it.getMergedInfos().last().navigationRange.endOffset
+            val searchText = it.document.getText(TextRange(startOffset, endOffset))
+            // 翻译
+            val translateText = translateUseBaidu(searchText)
+            if (searchText == translateText) {
+                return
+            }
+            // 准备替换内容
+            val resourceKey = translateText.replace(" ", "-")
+            val replaceText = "i18n('${resourceKey}')/*${searchText}*/"
+            // 判断中文是否被单引号或双引号选中
+            val quotedString = quotedString(it.document, startOffset, endOffset)
+            if (quotedString) {
+                startOffset -= 1
+                endOffset += 1
+            }
             WriteCommandAction.runWriteCommandAction(event.project) {
-                val text = it.document.getText(usageInfo.rangeInElement as TextRange)
-                val translateText = translateUseBaidu(text)
-                if (text == translateText) {
-                    return@runWriteCommandAction
-                }
-                val codeKey = translateText.replace(" ", "-")
-                val replaceText = "i18n('${codeKey}')/*${text}*/"
-                val startOffset = usageInfo.navigationRange.startOffset
-                val endOffset = usageInfo.navigationRange.endOffset
                 it.document.replaceString(startOffset, endOffset, replaceText)
-                csvData.add("${codeKey},${translateText},${text}")
+                csvData.add("${resourceKey},${translateText},${searchText}")
             }
         }
         writeCsv(event, csvData)
@@ -107,6 +114,20 @@ class FrontLangAction : DumbAwareAction() {
             }
         }
     }
+
+    private fun quotedString(document: Document, start: Int, end: Int): Boolean {
+        val minEnd = 0
+        val maxEnd = document.textLength
+        if (start <= minEnd || end >= maxEnd) {
+            return false
+        }
+        val leftCharacter = document.getText(TextRange(start - 1, start))
+        val rightCharacter = document.getText(TextRange(end, end + 1))
+        if (leftCharacter.equalsAny("'", "\"") && rightCharacter.equalsAny("'", "\"")) {
+            return true
+        }
+        return false
+    }
 }
 
 fun md5(input: String): String {
@@ -114,4 +135,8 @@ fun md5(input: String): String {
     val byteArray = input.toByteArray()
     val mdBytes = md.digest(byteArray)
     return mdBytes.joinToString("") { "%02x".format(it) }
+}
+
+fun String.equalsAny(vararg others: String): Boolean {
+    return others.any { it == this }
 }
