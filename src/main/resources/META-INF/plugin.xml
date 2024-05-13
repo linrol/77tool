@@ -83,6 +83,11 @@
             <add-to-group group-id="com.github.linrol.tool.77toolGroup" anchor="after" relative-to-action="com.github.linrol.tool.branch.commit.CommitMergeRequestAction"/>
         </action>
 
+        <action id="com.github.linrol.tool.lang.FrontLangAction" class="com.github.linrol.tool.lang.FrontLangAction" text="前端多语翻译">
+            <add-to-group group-id="UsageView.Popup" anchor="first"/>
+            <!-- <add-to-group group-id="EditorPopupMenu" anchor="first"/>  -->
+        </action>
+
         <!-- Front Init-Data Version Sync -->
         <!--
         <action id="com.github.linrol.tool.branch.version.FrontVersionSyncAction" class="com.github.linrol.tool.branch.version.FrontVersionSyncAction"
