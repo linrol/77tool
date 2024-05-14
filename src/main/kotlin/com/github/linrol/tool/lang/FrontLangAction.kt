@@ -1,5 +1,6 @@
 package com.github.linrol.tool.lang
 
+import com.github.linrol.tool.utils.ShimApi
 import com.github.linrol.tool.utils.TimeUtils
 import com.google.gson.JsonParser
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -31,17 +32,25 @@ class FrontLangAction : DumbAwareAction() {
 //        val newText = documentText.replace(selectedText, replaceText)
 //        document.setText(newText)
 
+        val project = event.project ?: return
         val usages: Array<Usage> = getUsages(event)
         if(usages.isEmpty()) {
             return
         }
+        val exist = ShimApi(project).getText("5rk9KBxvZQH78g3x")
         val csvData = mutableListOf<String>()
         usages.filterIsInstance<UsageInfo2UsageAdapter>().forEach {
             var startOffset = it.getMergedInfos().first().navigationRange.startOffset
             var endOffset = it.getMergedInfos().last().navigationRange.endOffset
             val searchText = it.document.getText(TextRange(startOffset, endOffset))
+            val match = exist.find { m -> m["zh-ch"].equals(searchText) }
+
             // 翻译
-            val translateText = translateUseBaidu(searchText)
+            val translateText: String = if (match != null) {
+                "common.${match["reskey"].toString()}"
+            } else {
+                translateUseBaidu(searchText)
+            }
             if (searchText == translateText) {
                 return
             }
@@ -49,7 +58,7 @@ class FrontLangAction : DumbAwareAction() {
             val resourceKey = translateText.replace(" ", "-")
             // 判断中文是否被单引号或双引号选中
             val quotedString = quotedString(it.document, startOffset, endOffset)
-            var replaceText = "i18n('${resourceKey}')/*${searchText}*/"
+            var replaceText = "i18n('multilang.${resourceKey}')/*${searchText}*/"
             if (quotedString) {
                 startOffset -= 1
                 endOffset += 1
@@ -58,7 +67,10 @@ class FrontLangAction : DumbAwareAction() {
             }
             WriteCommandAction.runWriteCommandAction(event.project) {
                 it.document.replaceString(startOffset, endOffset, replaceText)
-                csvData.add("${resourceKey},${translateText},${searchText}")
+                val csvExist = csvData.any { f -> f.split(",")[1] == searchText }
+                if (!csvExist) {
+                    csvData.add("${resourceKey},${searchText},${translateText}")
+                }
             }
         }
         writeCsv(event, csvData)

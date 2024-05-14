@@ -30,12 +30,14 @@ class ToolSettingsConfigurable : Configurable {
         ToolSettingsState.instance.buildAfterPush = toolSettingsComponent.getBuildAfterPush()
         ToolSettingsState.instance.buildUrl = toolSettingsComponent.getBuildUrl()
         ToolSettingsState.instance.buildUser = toolSettingsComponent.getBuildUser()
+        ToolSettingsState.instance.shimoSid = toolSettingsComponent.getShimoSid()
     }
 
     override fun reset() {
         toolSettingsComponent.setBuildAfterPush(ToolSettingsState.instance.buildAfterPush)
         toolSettingsComponent.setBuildUrl(ToolSettingsState.instance.buildUrl)
         toolSettingsComponent.setBuildUser(ToolSettingsState.instance.buildUser)
+        toolSettingsComponent.setShimoSid(ToolSettingsState.instance.shimoSid)
     }
 
     override fun disposeUIResources() {

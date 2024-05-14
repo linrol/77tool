@@ -12,12 +12,14 @@ class ToolSettingsComponent {
     private val buildAfterPush = JBCheckBox("Enable ops build after successful push? ")
     private val buildUrl = JTextField("http://ops.q7link.com:8000/qqdeploy/projectbuild/")
     private val buildUser = JTextField("77tool")
+    private val shimoSid = JTextField("s%3A9e1d2ddd1970404b81e4fcf2b7182aed.gzbpB8BH75NkR7W87Tz1FKrR67A4L20vrkQgbcrGTHA")
 
     init {
         panel = FormBuilder.createFormBuilder()
                 .addComponent(buildAfterPush, 1)
                 .addLabeledComponent(JLabel("Build url"), buildUrl, 1)
                 .addLabeledComponent(JLabel("Build user"), buildUser, 1)
+                .addLabeledComponent(JLabel("Shimo sid"), shimoSid, 1)
                 .addComponentFillVertically(JPanel(), 0)
                 .panel
     }
@@ -36,6 +38,10 @@ class ToolSettingsComponent {
         return buildUser.text
     }
 
+    fun getShimoSid(): String {
+        return shimoSid.text
+    }
+
     fun setBuildAfterPush(newStatus: Boolean) {
         buildAfterPush.isSelected = newStatus
     }
@@ -48,10 +54,15 @@ class ToolSettingsComponent {
         buildUser.text = newUser
     }
 
+    fun setShimoSid(newShimoSid: String) {
+        shimoSid.text = newShimoSid
+    }
+
     fun isModified(): Boolean {
         val enable = getBuildAfterPush() != ToolSettingsState.instance.buildAfterPush
         val urlModified = getBuildUrl() != ToolSettingsState.instance.buildUrl
         val userModified = getBuildUser() != ToolSettingsState.instance.buildUser
-        return enable || urlModified || userModified
+        val shimoSidModified = getShimoSid() != ToolSettingsState.instance.shimoSid
+        return enable || urlModified || userModified || shimoSidModified
     }
 }
