@@ -1,5 +1,6 @@
 package com.github.linrol.tool.lang
 
+import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.utils.ShimApi
 import com.github.linrol.tool.utils.TimeUtils
 import com.google.gson.JsonParser
@@ -15,8 +16,10 @@ import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.UsageView
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.net.SocketTimeoutException
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 
 class FrontLangAction : DumbAwareAction() {
 
@@ -49,7 +52,14 @@ class FrontLangAction : DumbAwareAction() {
             val translateText: String = if (match != null) {
                 "common.${match["reskey"].toString()}"
             } else {
-                translateUseBaidu(searchText)
+                val canProxy = canProxy()
+                if (canProxy) {
+                    GitCmd.log(project, "使用谷歌翻译")
+                    translateUseGoogle(searchText)
+                } else{
+                    GitCmd.log(project, "使用百度翻译")
+                    translateUseBaidu(searchText)
+                }
             }
             if (searchText == translateText) {
                 return
@@ -182,6 +192,17 @@ class FrontLangAction : DumbAwareAction() {
             return null
         }
         return document.getText(TextRange(start, end))
+    }
+
+    private fun canProxy(): Boolean {
+        val client = OkHttpClient().newBuilder().connectTimeout(2, TimeUnit.SECONDS).build()
+        return try {
+            client.newCall(Request.Builder().url("https://translate.google.com/").get().build()).execute().let {
+                it.isSuccessful
+            }
+        } catch (e: SocketTimeoutException) {
+            false
+        }
     }
 }
 
