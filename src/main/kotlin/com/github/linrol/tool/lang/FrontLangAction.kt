@@ -3,6 +3,7 @@ package com.github.linrol.tool.lang
 import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.utils.ShimApi
 import com.github.linrol.tool.utils.TimeUtils
+import com.google.common.hash.Hashing
 import com.google.gson.JsonParser
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
@@ -17,6 +18,7 @@ import com.intellij.usages.UsageView
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.SocketTimeoutException
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
@@ -42,9 +44,23 @@ class FrontLangAction : DumbAwareAction() {
         }
         val exist = ShimApi(project).getText("5rk9KBxvZQH78g3x")
         val csvData = mutableListOf<String>()
+        val canProxy = canProxy()
+        if (canProxy) {
+            GitCmd.log(project, "使用谷歌翻译")
+        } else {
+            GitCmd.log(project, "使用百度翻译")
+        }
         usages.filterIsInstance<UsageInfo2UsageAdapter>().forEach {
-            var startOffset = it.getMergedInfos().first().navigationRange.startOffset
-            var endOffset = it.getMergedInfos().last().navigationRange.endOffset
+            val first = it.getMergedInfos().first()
+            val last = it.getMergedInfos().last()
+            if (first.navigationRange == null) {
+                return
+            }
+            if (last.navigationRange == null) {
+                return
+            }
+            var startOffset = first.navigationRange.startOffset
+            var endOffset = last.navigationRange.endOffset
             val searchText = it.document.getText(TextRange(startOffset, endOffset))
             val match = exist.find { m -> m["zh-ch"].equals(searchText) }
 
@@ -52,12 +68,9 @@ class FrontLangAction : DumbAwareAction() {
             val translateText: String = if (match != null) {
                 "common.${match["reskey"].toString()}"
             } else {
-                val canProxy = canProxy()
                 if (canProxy) {
-                    GitCmd.log(project, "使用谷歌翻译")
                     translateUseGoogle(searchText)
                 } else{
-                    GitCmd.log(project, "使用百度翻译")
                     translateUseBaidu(searchText)
                 }
             }
@@ -69,7 +82,9 @@ class FrontLangAction : DumbAwareAction() {
             val codeResKey = if (resourceKey.startsWith("common.")) {
                 resourceKey
             } else {
-                "multilang.${resourceKey}"
+                val tmp = "${resourceKey}.${TimeUtils.getCurrentTime("yyyyMMddHHmmss")}"
+                val hash = Hashing.murmur3_32().hashString(tmp, StandardCharsets.UTF_8).toString()
+                "multilang.${hash}"
             }
             var replaceText = "i18n('${codeResKey}')/*${searchText}*/"
             // 判断中文是否被单引号或双引号包裹
@@ -78,7 +93,7 @@ class FrontLangAction : DumbAwareAction() {
                 startOffset -= 1
                 endOffset += 1
             }
-            val equalSignChar = getStr(it.document, startOffset - 2, startOffset - 1).equals("=")
+            val equalSignChar = getStr(it.document, startOffset - 1, startOffset).equals("=")
             if (!quotedString || equalSignChar) {
                 // 不是字符串包裹的中文或在中文首字母-2的位置为=号
                 replaceText = "{${replaceText}}"
@@ -86,8 +101,8 @@ class FrontLangAction : DumbAwareAction() {
             WriteCommandAction.runWriteCommandAction(event.project) {
                 it.document.replaceString(startOffset, endOffset, replaceText)
                 val csvExist = csvData.any { f -> f.split(",")[1] == searchText }
-                if (!csvExist && !resourceKey.startsWith("common.")) {
-                    csvData.add("${resourceKey},${searchText},${translateText}")
+                if (!csvExist && !codeResKey.startsWith("common.")) {
+                    csvData.add("${codeResKey.replace("multilang.", "")},${searchText},${translateText}")
                 }
             }
         }
@@ -99,6 +114,7 @@ class FrontLangAction : DumbAwareAction() {
         if (ret != null) {
             return ret
         }
+        Thread.sleep(13)
         val appId = "20240513002050659"
         val appKey = "Y6ZoTVT8oDBsF_MzBcIE"
         val salt = System.currentTimeMillis().toString()
@@ -108,12 +124,19 @@ class FrontLangAction : DumbAwareAction() {
 
         val client = OkHttpClient()
         val request = Request.Builder().url(url).get().build()
-        return client.newCall(request).execute().let {
+        return client.newCall(request).execute().let { it ->
             if (it.isSuccessful) {
-                val response = JsonParser.parseString(it.body().string()).asJsonObject
-                val translateText = response.getAsJsonArray("trans_result").get(0).asJsonObject.get("dst").asString
+                val response = JsonParser.parseString(it.body().string()).asJsonObject ?: return text
+                val transResult = response.getAsJsonArray("trans_result") ?: return text
+                if (transResult.isEmpty) {
+                    return text
+                }
+                val dst = transResult.get(0).asJsonObject.get("dst") ?: return text
+                val translateText = dst.asString.replaceFirstChar { char ->
+                    if (char.isLowerCase()) char.titlecase() else char.toString()
+                }
                 cache[text] = translateText
-                translateText
+                return translateText
             } else {
                 logger.info("Response Error: ${it.code()} - ${it.message()}")
                 text
