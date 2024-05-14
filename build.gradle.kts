@@ -32,6 +32,7 @@ dependencies {
     implementation ("org.gitlab4j:gitlab4j-api:4.17.0")
     implementation ("org.apache.poi:poi:5.2.3")
     implementation ("org.apache.poi:poi-ooxml:5.2.3")
+    // implementation ("com.google.cloud:google-cloud-translate:2.43.0")
     // implementation ("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10")
 }
 

@@ -56,19 +56,27 @@ class FrontLangAction : DumbAwareAction() {
             }
             // 准备替换内容
             val resourceKey = translateText.replace(" ", "-")
-            // 判断中文是否被单引号或双引号选中
+            val codeResKey = if (resourceKey.startsWith("common.")) {
+                resourceKey
+            } else {
+                "multilang.${resourceKey}"
+            }
+            var replaceText = "i18n('${codeResKey}')/*${searchText}*/"
+            // 判断中文是否被单引号或双引号包裹
             val quotedString = quotedString(it.document, startOffset, endOffset)
-            var replaceText = "i18n('multilang.${resourceKey}')/*${searchText}*/"
             if (quotedString) {
                 startOffset -= 1
                 endOffset += 1
-            } else {
+            }
+            val equalSignChar = getStr(it.document, startOffset - 2, startOffset - 1).equals("=")
+            if (!quotedString || equalSignChar) {
+                // 不是字符串包裹的中文或在中文首字母-2的位置为=号
                 replaceText = "{${replaceText}}"
             }
             WriteCommandAction.runWriteCommandAction(event.project) {
                 it.document.replaceString(startOffset, endOffset, replaceText)
                 val csvExist = csvData.any { f -> f.split(",")[1] == searchText }
-                if (!csvExist) {
+                if (!csvExist && !resourceKey.startsWith("common.")) {
                     csvData.add("${resourceKey},${searchText},${translateText}")
                 }
             }
@@ -94,6 +102,30 @@ class FrontLangAction : DumbAwareAction() {
             if (it.isSuccessful) {
                 val response = JsonParser.parseString(it.body().string()).asJsonObject
                 val translateText = response.getAsJsonArray("trans_result").get(0).asJsonObject.get("dst").asString
+                cache[text] = translateText
+                translateText
+            } else {
+                logger.info("Response Error: ${it.code()} - ${it.message()}")
+                text
+            }
+        }
+    }
+
+    private fun translateUseGoogle(text: String): String {
+        val ret = cache[text]
+        if (ret != null) {
+            return ret
+        }
+        val key = "AIzaSyBuRCQkN72SAkmQ0CT3fK4mJIEg_ZCqUd8"
+        val params = "q=${text}&source=zh&target=en&key=${key}"
+        val url = "https://translation.googleapis.com/language/translate/v2?${params}"
+
+        val client = OkHttpClient()
+        val request = Request.Builder().url(url).get().build()
+        return client.newCall(request).execute().let {
+            if (it.isSuccessful) {
+                val response = JsonParser.parseString(it.body().string()).asJsonObject
+                val translateText = response.getAsJsonObject("data").getAsJsonArray("translations").get(0).asJsonObject.get("translatedText").asString
                 cache[text] = translateText
                 translateText
             } else {
@@ -141,6 +173,15 @@ class FrontLangAction : DumbAwareAction() {
             return true
         }
         return false
+    }
+
+    private fun getStr(document: Document, start: Int, end: Int): String? {
+        val minEnd = 0
+        val maxEnd = document.textLength
+        if (start < minEnd || end > maxEnd) {
+            return null
+        }
+        return document.getText(TextRange(start, end))
     }
 }
 
