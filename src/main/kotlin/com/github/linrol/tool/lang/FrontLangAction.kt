@@ -47,12 +47,14 @@ class FrontLangAction : DumbAwareAction() {
             }
             // 准备替换内容
             val resourceKey = translateText.replace(" ", "-")
-            val replaceText = "i18n('${resourceKey}')/*${searchText}*/"
             // 判断中文是否被单引号或双引号选中
             val quotedString = quotedString(it.document, startOffset, endOffset)
+            var replaceText = "i18n('${resourceKey}')/*${searchText}*/"
             if (quotedString) {
                 startOffset -= 1
                 endOffset += 1
+            } else {
+                replaceText = "{${replaceText}}"
             }
             WriteCommandAction.runWriteCommandAction(event.project) {
                 it.document.replaceString(startOffset, endOffset, replaceText)
