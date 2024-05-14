@@ -88,6 +88,11 @@
             <!-- <add-to-group group-id="EditorPopupMenu" anchor="first"/>  -->
         </action>
 
+        <action id="com.github.linrol.tool.lang.BackendLangAction" class="com.github.linrol.tool.lang.BackendLangAction" text="后端多语翻译">
+            <!-- <add-to-group group-id="UsageView.Popup" anchor="first"/>  -->
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        </action>
+
         <!-- Front Init-Data Version Sync -->
         <action id="com.github.linrol.tool.branch.version.FrontVersionSyncAction" class="com.github.linrol.tool.branch.version.FrontVersionSyncAction"
           text="Front Version Sync"
