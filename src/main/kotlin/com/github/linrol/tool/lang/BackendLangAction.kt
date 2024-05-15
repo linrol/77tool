@@ -12,6 +12,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.jetbrains.rd.util.first
 import com.opencsv.*
 import git4idea.repo.GitRepositoryManager
 import org.apache.commons.lang3.exception.ExceptionUtils
@@ -65,15 +66,20 @@ class BackendLangAction : DumbAwareAction() {
         if (selectedText == translateText) {
             return
         }
+        val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(virtualFile)?: return
+        val modulePath = repository.root.path
+        val csvData = getCsvData(modulePath)
         // 准备替换内容
-        val resourceKey = translateText.replace(" ", "_").uppercase(Locale.getDefault())
+        val resourceKey = if (csvData.containsValue(selectedText)) {
+            csvData.filter { f -> f.value == selectedText }.first().key.replace(".", "_").uppercase(Locale.getDefault())
+        } else {
+            translateText.replace(" ", "_").uppercase(Locale.getDefault())
+        }
         val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${resourceKey})"
         val documentText = document.text
         val newText = documentText.replace("\"${selectedText}\"", replaceText)
         WriteCommandAction.runWriteCommandAction(event.project) {
             document.setText(newText)
-            val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(virtualFile)?: return@runWriteCommandAction
-            val modulePath = repository.root.path
             val key = resourceKey.replace("_", ".").lowercase()
             appendResJson(modulePath, Pair(key, selectedText))
         }
@@ -150,5 +156,17 @@ class BackendLangAction : DumbAwareAction() {
         }
         val toJson = gson.toJson(map)
         Files.write(file, toJson.toByteArray(StandardCharsets.UTF_8))
+    }
+
+    private fun getCsvData(path: String): MutableMap<String, String> {
+        val virtualFile = LocalFileSystem.getInstance().findFileByPath("${path}/src/main/resources/string-res.json")
+        if (virtualFile == null || virtualFile.fileType !is JsonFileType) {
+            logger.error("string-res.json文件未找到或不是json类型的文件")
+            return mutableMapOf()
+        }
+        val file = Paths.get(virtualFile.path)
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val map: MutableMap<String, String> = gson.fromJson(Files.readString(file), object : TypeToken<MutableMap<String, Any>>() {}.type)
+        return map
     }
 }
