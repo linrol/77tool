@@ -30,6 +30,7 @@ class FrontLangAction : DumbAwareAction() {
         try {
             val exist = ShimApi(project).getText("5rk9KBxvZQH78g3x")
             val csvData = mutableListOf<String>()
+            val keyCache = mutableMapOf<String, String>()
             val translater = LangTranslater()
             if (translater.canProxy) {
                 GitCmd.log(project, "使用谷歌翻译")
@@ -66,7 +67,7 @@ class FrontLangAction : DumbAwareAction() {
                 } else {
                     val tmp = "${resourceKey}.${TimeUtils.getCurrentTime("yyyyMMddHHmmss")}"
                     val hash = Hashing.murmur3_32().hashString(tmp, StandardCharsets.UTF_8).toString()
-                    "multilang.${hash}"
+                    if (keyCache[searchText] == null) "multilang.${hash}" else "multilang.${keyCache[searchText]}"
                 }
                 var replaceText = "i18n('${codeResKey}')/*${searchText}*/"
                 // 判断中文是否被单引号或双引号包裹
@@ -85,6 +86,7 @@ class FrontLangAction : DumbAwareAction() {
                     val csvExist = csvData.any { f -> f.split(",")[1] == searchText }
                     if (!csvExist && !codeResKey.startsWith("common.")) {
                         csvData.add("${codeResKey.replace("multilang.", "")},${searchText},${translateText}")
+                        keyCache[searchText] = codeResKey.replace("multilang.", "")
                     }
                 }
             }
