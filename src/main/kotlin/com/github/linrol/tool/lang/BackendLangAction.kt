@@ -6,6 +6,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbAwareAction
+import org.apache.commons.lang3.exception.ExceptionUtils
 import java.util.*
 
 class BackendLangAction : DumbAwareAction() {
@@ -15,15 +16,22 @@ class BackendLangAction : DumbAwareAction() {
     }
 
     override fun actionPerformed(event: AnActionEvent) {
-        event.project ?: return
-        val place = event.place // ProjectViewPopup EditorPopup
-        if (place == "EditorPopup") {
-            // 代码中选中的文本翻译
-            editorSelectedProcessor(event)
-        }
-        if (place == "ProjectViewPopup") {
-            // 对csv文件整体翻译没有被翻译的中文
-            csvTranslateProcessor()
+        val project = event.project ?: return
+        try {
+            val place = event.place // ProjectViewPopup EditorPopup
+            if (place == "EditorPopup") {
+                // 代码中选中的文本翻译
+                editorSelectedProcessor(event)
+            }
+            if (place == "ProjectViewPopup") {
+                // 对csv文件整体翻译没有被翻译的中文
+                csvTranslateProcessor()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            logger.error(e)
+            GitCmd.log(project, e.stackTraceToString())
+            GitCmd.log(project, ExceptionUtils.getRootCauseMessage(e))
         }
     }
 
