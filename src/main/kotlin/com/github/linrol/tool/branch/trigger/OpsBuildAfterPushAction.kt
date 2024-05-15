@@ -1,6 +1,5 @@
 package com.github.linrol.tool.branch.trigger
 
-import com.google.gson.JsonParser
 import com.intellij.dvcs.push.ui.VcsPushDialog
 import com.intellij.dvcs.push.ui.VcsPushUi
 import com.intellij.dvcs.repo.Repository
@@ -10,12 +9,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import git4idea.repo.GitRepository
 import okhttp3.FormBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.apache.commons.lang3.exception.ExceptionUtils
-import com.github.linrol.tool.base.BasePushAction
 import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.state.ToolSettingsState
+import com.github.linrol.tool.utils.OkHttpClientUtils
+import com.google.gson.JsonParser
 import com.intellij.dvcs.push.ui.PushActionBase
 
 class OpsBuildAfterPushAction: PushActionBase("Push And Build") {
@@ -74,24 +72,16 @@ class OpsBuildAfterPushAction: PushActionBase("Push And Build") {
     }
 
     private fun opsBuild(project: Project, branch: String, paths: String) {
-        val client = OkHttpClient()
         val body = FormBody.Builder()
                 .add("branch", branch)
                 .add("projects", paths)
                 .add("byCaller", ToolSettingsState.instance.buildUser)
                 .build()
-        val request = Request.Builder().url(ToolSettingsState.instance.buildUrl).post(body).build()
-        client.newCall(request).execute().let {
-            if (it.isSuccessful) {
-                val jsonResponse = JsonParser.parseString(it.body().string()).asJsonObject
-                val responseData = jsonResponse.get("data")
-                if (responseData != null) {
-                    val taskId = responseData.asJsonObject.getAsJsonPrimitive("taskid").asString
-                    GitCmd.log(project,"项目:${paths}触发独立编译成功，编译任务ID:${taskId}")
-                }
-            } else {
-                logger.info("Response Error: ${it.code()} - ${it.message()}")
-                GitCmd.log(project,"Response Error: ${it.code()} - ${it.message()}")
+        OkHttpClientUtils().post(ToolSettingsState.instance.buildUrl, body) { ret ->
+            val response = JsonParser.parseString(ret.string()).asJsonObject
+            response.get("data")?.also {
+                val taskId = it.asJsonObject.getAsJsonPrimitive("taskid").asString
+                GitCmd.log(project,"项目:${paths}触发独立编译成功，编译任务ID:${taskId}")
             }
         }
     }

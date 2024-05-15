@@ -10,6 +10,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.rd.util.first
@@ -32,14 +33,9 @@ class BackendLangAction : DumbAwareAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
         try {
-            val place = event.place // ProjectViewPopup EditorPopup
-            if (place == "EditorPopup") {
-                // 代码中选中的文本翻译
-                editorSelectedProcessor(event)
-            }
-            if (place == "ProjectViewPopup") {
-                // 对csv文件整体翻译没有被翻译的中文
-                csvTranslateProcessor(event)
+            when (event.place) { // ProjectViewPopup EditorPopup
+                "EditorPopup" -> editorSelectedProcessor(event, project)  // 代码中选中的文本翻译
+                "ProjectViewPopup" -> csvTranslateProcessor(event, project)  // 对csv文件整体翻译没有被翻译的中文
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -49,8 +45,7 @@ class BackendLangAction : DumbAwareAction() {
         }
     }
 
-    private fun editorSelectedProcessor(event: AnActionEvent) {
-        val project = event.project!!
+    private fun editorSelectedProcessor(event: AnActionEvent, project: Project) {
         val editor: Editor = event.dataContext.getData("editor") as? Editor ?: return
         val virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
         val document = editor.document
@@ -85,8 +80,7 @@ class BackendLangAction : DumbAwareAction() {
         }
     }
 
-    private fun csvTranslateProcessor(event: AnActionEvent) {
-        val project = event.project!!
+    private fun csvTranslateProcessor(event: AnActionEvent, project: Project) {
         val virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE)
 
         if (virtualFile == null || !virtualFile.name.endsWith(".csv")) {
@@ -122,11 +116,7 @@ class BackendLangAction : DumbAwareAction() {
                 val id = line!![0]
                 val chinese = line!![2]
                 val english = line!![1]
-                val updatedEnglish = if (english.isNullOrBlank()) {
-                    translater.translate(chinese)   // 更新英文列
-                } else {
-                    english
-                }
+                val updatedEnglish = english.ifBlank { translater.translate(chinese)/* 更新英文列 */ }
                 // 写入更新后的行数据
                 val updatedLine = arrayOf(id, updatedEnglish, chinese)
                 writer.writeNext(updatedLine)
@@ -166,7 +156,6 @@ class BackendLangAction : DumbAwareAction() {
         }
         val file = Paths.get(virtualFile.path)
         val gson = GsonBuilder().setPrettyPrinting().create()
-        val map: MutableMap<String, String> = gson.fromJson(Files.readString(file), object : TypeToken<MutableMap<String, Any>>() {}.type)
-        return map
+        return gson.fromJson(Files.readString(file), object : TypeToken<MutableMap<String, Any>>() {}.type)
     }
 }

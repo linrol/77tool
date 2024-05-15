@@ -66,7 +66,7 @@ class FrontLangAction : DumbAwareAction() {
                     resourceKey
                 } else {
                     val tmp = "${resourceKey}.${TimeUtils.getCurrentTime("yyyyMMddHHmmss")}"
-                    val hash = Hashing.murmur3_32().hashString(tmp, StandardCharsets.UTF_8).toString()
+                    val hash = Hashing.murmur3_32_fixed().hashString(tmp, StandardCharsets.UTF_8).toString()
                     if (keyCache[searchText] == null) "multilang.${hash}" else "multilang.${keyCache[searchText]}"
                 }
                 var replaceText = "i18n('${codeResKey}')/*${searchText}*/"
