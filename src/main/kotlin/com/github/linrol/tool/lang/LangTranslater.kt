@@ -12,6 +12,7 @@ class LangTranslater {
     val canProxy = canProxy()
 
     fun translate(text: String): String {
+        // 过滤除纯中文以外的内容
         return cache[text] ?: if (canProxy) {
             translateUseGoogle(text)
         } else {
