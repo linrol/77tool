@@ -40,10 +40,10 @@ class FrontLangAction : DumbAwareAction() {
                 val first = it.getMergedInfos().first()
                 val last = it.getMergedInfos().last()
                 if (first.navigationRange == null) {
-                    return
+                    return@forEach
                 }
                 if (last.navigationRange == null) {
-                    return
+                    return@forEach
                 }
                 var startOffset = first.navigationRange.startOffset
                 var endOffset = last.navigationRange.endOffset
@@ -57,7 +57,7 @@ class FrontLangAction : DumbAwareAction() {
                     translater.translate(text = searchText)
                 }
                 if (searchText == translateText) {
-                    return
+                    return@forEach
                 }
                 // 准备替换内容
                 val resourceKey = translateText.replace(" ", "-")
