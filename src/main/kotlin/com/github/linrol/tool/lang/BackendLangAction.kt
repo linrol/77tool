@@ -1,17 +1,25 @@
 package com.github.linrol.tool.lang
 
 import com.github.linrol.tool.model.GitCmd
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
+import com.intellij.json.JsonFileType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.opencsv.*
+import git4idea.repo.GitRepositoryManager
 import org.apache.commons.lang3.exception.ExceptionUtils
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
 
 class BackendLangAction : DumbAwareAction() {
@@ -41,15 +49,17 @@ class BackendLangAction : DumbAwareAction() {
     }
 
     private fun editorSelectedProcessor(event: AnActionEvent) {
+        val project = event.project!!
         val editor: Editor = event.dataContext.getData("editor") as? Editor ?: return
+        val virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
         val document = editor.document
         val selectedText = editor.selectionModel.selectedText ?: return
         // 翻译
         val translater = LangTranslater()
         if (translater.canProxy) {
-            GitCmd.log(event.project!!, "使用谷歌翻译")
+            GitCmd.log(project, "使用谷歌翻译")
         } else {
-            GitCmd.log(event.project!!, "使用百度翻译")
+            GitCmd.log(project, "使用百度翻译")
         }
         val translateText: String = translater.translate(selectedText)
         if (selectedText == translateText) {
@@ -62,6 +72,10 @@ class BackendLangAction : DumbAwareAction() {
         val newText = documentText.replace("\"${selectedText}\"", replaceText)
         WriteCommandAction.runWriteCommandAction(event.project) {
             document.setText(newText)
+            val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(virtualFile)?: return@runWriteCommandAction
+            val modulePath = repository.root.path
+            val key = resourceKey.replace("_", ".").lowercase()
+            appendResJson(modulePath, Pair(key, selectedText))
         }
     }
 
@@ -121,5 +135,20 @@ class BackendLangAction : DumbAwareAction() {
                 e.printStackTrace()
             }
         }
+    }
+
+    private fun appendResJson(path: String, entry: Pair<String, String>) {
+        val virtualFile = LocalFileSystem.getInstance().findFileByPath("${path}/src/main/resources/string-res.json")
+        if (virtualFile == null || virtualFile.fileType !is JsonFileType) {
+            logger.error("string-res.json文件未找到或不是json类型的文件")
+            return
+        }
+        val file = Paths.get(virtualFile.path)
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val map: MutableMap<String, String> = gson.fromJson<MutableMap<String, String>?>(Files.readString(file), object : TypeToken<MutableMap<String, Any>>() {}.type).apply {
+            put(entry.first, entry.second)
+        }
+        val toJson = gson.toJson(map)
+        Files.write(file, toJson.toByteArray(StandardCharsets.UTF_8))
     }
 }
