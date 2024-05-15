@@ -98,3 +98,7 @@ class LangTranslater {
         private val logger = logger<FrontLangAction>()
     }
 }
+
+fun String.equalsAny(vararg others: String): Boolean {
+    return others.any { it == this }
+}
