@@ -9,6 +9,10 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -33,9 +37,11 @@ class BackendLangAction : DumbAwareAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
         try {
-            when (event.place) { // ProjectViewPopup EditorPopup
-                "EditorPopup" -> editorSelectedProcessor(event, project)  // 代码中选中的文本翻译
-                "ProjectViewPopup" -> csvTranslateProcessor(event, project)  // 对csv文件整体翻译没有被翻译的中文
+            async(project) {
+                when (event.place) { // ProjectViewPopup EditorPopup
+                    "EditorPopup" -> editorSelectedProcessor(event, project)  // 代码中选中的文本翻译
+                    "ProjectViewPopup" -> csvTranslateProcessor(event, project)  // 对csv文件整体翻译没有被翻译的中文
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -158,5 +164,13 @@ class BackendLangAction : DumbAwareAction() {
         val file = Paths.get(virtualFile.path)
         val gson = GsonBuilder().setPrettyPrinting().create()
         return gson.fromJson(Files.readString(file), object : TypeToken<MutableMap<String, Any>>() {}.type)
+    }
+
+    private fun async(project: Project, runnable: Runnable) {
+        ProgressManager.getInstance().runProcessWithProgressAsynchronously(object : Task.Backgroundable(project, "多语翻译中") {
+            override fun run(indicator: ProgressIndicator) {
+                runnable.run()
+            }
+        }, EmptyProgressIndicator())
     }
 }

@@ -9,7 +9,12 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -28,69 +33,71 @@ class FrontLangAction : DumbAwareAction() {
             return
         }
         try {
-            val exist = ShimApi(project).getText("5rk9KBxvZQH78g3x")
-            val csvData = mutableListOf<String>()
-            val keyCache = mutableMapOf<String, String>()
-            val translater = LangTranslater()
-            if (translater.canProxy) {
-                GitCmd.log(project, "使用谷歌翻译")
-            } else {
-                GitCmd.log(project, "使用百度翻译")
-            }
-            usages.filterIsInstance<UsageInfo2UsageAdapter>().forEach {
-                val first = it.getMergedInfos().first()
-                val last = it.getMergedInfos().last()
-                if (first.navigationRange == null) {
-                    return@forEach
+            async(project) {
+                val exist = ShimApi(project).getText("5rk9KBxvZQH78g3x")
+                val csvData = mutableListOf<String>()
+                val keyCache = mutableMapOf<String, String>()
+                val translater = LangTranslater()
+                if (translater.canProxy) {
+                    GitCmd.log(project, "使用谷歌翻译")
+                } else {
+                    GitCmd.log(project, "使用百度翻译")
                 }
-                if (last.navigationRange == null) {
-                    return@forEach
-                }
-                var startOffset = first.navigationRange.startOffset
-                var endOffset = last.navigationRange.endOffset
-                val searchText = it.document.getText(TextRange(startOffset, endOffset))
-                val match = exist.find { m -> m["zh-ch"].equals(searchText) }
+                usages.filterIsInstance<UsageInfo2UsageAdapter>().forEach {
+                    val first = it.getMergedInfos().first()
+                    val last = it.getMergedInfos().last()
+                    if (first.navigationRange == null) {
+                        return@forEach
+                    }
+                    if (last.navigationRange == null) {
+                        return@forEach
+                    }
+                    var startOffset = first.navigationRange.startOffset
+                    var endOffset = last.navigationRange.endOffset
+                    val searchText = it.document.getText(TextRange(startOffset, endOffset))
+                    val match = exist.find { m -> m["zh-ch"].equals(searchText) }
 
-                // 翻译
-                val translateText: String = if (match != null) {
-                    "common.${match["reskey"].toString()}"
-                } else {
-                    translater.translate(text = searchText)
-                }
-                if (searchText == translateText) {
-                    return@forEach
-                }
-                // 准备替换内容
-                val resourceKey = translateText.replace(" ", "-")
-                val codeResKey = if (resourceKey.startsWith("common.")) {
-                    resourceKey
-                } else {
-                    val tmp = "${resourceKey}.${TimeUtils.getCurrentTime("yyyyMMddHHmmss")}"
-                    val hash = Hashing.murmur3_32_fixed().hashString(tmp, StandardCharsets.UTF_8).toString()
-                    if (keyCache[searchText] == null) "multilang.${hash}" else "multilang.${keyCache[searchText]}"
-                }
-                var replaceText = "i18n('${codeResKey}')/*${searchText}*/"
-                // 判断中文是否被单引号或双引号包裹
-                val quotedString = quotedString(it.document, startOffset, endOffset)
-                if (quotedString) {
-                    startOffset -= 1
-                    endOffset += 1
-                }
-                val equalSignChar = getStr(it.document, startOffset - 1, startOffset).equals("=")
-                if (!quotedString || equalSignChar) {
-                    // 不是字符串包裹的中文或在中文首字母-2的位置为=号
-                    replaceText = "{${replaceText}}"
-                }
-                WriteCommandAction.runWriteCommandAction(event.project) {
-                    it.document.replaceString(startOffset, endOffset, replaceText)
-                    val csvExist = csvData.any { f -> f.split(",")[1] == searchText }
-                    if (!csvExist && !codeResKey.startsWith("common.")) {
-                        csvData.add("${codeResKey.replace("multilang.", "")},${searchText},${translateText}")
-                        keyCache[searchText] = codeResKey.replace("multilang.", "")
+                    // 翻译
+                    val translateText: String = if (match != null) {
+                        "common.${match["reskey"].toString()}"
+                    } else {
+                        translater.translate(text = searchText)
+                    }
+                    if (searchText == translateText) {
+                        return@forEach
+                    }
+                    // 准备替换内容
+                    val resourceKey = translateText.replace(" ", "-")
+                    val codeResKey = if (resourceKey.startsWith("common.")) {
+                        resourceKey
+                    } else {
+                        val tmp = "${resourceKey}.${TimeUtils.getCurrentTime("yyyyMMddHHmmss")}"
+                        val hash = Hashing.murmur3_32_fixed().hashString(tmp, StandardCharsets.UTF_8).toString()
+                        if (keyCache[searchText] == null) "multilang.${hash}" else "multilang.${keyCache[searchText]}"
+                    }
+                    var replaceText = "i18n('${codeResKey}')/*${searchText}*/"
+                    // 判断中文是否被单引号或双引号包裹
+                    val quotedString = quotedString(it.document, startOffset, endOffset)
+                    if (quotedString) {
+                        startOffset -= 1
+                        endOffset += 1
+                    }
+                    val equalSignChar = getStr(it.document, startOffset - 1, startOffset).equals("=")
+                    if (!quotedString || equalSignChar) {
+                        // 不是字符串包裹的中文或在中文首字母-2的位置为=号
+                        replaceText = "{${replaceText}}"
+                    }
+                    WriteCommandAction.runWriteCommandAction(event.project) {
+                        it.document.replaceString(startOffset, endOffset, replaceText)
+                        val csvExist = csvData.any { f -> f.split(",")[1] == searchText }
+                        if (!csvExist && !codeResKey.startsWith("common.")) {
+                            csvData.add("${codeResKey.replace("multilang.", "")},${searchText},${translateText}")
+                            keyCache[searchText] = codeResKey.replace("multilang.", "")
+                        }
                     }
                 }
+                writeCsv(event, csvData)
             }
-            writeCsv(event, csvData)
         } catch (e: Exception) {
             e.printStackTrace()
             logger.error(e)
@@ -146,5 +153,13 @@ class FrontLangAction : DumbAwareAction() {
             return null
         }
         return document.getText(TextRange(start, end))
+    }
+
+    private fun async(project: Project, runnable: Runnable) {
+        ProgressManager.getInstance().runProcessWithProgressAsynchronously(object : Task.Backgroundable(project, "多语翻译中") {
+            override fun run(indicator: ProgressIndicator) {
+                runnable.run()
+            }
+        }, EmptyProgressIndicator())
     }
 }
