@@ -68,7 +68,8 @@ class BackendLangAction : DumbAwareAction() {
         val resourceKey = if (csvData.containsValue(selectedText)) {
             csvData.filter { f -> f.value == selectedText }.first().key.replace(".", "_").uppercase(Locale.getDefault())
         } else {
-            translateText.replace(" ", "_").uppercase(Locale.getDefault())
+            val toRemove = setOf('-', ',', '，')
+            translateText.filterNot { it in toRemove }.replace(" ", "_").uppercase(Locale.getDefault())
         }
         val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${resourceKey})"
         val documentText = document.text
