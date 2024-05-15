@@ -17,6 +17,7 @@ import git4idea.commands.GitLineHandler
 import git4idea.repo.GitRepository
 import org.apache.commons.lang3.exception.ExceptionUtils
 import com.github.linrol.tool.tollwindow.ToolWindowConsole
+import com.intellij.openapi.project.ProjectManager
 
 
 class GitCmd(private var project: Project, private var repository: GitRepository) {
@@ -91,20 +92,19 @@ class GitCmd(private var project: Project, private var repository: GitRepository
         }
 
         @JvmStatic
-        fun log(project: Project, msg: String) {
-            val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("77tool") ?: return
+        fun log(p: Project?, msg: String) {
             try {
+                val project = p ?: ProjectManager.getInstance().defaultProject
+                val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("77tool") ?: return
                 ApplicationManager.getApplication().invokeLater {
                     toolWindow.activate {
                         ToolWindowConsole.show()
                         ToolWindowConsole.log(project, msg)
                     }
                 }
-                // EventQueue.invokeAndWait(() -> );
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            // toolWindow.show();
         }
     }
 }
