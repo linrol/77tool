@@ -39,6 +39,11 @@ class OkHttpClientUtils {
         return request(request, callback)
     }
 
+    fun <T> post(url: String, headers: Headers, body: RequestBody, callback: (ResponseBody) -> T): T {
+        val request = Request.Builder().url(url).headers(headers).post(body).build()
+        return request(request, callback)
+    }
+
     fun connectTimeout(timeout: Long, unit: TimeUnit) : OkHttpClientUtils {
         this.client = client.newBuilder().connectTimeout(timeout, unit).build()
         return this

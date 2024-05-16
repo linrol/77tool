@@ -6,6 +6,9 @@ import com.github.linrol.tool.utils.OkHttpClientUtils
 import com.google.gson.JsonParser
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import okhttp3.Headers
+import okhttp3.MediaType
+import okhttp3.RequestBody
 import java.util.concurrent.TimeUnit
 
 class LangTranslater {
@@ -20,7 +23,7 @@ class LangTranslater {
 
     fun translate(text: String): String {
         // 过滤除纯中文以外的内容
-        val api = ToolSettingsState.instance.shimoSid
+        val api = ToolSettingsState.instance.translaterApi
         return when {
             api == "baidu" -> translateUseBaidu(text)
             api == "google" && canProxy -> translateUseGoogle(text)
@@ -80,7 +83,18 @@ class LangTranslater {
     }
 
     private fun translateUseChatgpt(text: String): String {
-        return "todo"
+        val url = "https://api.chatanywhere.tech/v1/chat/completions"
+        val key = "sk-vbFFb1gpjDWO321CRryqxvnGflJKMJ4RfW6mQjNJtwiwlcld"
+        val headers: Headers = Headers.Builder().add("Content-Type", "application/json").add("Authorization", "Bearer $key").build()
+        // 构建请求体
+        val params = "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"user\",\"content\": \"翻译：${text}\"}]}"
+        val request = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), params)
+        return runCatching {
+            OkHttpClientUtils().post(url, headers, request) {
+                val response = JsonParser.parseString(it.string()).asJsonObject
+                response.get("taskId").asString
+            }
+        }.getOrElse { text }
     }
 
     private fun canProxy(): Boolean {
