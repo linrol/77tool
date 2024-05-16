@@ -1,30 +1,23 @@
 package com.github.linrol.tool.lang
 
 import com.github.linrol.tool.model.GitCmd
-import com.github.linrol.tool.utils.ShimApi
-import com.github.linrol.tool.utils.TimeUtils
+import com.github.linrol.tool.utils.*
 import com.google.common.hash.Hashing
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.editor.Document
-import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
-import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.TextRange
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
-import com.intellij.usages.UsageView
 import org.apache.commons.lang3.exception.ExceptionUtils
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 
-class FrontLangAction : DumbAwareAction() {
+class FrontLangAction : AbstractLangAction() {
+
+    companion object {
+        private val logger = logger<FrontLangAction>()
+    }
 
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
@@ -37,26 +30,10 @@ class FrontLangAction : DumbAwareAction() {
                 val exist = ShimApi(project).getText("5rk9KBxvZQH78g3x")
                 val csvData = mutableListOf<String>()
                 val keyCache = mutableMapOf<String, String>()
-                val translater = LangTranslater()
-                if (translater.canProxy) {
-                    GitCmd.log(project, "使用谷歌翻译")
-                } else {
-                    GitCmd.log(project, "使用百度翻译")
-                }
+                val translater = LangTranslater().printUse(project)
                 usages.filterIsInstance<UsageInfo2UsageAdapter>().forEach {
-                    val first = it.getMergedInfos().first()
-                    val last = it.getMergedInfos().last()
-                    if (first.navigationRange == null) {
-                        return@forEach
-                    }
-                    if (last.navigationRange == null) {
-                        return@forEach
-                    }
-                    var startOffset = first.navigationRange.startOffset
-                    var endOffset = last.navigationRange.endOffset
-                    val searchText = it.document.getText(TextRange(startOffset, endOffset))
+                    val searchText = it.searchText() ?: return@forEach
                     val match = exist.find { m -> m["zh-ch"].equals(searchText) }
-
                     // 翻译
                     val translateText: String = if (match != null) {
                         "common.${match["reskey"].toString()}"
@@ -75,20 +52,22 @@ class FrontLangAction : DumbAwareAction() {
                         val hash = Hashing.murmur3_32_fixed().hashString(tmp, StandardCharsets.UTF_8).toString()
                         if (keyCache[searchText] == null) "multilang.${hash}" else "multilang.${keyCache[searchText]}"
                     }
-                    var replaceText = "i18n('${codeResKey}')/*${searchText}*/"
                     // 判断中文是否被单引号或双引号包裹
-                    val quotedString = quotedString(it.document, startOffset, endOffset)
+                    var start = it.startOffset()
+                    var end = it.endOffset()
+                    val quotedString = it.quotedString(it.startOffset(), it.endOffset())
                     if (quotedString) {
-                        startOffset -= 1
-                        endOffset += 1
+                        start -= 1
+                        end += 1
                     }
-                    val equalSignChar = getStr(it.document, startOffset - 1, startOffset).equals("=")
-                    if (!quotedString || equalSignChar) {
+                    var replaceText = "i18n('${codeResKey}')/*${searchText}*/"
+                    val equalsSing = it.document.getString(start - 1, start).equals("=")
+                    if (!quotedString || equalsSing) {
                         // 不是字符串包裹的中文或在中文首字母-2的位置为=号
                         replaceText = "{${replaceText}}"
                     }
                     WriteCommandAction.runWriteCommandAction(event.project) {
-                        it.document.replaceString(startOffset, endOffset, replaceText)
+                        it.document.replaceString(start, end, replaceText)
                         val csvExist = csvData.any { f -> f.split(",")[1] == searchText }
                         if (!csvExist && !codeResKey.startsWith("common.")) {
                             csvData.add("${codeResKey.replace("multilang.", "")},${searchText},${translateText}")
@@ -106,16 +85,6 @@ class FrontLangAction : DumbAwareAction() {
         }
     }
 
-    companion object {
-        private val logger = logger<FrontLangAction>()
-    }
-
-    private fun getUsages(event: AnActionEvent): Array<Usage> {
-        ApplicationManager.getApplication().assertIsDispatchThread()
-        event.getData(UsageView.USAGE_VIEW_KEY) ?: return Usage.EMPTY_ARRAY
-        return event.getData(UsageView.USAGES_KEY) ?: Usage.EMPTY_ARRAY
-    }
-
     private fun writeCsv(event: AnActionEvent, data: List<String>) {
         val project = event.project ?: return
         project.basePath ?.let { path ->
@@ -130,36 +99,5 @@ class FrontLangAction : DumbAwareAction() {
                 }
             }
         }
-    }
-
-    private fun quotedString(document: Document, start: Int, end: Int): Boolean {
-        val minEnd = 0
-        val maxEnd = document.textLength
-        if (start <= minEnd || end >= maxEnd) {
-            return false
-        }
-        val leftCharacter = document.getText(TextRange(start - 1, start))
-        val rightCharacter = document.getText(TextRange(end, end + 1))
-        if (leftCharacter.equalsAny("'", "\"") && rightCharacter.equalsAny("'", "\"")) {
-            return true
-        }
-        return false
-    }
-
-    private fun getStr(document: Document, start: Int, end: Int): String? {
-        val minEnd = 0
-        val maxEnd = document.textLength
-        if (start < minEnd || end > maxEnd) {
-            return null
-        }
-        return document.getText(TextRange(start, end))
-    }
-
-    private fun async(project: Project, runnable: Runnable) {
-        ProgressManager.getInstance().runProcessWithProgressAsynchronously(object : Task.Backgroundable(project, "多语翻译中") {
-            override fun run(indicator: ProgressIndicator) {
-                runnable.run()
-            }
-        }, EmptyProgressIndicator())
     }
 }

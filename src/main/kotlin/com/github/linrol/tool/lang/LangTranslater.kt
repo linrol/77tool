@@ -1,8 +1,10 @@
 package com.github.linrol.tool.lang
 
+import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.utils.OkHttpClientUtils
 import com.google.gson.JsonParser
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
 import java.util.concurrent.TimeUnit
 
 class LangTranslater {
@@ -11,6 +13,10 @@ class LangTranslater {
 
     val canProxy = canProxy()
 
+    companion object {
+        private val logger = logger<FrontLangAction>()
+    }
+
     fun translate(text: String): String {
         // 过滤除纯中文以外的内容
         return cache[text] ?: if (canProxy) {
@@ -18,6 +24,15 @@ class LangTranslater {
         } else {
             translateUseBaidu(text)
         }
+    }
+
+    fun printUse(project: Project): LangTranslater {
+        if (canProxy) {
+            GitCmd.log(project, "使用谷歌翻译")
+        } else {
+            GitCmd.log(project, "使用百度翻译")
+        }
+        return this
     }
 
     private fun translateUseGoogle(text: String): String {
@@ -64,7 +79,7 @@ class LangTranslater {
     private fun canProxy(): Boolean {
         return runCatching {
             val test = "https://translate.google.com/"
-            OkHttpClientUtils().connectTimeout(2, TimeUnit.SECONDS).get(test) {
+            OkHttpClientUtils().connectTimeout(1, TimeUnit.SECONDS).get(test) {
                 true
             }
         }.getOrElse { false }
@@ -76,13 +91,4 @@ class LangTranslater {
         val mdBytes = md.digest(byteArray)
         return mdBytes.joinToString("") { "%02x".format(it) }
     }
-
-    companion object {
-        private val logger = logger<FrontLangAction>()
-    }
-
-}
-
-fun String.equalsAny(vararg others: String): Boolean {
-    return others.any { it == this }
 }

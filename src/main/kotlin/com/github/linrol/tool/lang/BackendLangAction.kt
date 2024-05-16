@@ -1,28 +1,23 @@
 package com.github.linrol.tool.lang
 
 import com.github.linrol.tool.model.GitCmd
+import com.github.linrol.tool.utils.endOffset
+import com.github.linrol.tool.utils.quotedString
+import com.github.linrol.tool.utils.searchText
+import com.github.linrol.tool.utils.startOffset
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.intellij.json.JsonFileType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
-import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
-import com.intellij.usages.UsageView
 import com.jetbrains.rd.util.first
 import com.opencsv.*
 import git4idea.repo.GitRepositoryManager
@@ -34,7 +29,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 
-class BackendLangAction : DumbAwareAction() {
+class BackendLangAction : AbstractLangAction() {
 
     companion object {
         private val logger = logger<BackendLangAction>()
@@ -79,7 +74,7 @@ class BackendLangAction : DumbAwareAction() {
         val resourceKey = if (csvData.containsValue(selectedText)) {
             csvData.filter { f -> f.value == selectedText }.first().key.replace(".", "_").uppercase(Locale.getDefault())
         } else {
-            val toRemove = setOf('-', ',', '，', '。', '.', '!', '！')
+            val toRemove = setOf('-', ',', '，', '。', '.', '!', '！', '：')
             translateText.filterNot { it in toRemove }.replace(" ", "_").uppercase(Locale.getDefault())
         }
         val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${resourceKey})"
@@ -88,7 +83,7 @@ class BackendLangAction : DumbAwareAction() {
         WriteCommandAction.runWriteCommandAction(event.project) {
             document.setText(newText)
             val key = resourceKey.replace("_", ".").lowercase()
-            appendResJson(modulePath, Pair(key, selectedText))
+            appendResJson(modulePath, key, selectedText)
         }
     }
 
@@ -98,51 +93,36 @@ class BackendLangAction : DumbAwareAction() {
             return
         }
         // 翻译
-        val translater = LangTranslater()
-        if (translater.canProxy) {
-            GitCmd.log(project, "使用谷歌翻译")
-        } else {
-            GitCmd.log(project, "使用百度翻译")
-        }
+        val translater = LangTranslater().printUse(project)
         usages.filterIsInstance<UsageInfo2UsageAdapter>().forEach {
-            val first = it.getMergedInfos().first()
-            val last = it.getMergedInfos().last()
-            if (first.navigationRange == null) {
-                return@forEach
-            }
-            if (last.navigationRange == null) {
-                return@forEach
-            }
-            var startOffset = first.navigationRange.startOffset
-            var endOffset = last.navigationRange.endOffset
-            val searchText = it.document.getText(TextRange(startOffset, endOffset))
+            val searchText = it.searchText() ?: return@forEach
             // 翻译
             val translateText: String = translater.translate(searchText)
             if (searchText == translateText) {
                 return@forEach
             }
-            val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(it.file)?: return
-            val modulePath = repository.root.path
-            val resData = getResData(modulePath)
+            val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(it.file) ?: return@forEach
+            val path = repository.root.path
+            val resData = getResData(path)
             // 准备替换内容
-            val resourceKey = if (resData.containsValue(translateText)) {
-                resData.filter { f -> f.value == translateText }.first().key.replace(".", "_").uppercase(Locale.getDefault())
+            val resourceKey = if (resData.containsValue(searchText)) {
+                resData.filter { f -> f.value == searchText }.first().key.replace(".", "_").uppercase(Locale.getDefault())
             } else {
                 val toRemove = setOf('-', ',', '，', '。', '.', '!', '！')
                 translateText.filterNot { t -> t in toRemove }.replace(" ", "_").uppercase(Locale.getDefault())
             }
             val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${resourceKey})"
             // 判断中文是否被单引号或双引号包裹
-            val quotedString = quotedString(it.document, startOffset, endOffset)
+            val quotedString = it.quotedString(it.startOffset(), it.endOffset())
             if (!quotedString) {
                 return@forEach
             }
-            startOffset -= 1
-            endOffset += 1
+            val start = it.startOffset() - 1
+            val end = it.endOffset() + 1
             WriteCommandAction.runWriteCommandAction(event.project) {
-                it.document.replaceString(startOffset, endOffset, replaceText)
+                it.document.replaceString(start, end, replaceText)
                 val key = resourceKey.replace("_", ".").lowercase()
-                appendResJson(modulePath, Pair(key, searchText))
+                appendResJson(path, key, searchText)
             }
         }
     }
@@ -200,7 +180,7 @@ class BackendLangAction : DumbAwareAction() {
         }
     }
 
-    private fun appendResJson(path: String, entry: Pair<String, String>) {
+    private fun appendResJson(path: String, key: String, value: String) {
         val virtualFile = LocalFileSystem.getInstance().findFileByPath("${path}/src/main/resources/string-res.json")
         if (virtualFile == null || virtualFile.fileType !is JsonFileType) {
             logger.error("string-res.json文件未找到或不是json类型的文件")
@@ -209,7 +189,7 @@ class BackendLangAction : DumbAwareAction() {
         val file = Paths.get(virtualFile.path)
         val gson = GsonBuilder().setPrettyPrinting().create()
         val map: MutableMap<String, String> = gson.fromJson<MutableMap<String, String>?>(Files.readString(file), object : TypeToken<MutableMap<String, Any>>() {}.type).apply {
-            put(entry.first, entry.second)
+            put(key, value)
         }
         val toJson = gson.toJson(map)
         Files.write(file, toJson.toByteArray(StandardCharsets.UTF_8))
@@ -224,33 +204,5 @@ class BackendLangAction : DumbAwareAction() {
         val file = Paths.get(virtualFile.path)
         val gson = GsonBuilder().setPrettyPrinting().create()
         return gson.fromJson(Files.readString(file), object : TypeToken<MutableMap<String, Any>>() {}.type)
-    }
-
-    private fun async(project: Project, runnable: Runnable) {
-        ProgressManager.getInstance().runProcessWithProgressAsynchronously(object : Task.Backgroundable(project, "多语翻译中") {
-            override fun run(indicator: ProgressIndicator) {
-                runnable.run()
-            }
-        }, EmptyProgressIndicator())
-    }
-
-    private fun getUsages(event: AnActionEvent): Array<Usage> {
-        //ApplicationManager.getApplication().assertIsDispatchThread()
-        event.getData(UsageView.USAGE_VIEW_KEY) ?: return Usage.EMPTY_ARRAY
-        return event.getData(UsageView.USAGES_KEY) ?: Usage.EMPTY_ARRAY
-    }
-
-    private fun quotedString(document: Document, start: Int, end: Int): Boolean {
-        val minEnd = 0
-        val maxEnd = document.textLength
-        if (start <= minEnd || end >= maxEnd) {
-            return false
-        }
-        val leftCharacter = document.getText(TextRange(start - 1, start))
-        val rightCharacter = document.getText(TextRange(end, end + 1))
-        if (leftCharacter.equalsAny("'", "\"") && rightCharacter.equalsAny("'", "\"")) {
-            return true
-        }
-        return false
     }
 }

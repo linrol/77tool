@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit
 
 class OkHttpClientUtils {
 
-    private val client = OkHttpClient()
+    private var client = OkHttpClient()
 
     private val logger = logger<OkHttpClientUtils>()
 
@@ -40,7 +40,7 @@ class OkHttpClientUtils {
     }
 
     fun connectTimeout(timeout: Long, unit: TimeUnit) : OkHttpClientUtils {
-        client.newBuilder().connectTimeout(timeout, unit).build()
+        this.client = client.newBuilder().connectTimeout(timeout, unit).build()
         return this
     }
 }
