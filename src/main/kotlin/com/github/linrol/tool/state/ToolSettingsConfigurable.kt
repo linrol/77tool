@@ -31,6 +31,7 @@ class ToolSettingsConfigurable : Configurable {
         ToolSettingsState.instance.buildUrl = toolSettingsComponent.getBuildUrl()
         ToolSettingsState.instance.buildUser = toolSettingsComponent.getBuildUser()
         ToolSettingsState.instance.shimoSid = toolSettingsComponent.getShimoSid()
+        ToolSettingsState.instance.translaterApi = toolSettingsComponent.getTranslaterApi()
     }
 
     override fun reset() {
@@ -38,6 +39,7 @@ class ToolSettingsConfigurable : Configurable {
         toolSettingsComponent.setBuildUrl(ToolSettingsState.instance.buildUrl)
         toolSettingsComponent.setBuildUser(ToolSettingsState.instance.buildUser)
         toolSettingsComponent.setShimoSid(ToolSettingsState.instance.shimoSid)
+        toolSettingsComponent.setTranslaterApi(ToolSettingsState.instance.translaterApi)
     }
 
     override fun disposeUIResources() {

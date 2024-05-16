@@ -17,6 +17,8 @@ class ToolSettingsState : PersistentStateComponent<ToolSettingsState?> {
 
     var shimoSid: String = "s%3A9e1d2ddd1970404b81e4fcf2b7182aed.gzbpB8BH75NkR7W87Tz1FKrR67A4L20vrkQgbcrGTHA"
 
+    var translaterApi: String = "baidu"
+
     override fun getState(): ToolSettingsState {
         return this
     }

@@ -1,6 +1,7 @@
 package com.github.linrol.tool.lang
 
 import com.github.linrol.tool.model.GitCmd
+import com.github.linrol.tool.state.ToolSettingsState
 import com.github.linrol.tool.utils.OkHttpClientUtils
 import com.google.gson.JsonParser
 import com.intellij.openapi.diagnostic.logger
@@ -19,10 +20,12 @@ class LangTranslater {
 
     fun translate(text: String): String {
         // 过滤除纯中文以外的内容
-        return cache[text] ?: if (canProxy) {
-            translateUseGoogle(text)
-        } else {
-            translateUseBaidu(text)
+        val api = ToolSettingsState.instance.shimoSid
+        return when {
+            api == "baidu" -> translateUseBaidu(text)
+            api == "google" && canProxy -> translateUseGoogle(text)
+            api == "chatgpt" && canProxy -> translateUseChatgpt(text)
+            else -> translateUseBaidu(text)
         }
     }
 
@@ -74,6 +77,10 @@ class LangTranslater {
                 return@get translateText
             }
         }.getOrElse { text }
+    }
+
+    private fun translateUseChatgpt(text: String): String {
+        return "todo"
     }
 
     private fun canProxy(): Boolean {
