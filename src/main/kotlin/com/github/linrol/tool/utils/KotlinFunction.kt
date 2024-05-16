@@ -1,5 +1,7 @@
 package com.github.linrol.tool.utils
 
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.TextRange
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -45,4 +47,31 @@ fun UsageInfo2UsageAdapter.quotedString(start: Int, end: Int): Boolean {
     val left = document.getString(start - 1, start)
     val right = document.getString(end, end + 1)
     return StringUtils.equalsAny(left, "'", "\"").and(StringUtils.equalsAny(right, "'", "\""))
+}
+
+fun JsonElement?.getValue(path: String): JsonElement? {
+    if (this == null) return null
+
+    val keys = path.split(".")
+    var currentElement: JsonElement? = this
+
+    for (key in keys) {
+        currentElement = when {
+            key.contains("[") && key.contains("]") -> {
+                val arrayKey = key.substringBefore("[")
+                val index = key.substringAfter("[").substringBefore("]").toIntOrNull()
+                if (currentElement is JsonObject && currentElement.has(arrayKey) && index != null) {
+                    val jsonArray = currentElement.getAsJsonArray(arrayKey)
+                    if (index >= 0 && index < jsonArray.size()) {
+                        jsonArray[index]
+                    } else null
+                } else null
+            }
+            currentElement is JsonObject && currentElement.has(key) -> {
+                currentElement.getAsJsonObject().get(key)
+            }
+            else -> null
+        }
+    }
+    return currentElement
 }

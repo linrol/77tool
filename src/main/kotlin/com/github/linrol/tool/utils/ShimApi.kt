@@ -1,5 +1,6 @@
 package com.github.linrol.tool.utils
 
+import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.state.ToolSettingsState
 import com.google.gson.JsonParser
 import com.intellij.openapi.diagnostic.logger
@@ -19,10 +20,14 @@ class ShimApi(val project: Project) {
         val url = "https://shimo.im/lizard-api/office-gw/files/export?fileGuid=${uid}"
         return runCatching {
             OkHttpClientUtils().get(url, headers) {
-                val response = JsonParser.parseString(it.string()).asJsonObject
-                response.get("taskId").asString
+                JsonParser.parseString(it.string()).getValue("taskId")?.asString
             }
-        }.getOrNull()
+        }.getOrElse {
+            val error = "石墨 api 请求错误，请重新配置Setting->77tool->shimo_sid"
+            logger.error(error)
+            GitCmd.log(project, error)
+            null
+        }
     }
 
     /**
@@ -33,13 +38,14 @@ class ShimApi(val project: Project) {
         val url = "https://shimo.im/lizard-api/office-gw/files/export/progress?taskId=$taskId"
         return runCatching {
             OkHttpClientUtils().get(url, headers) {
-                val response = JsonParser.parseString(it.string()).asJsonObject
-                val progress = response.getAsJsonObject("data").get("progress").asInt
-                if (progress != 100) {
-                    Thread.sleep(1000)
-                    getExportDownloadUrl(taskId)
+                val response = JsonParser.parseString(it.string())
+                response.getValue("data.progress")?.also { progress ->
+                    if (progress.asInt != 100) {
+                        Thread.sleep(1000)
+                        return@get getExportDownloadUrl(taskId)
+                    }
                 }
-                response.getAsJsonObject("data").get("downloadUrl").asString
+                response.getValue("data.downloadUrl")?.asString
             }
         }.getOrNull()
     }

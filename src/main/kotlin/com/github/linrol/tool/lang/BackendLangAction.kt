@@ -41,7 +41,7 @@ class BackendLangAction : AbstractLangAction() {
             when (event.place) { // ProjectViewPopup EditorPopup
                 "EditorPopup" -> editorSelectedProcessor(event, project)  // 代码中选中的文本翻译
                 "ProjectViewPopup" -> csvTranslateProcessor(event, project)  // 对csv文件整体翻译没有被翻译的中文
-                "UsageViewPopup" -> searchProcessor(event, project) // 对搜索结果中的中文翻译
+                "UsageViewPopup" -> async(project) { searchProcessor(event, project) } // 对搜索结果中的中文翻译
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -57,13 +57,7 @@ class BackendLangAction : AbstractLangAction() {
         val document = editor.document
         val selectedText = editor.selectionModel.selectedText ?: return
         // 翻译
-        val translater = LangTranslater()
-        if (translater.canProxy) {
-            GitCmd.log(project, "使用谷歌翻译")
-        } else {
-            GitCmd.log(project, "使用百度翻译")
-        }
-        val translateText: String = translater.translate(selectedText)
+        val translateText: String = LangTranslater(project).printUse().translate(selectedText)
         if (selectedText == translateText) {
             return
         }
@@ -93,7 +87,7 @@ class BackendLangAction : AbstractLangAction() {
             return
         }
         // 翻译
-        val translater = LangTranslater().printUse(project)
+        val translater = LangTranslater(project).printUse()
         usages.filterIsInstance<UsageInfo2UsageAdapter>().forEach {
             val searchText = it.searchText() ?: return@forEach
             // 翻译
@@ -134,14 +128,10 @@ class BackendLangAction : AbstractLangAction() {
             GitCmd.log(project, "选中的文件不是.csv文件，请重新选择")
             return
         }
-        val translater = LangTranslater()
-        if (translater.canProxy) {
-            GitCmd.log(project, "使用谷歌翻译")
-        } else {
-            GitCmd.log(project, "使用百度翻译")
-        }
-        WriteCommandAction.runWriteCommandAction(event.project) {
-            updateCsvFile(virtualFile, translater)
+        WriteCommandAction.runWriteCommandAction(project) {
+            updateCsvFile(virtualFile, LangTranslater(project).printUse())
+//            async(project) {
+//            }
         }
     }
 

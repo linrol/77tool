@@ -30,7 +30,7 @@ class FrontLangAction : AbstractLangAction() {
                 val exist = ShimApi(project).getText("5rk9KBxvZQH78g3x")
                 val csvData = mutableListOf<String>()
                 val keyCache = mutableMapOf<String, String>()
-                val translater = LangTranslater().printUse(project)
+                val translater = LangTranslater(project).printUse()
                 usages.filterIsInstance<UsageInfo2UsageAdapter>().forEach {
                     val searchText = it.searchText() ?: return@forEach
                     val match = exist.find { m -> m["zh-ch"].equals(searchText) }

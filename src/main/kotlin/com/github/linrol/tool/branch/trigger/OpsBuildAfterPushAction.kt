@@ -13,6 +13,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils
 import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.state.ToolSettingsState
 import com.github.linrol.tool.utils.OkHttpClientUtils
+import com.github.linrol.tool.utils.getValue
 import com.google.gson.JsonParser
 import com.intellij.dvcs.push.ui.PushActionBase
 
@@ -78,10 +79,8 @@ class OpsBuildAfterPushAction: PushActionBase("Push And Build") {
                 .add("byCaller", ToolSettingsState.instance.buildUser)
                 .build()
         OkHttpClientUtils().post(ToolSettingsState.instance.buildUrl, body) { ret ->
-            val response = JsonParser.parseString(ret.string()).asJsonObject
-            response.get("data")?.also {
-                val taskId = it.asJsonObject.getAsJsonPrimitive("taskid").asString
-                GitCmd.log(project,"项目:${paths}触发独立编译成功，编译任务ID:${taskId}")
+            JsonParser.parseString(ret.string()).getValue("data.taskid")?.also {
+                GitCmd.log(project,"项目:${paths}触发独立编译成功，编译任务ID:${it.asString}")
             }
         }
     }

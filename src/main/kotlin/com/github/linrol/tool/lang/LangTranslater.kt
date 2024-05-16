@@ -3,6 +3,7 @@ package com.github.linrol.tool.lang
 import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.state.ToolSettingsState
 import com.github.linrol.tool.utils.OkHttpClientUtils
+import com.github.linrol.tool.utils.getValue
 import com.google.gson.JsonParser
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -11,11 +12,13 @@ import okhttp3.MediaType
 import okhttp3.RequestBody
 import java.util.concurrent.TimeUnit
 
-class LangTranslater {
+class LangTranslater(val project: Project) {
 
     private val cache = mutableMapOf<String, String>()
 
-    val canProxy = canProxy()
+    private var printUse = false
+
+    private val canProxy = canProxy()
 
     companion object {
         private val logger = logger<FrontLangAction>()
@@ -26,18 +29,14 @@ class LangTranslater {
         val api = ToolSettingsState.instance.translaterApi
         return when {
             api == "baidu" -> translateUseBaidu(text)
+            api == "chatgpt" -> translateUseChatgpt(text)
             api == "google" && canProxy -> translateUseGoogle(text)
-            api == "chatgpt" && canProxy -> translateUseChatgpt(text)
             else -> translateUseBaidu(text)
         }
     }
 
-    fun printUse(project: Project): LangTranslater {
-        if (canProxy) {
-            GitCmd.log(project, "使用谷歌翻译")
-        } else {
-            GitCmd.log(project, "使用百度翻译")
-        }
+    fun printUse(): LangTranslater {
+        printUse = true
         return this
     }
 
@@ -48,10 +47,16 @@ class LangTranslater {
 
         return runCatching {
             OkHttpClientUtils().get(url) {
-                val response = JsonParser.parseString(it.string()).asJsonObject
-                val translateText = response.getAsJsonObject("data").getAsJsonArray("translations").get(0).asJsonObject.get("translatedText").asString
-                cache[text] = translateText
-                translateText
+                val translatedText = JsonParser.parseString(it.string()).getValue("data.translations[0].translatedText")
+                return@get if (translatedText != null) {
+                    if (printUse) GitCmd.log(project, "使用谷歌翻译【${text}】:【${translatedText.asString}】")
+                    translatedText.asString.apply {
+                        cache[text] = it.toString()
+                    }
+                } else {
+                    logger.error(it.string())
+                    translateUseBaidu(text)
+                }
             }
         }.getOrElse { translateUseBaidu(text) }
     }
@@ -67,17 +72,19 @@ class LangTranslater {
 
         return runCatching {
             return OkHttpClientUtils().get(url) {
-                val response = JsonParser.parseString(it.string()).asJsonObject ?: return@get text
-                val transResult = response.getAsJsonArray("trans_result") ?: return@get text
-                if (transResult.isEmpty) {
-                    return@get text
+                val dst = JsonParser.parseString(it.string()).getValue("trans_result[0].dst")
+                return@get if (dst != null) {
+                    if (printUse) GitCmd.log(project, "使用百度翻译【${text}】:【${dst.asString}】")
+                    dst.asString.replaceFirstChar { char ->
+                        if (char.isLowerCase()) char.titlecase() else char.toString()
+                    }.apply {
+                        cache[text] = it.toString()
+                    }.replace("% s", "%s")
+                } else {
+                    logger.error(it.string())
+                    GitCmd.log(project, it.toString())
+                    text
                 }
-                val dst = transResult.get(0).asJsonObject.get("dst") ?: return@get text
-                val translateText = dst.asString.replaceFirstChar { char ->
-                    if (char.isLowerCase()) char.titlecase() else char.toString()
-                }
-                cache[text] = translateText
-                return@get translateText
             }
         }.getOrElse { text }
     }
@@ -87,12 +94,21 @@ class LangTranslater {
         val key = "sk-vbFFb1gpjDWO321CRryqxvnGflJKMJ4RfW6mQjNJtwiwlcld"
         val headers: Headers = Headers.Builder().add("Content-Type", "application/json").add("Authorization", "Bearer $key").build()
         // 构建请求体
-        val params = "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"user\",\"content\": \"翻译：${text}\"}]}"
+        val params = "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"user\",\"content\": \"翻译:${text}，只返回被翻译的英文内容\"}]}"
         val request = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), params)
         return runCatching {
-            OkHttpClientUtils().post(url, headers, request) {
-                val response = JsonParser.parseString(it.string()).asJsonObject
-                response.get("taskId").asString
+            return OkHttpClientUtils().post(url, headers, request) {
+                val content = JsonParser.parseString(it.string()).getValue("choices[0].message.content")
+                return@post if (content != null) {
+                    if (printUse) GitCmd.log(project, "使用chatgpt翻译【${text}】:【${content.asString}】")
+                    content.asString.replace("\"", "").apply {
+                        cache[text] = it.toString()
+                    }
+                } else {
+                    logger.error(it.string())
+                    GitCmd.log(project, it.string())
+                    text
+                }
             }
         }.getOrElse { text }
     }
