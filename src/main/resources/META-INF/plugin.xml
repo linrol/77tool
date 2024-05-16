@@ -92,6 +92,7 @@
             <!-- <add-to-group group-id="UsageView.Popup" anchor="first"/>  -->
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
+            <add-to-group group-id="UsageView.Popup" anchor="first"/>
         </action>
 
         <!-- Front Init-Data Version Sync -->
