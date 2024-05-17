@@ -5,6 +5,7 @@ import com.github.linrol.tool.utils.endOffset
 import com.github.linrol.tool.utils.quotedString
 import com.github.linrol.tool.utils.searchText
 import com.github.linrol.tool.utils.startOffset
+import com.google.common.hash.Hashing
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.intellij.json.JsonFileType
@@ -34,6 +35,8 @@ class BackendLangAction : AbstractLangAction() {
     companion object {
         private val logger = logger<BackendLangAction>()
     }
+
+    private val toRemove = setOf('-', ',', '，', '。', '.', '!', '！', '：', '(', ')', '（', '）')
 
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
@@ -68,8 +71,7 @@ class BackendLangAction : AbstractLangAction() {
         val resourceKey = if (csvData.containsValue(selectedText)) {
             csvData.filter { f -> f.value == selectedText }.first().key.replace(".", "_").uppercase(Locale.getDefault())
         } else {
-            val toRemove = setOf('-', ',', '，', '。', '.', '!', '！', '：')
-            translateText.filterNot { it in toRemove }.replace(" ", "_").uppercase(Locale.getDefault())
+            text2var(translateText)
         }
         val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${resourceKey})"
         val documentText = document.text
@@ -102,8 +104,7 @@ class BackendLangAction : AbstractLangAction() {
             val resourceKey = if (resData.containsValue(searchText)) {
                 resData.filter { f -> f.value == searchText }.first().key.replace(".", "_").uppercase(Locale.getDefault())
             } else {
-                val toRemove = setOf('-', ',', '，', '。', '.', '!', '！')
-                translateText.filterNot { t -> t in toRemove }.replace(" ", "_").uppercase(Locale.getDefault())
+                text2var(translateText)
             }
             val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${resourceKey})"
             // 判断中文是否被单引号或双引号包裹
@@ -194,5 +195,13 @@ class BackendLangAction : AbstractLangAction() {
         val file = Paths.get(virtualFile.path)
         val gson = GsonBuilder().setPrettyPrinting().create()
         return gson.fromJson(Files.readString(file), object : TypeToken<MutableMap<String, Any>>() {}.type)
+    }
+
+    private fun text2var(text: String): String {
+        return if (text.contains("%s")) {
+            "message template ${Hashing.murmur3_32_fixed().hashString(text, StandardCharsets.UTF_8)}"
+        } else {
+            text
+        }.filterNot { it in toRemove }.replace(" ", "_").uppercase(Locale.getDefault())
     }
 }
