@@ -19,6 +19,8 @@ class ToolSettingsState : PersistentStateComponent<ToolSettingsState?> {
 
     var translaterApi: String = "baidu"
 
+    var chatgptKey: String = "sk-vbFFb1gpjDWO321CRryqxvnGflJKMJ4RfW6mQjNJtwiwlcld"
+
     override fun getState(): ToolSettingsState {
         return this
     }

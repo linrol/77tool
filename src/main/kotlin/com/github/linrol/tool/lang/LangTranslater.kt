@@ -91,10 +91,10 @@ class LangTranslater(val project: Project) {
 
     private fun translateUseChatgpt(text: String): String {
         val url = "https://api.chatanywhere.tech/v1/chat/completions"
-        val key = "sk-vbFFb1gpjDWO321CRryqxvnGflJKMJ4RfW6mQjNJtwiwlcld"
+        val key = ToolSettingsState.instance.chatgptKey
         val headers: Headers = Headers.Builder().add("Content-Type", "application/json").add("Authorization", "Bearer $key").build()
         // 构建请求体
-        val params = "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"user\",\"content\": \"翻译:${text}，只返回被翻译的英文内容\"}]}"
+        val params = "{\"model\": \"gpt-3.5-turbo\",\"messages\": [{\"role\": \"user\",\"content\": \"翻译:${text}\"}]}"
         val request = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), params)
         return runCatching {
             return OkHttpClientUtils().post(url, headers, request) {
@@ -110,7 +110,12 @@ class LangTranslater(val project: Project) {
                     text
                 }
             }
-        }.getOrElse { text }
+        }.getOrElse {
+            it.message?.also { error ->
+                GitCmd.log(project, error)
+            }
+            text
+        }
     }
 
     private fun canProxy(): Boolean {

@@ -1,6 +1,5 @@
 package com.github.linrol.tool.utils
 
-import com.github.linrol.tool.model.GitCmd
 import com.intellij.openapi.diagnostic.logger
 import okhttp3.*
 import java.util.concurrent.TimeUnit
@@ -16,9 +15,8 @@ class OkHttpClientUtils {
             if (it.isSuccessful) {
                 return callback(it.body())
             } else {
-                val error = "request url[${request.url()}] body[${request.body()}] response error: ${it.code()} - ${it.message()}"
-                logger.info(error)
-                GitCmd.log(null, error)
+                val error = "request url[${request.url()}] response error: ${it.code()} - ${it.message()}"
+                logger.error(error)
                 throw RuntimeException(error)
             }
         }

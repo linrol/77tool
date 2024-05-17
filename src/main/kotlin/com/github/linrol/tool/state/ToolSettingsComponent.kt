@@ -16,6 +16,7 @@ class ToolSettingsComponent {
     private val buildUser = JTextField("77tool")
     private val shimoSid = JTextField("s%3A9e1d2ddd1970404b81e4fcf2b7182aed.gzbpB8BH75NkR7W87Tz1FKrR67A4L20vrkQgbcrGTHA")
     private val translaterApi = ComboBox(arrayOf("baidu", "google", "chatgpt"))
+    private val chatgptKey = JTextField("sk-vbFFb1gpjDWO321CRryqxvnGflJKMJ4RfW6mQjNJtwiwlcld")
 
     init {
         panel = FormBuilder.createFormBuilder()
@@ -24,6 +25,7 @@ class ToolSettingsComponent {
                 .addLabeledComponent(JLabel("编译人"), buildUser, 1)
                 .addLabeledComponent(JLabel("石墨sid"), shimoSid, 1)
                 .addLabeledComponent(JLabel("翻译api"), translaterApi, 1)
+                .addLabeledComponent(JLabel("chatgpt key"), chatgptKey, 1)
                 .addComponentFillVertically(JPanel(), 0)
                 .panel
     }
@@ -50,6 +52,10 @@ class ToolSettingsComponent {
         return translaterApi.selectedItem as String
     }
 
+    fun getChatgptKey(): String {
+        return chatgptKey.text
+    }
+
     fun setBuildAfterPush(newStatus: Boolean) {
         buildAfterPush.isSelected = newStatus
     }
@@ -66,8 +72,12 @@ class ToolSettingsComponent {
         shimoSid.text = newShimoSid
     }
 
-    fun setTranslaterApi(api: String) {
-        translaterApi.selectedItem = api
+    fun setTranslaterApi(newApi: String) {
+        translaterApi.selectedItem = newApi
+    }
+
+    fun setChatgptKey(newChatgptKey: String) {
+        chatgptKey.text = newChatgptKey
     }
 
     fun isModified(): Boolean {
@@ -76,6 +86,7 @@ class ToolSettingsComponent {
         val userModified = getBuildUser() != ToolSettingsState.instance.buildUser
         val shimoSidModified = getShimoSid() != ToolSettingsState.instance.shimoSid
         val translaterApiModified = getTranslaterApi() != ToolSettingsState.instance.translaterApi
-        return enable || urlModified || userModified || shimoSidModified || translaterApiModified
+        val chatgptKeyModified = getChatgptKey() != ToolSettingsState.instance.chatgptKey
+        return enable || urlModified || userModified || shimoSidModified || translaterApiModified || chatgptKeyModified
     }
 }

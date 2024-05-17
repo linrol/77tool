@@ -32,6 +32,7 @@ class ToolSettingsConfigurable : Configurable {
         ToolSettingsState.instance.buildUser = toolSettingsComponent.getBuildUser()
         ToolSettingsState.instance.shimoSid = toolSettingsComponent.getShimoSid()
         ToolSettingsState.instance.translaterApi = toolSettingsComponent.getTranslaterApi()
+        ToolSettingsState.instance.chatgptKey = toolSettingsComponent.getChatgptKey()
     }
 
     override fun reset() {
@@ -40,6 +41,7 @@ class ToolSettingsConfigurable : Configurable {
         toolSettingsComponent.setBuildUser(ToolSettingsState.instance.buildUser)
         toolSettingsComponent.setShimoSid(ToolSettingsState.instance.shimoSid)
         toolSettingsComponent.setTranslaterApi(ToolSettingsState.instance.translaterApi)
+        toolSettingsComponent.setChatgptKey(ToolSettingsState.instance.chatgptKey)
     }
 
     override fun disposeUIResources() {
