@@ -7,9 +7,11 @@ import com.github.linrol.tool.utils.getValue
 import com.google.gson.JsonParser
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import okhttp3.FormBody
 import okhttp3.Headers
 import okhttp3.MediaType
 import okhttp3.RequestBody
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class LangTranslater(val project: Project) {
@@ -29,8 +31,9 @@ class LangTranslater(val project: Project) {
         val api = ToolSettingsState.instance.translaterApi
         return when {
             api == "baidu" -> translateUseBaidu(text)
-            api == "chatgpt" -> translateUseChatgpt(text)
+            api == "youdao" -> translateUseYoudao(text)
             api == "google" && canProxy -> translateUseGoogle(text)
+            api == "chatgpt" -> translateUseChatgpt(text)
             else -> translateUseBaidu(text)
         }
     }
@@ -118,6 +121,37 @@ class LangTranslater(val project: Project) {
         }
     }
 
+    private fun translateUseYoudao(text: String): String {
+        val appId = "4e9db46185880163"
+        val privateKey = "tGpgvOiwE8PL7517GQSFacmUTJIPhKnD"
+        val salt = UUID.randomUUID().toString()
+        val sign = generateSign(text, salt, appId, privateKey)
+        val url = "https://openapi.youdao.com/api"
+        val formBody = FormBody.Builder()
+            .add("q", text)
+            .add("from", "auto")
+            .add("to", "auto")
+            .add("appKey", appId)
+            .add("salt", salt)
+            .add("sign", sign)
+            .build()
+        return runCatching {
+            OkHttpClientUtils().post(url, formBody) {
+                val ret = JsonParser.parseString(it.string()).getValue("translation[0]")
+                return@post if (ret != null) {
+                    if (printUse) GitCmd.log(project, "使用百度翻译【${text}】:【${ret.asString}】")
+                    ret.asString.apply {
+                        cache[text] = it.toString()
+                    }
+                } else {
+                    logger.error(it.string())
+                    GitCmd.log(project, it.toString())
+                    text
+                }
+            }
+        }.getOrElse { text }
+    }
+
     private fun canProxy(): Boolean {
         return runCatching {
             val test = "https://translate.google.com/"
@@ -125,6 +159,11 @@ class LangTranslater(val project: Project) {
                 true
             }
         }.getOrElse { false }
+    }
+
+    private fun generateSign(input: String, salt: String, appKey: String, appSecret: String): String {
+        val data = appKey + input + salt + appSecret
+        return md5(data)
     }
 
     private fun md5(input: String): String {
