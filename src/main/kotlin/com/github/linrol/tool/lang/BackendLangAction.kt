@@ -1,10 +1,7 @@
 package com.github.linrol.tool.lang
 
 import com.github.linrol.tool.model.GitCmd
-import com.github.linrol.tool.utils.endOffset
-import com.github.linrol.tool.utils.quotedString
-import com.github.linrol.tool.utils.searchText
-import com.github.linrol.tool.utils.startOffset
+import com.github.linrol.tool.utils.*
 import com.google.common.hash.Hashing
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -36,8 +33,6 @@ class BackendLangAction : AbstractLangAction() {
         private val logger = logger<BackendLangAction>()
     }
 
-    private val toRemove = setOf('-', ',', '，', '。', '.', '!', '！', '：', '(', ')', '（', '）')
-
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
         try {
@@ -57,7 +52,6 @@ class BackendLangAction : AbstractLangAction() {
     private fun editorSelectedProcessor(event: AnActionEvent, project: Project) {
         val editor: Editor = event.dataContext.getData("editor") as? Editor ?: return
         val virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
-        val document = editor.document
         val selectedText = editor.selectionModel.selectedText ?: return
         // 翻译
         val translateText: String = LangTranslater(project).printUse().translate(selectedText)
@@ -65,21 +59,21 @@ class BackendLangAction : AbstractLangAction() {
             return
         }
         val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(virtualFile)?: return
-        val modulePath = repository.root.path
-        val csvData = getResData(modulePath)
-        // 准备替换内容
-        val resourceKey = if (csvData.containsValue(selectedText)) {
-            csvData.filter { f -> f.value == selectedText }.first().key.replace(".", "_").uppercase(Locale.getDefault())
-        } else {
-            text2var(translateText)
+        val rootPath = repository.root.path
+        val variable = generateVariable(rootPath, selectedText, translateText)
+        val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${variable})"
+        var start = editor.caretModel.currentCaret.selectionStart
+        var end = editor.caretModel.currentCaret.selectionEnd
+        // 判断中文是否被单引号或双引号包裹
+        val wrappedInQuote = editor.document.wrappedInQuote(start, end)
+        if (wrappedInQuote) {
+            start -= 1
+            end += 1
         }
-        val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${resourceKey})"
-        val documentText = document.text
-        val newText = documentText.replace("\"${selectedText}\"", replaceText)
         WriteCommandAction.runWriteCommandAction(event.project) {
-            document.setText(newText)
-            val key = resourceKey.replace("_", ".").lowercase()
-            appendResJson(modulePath, key, selectedText)
+            editor.document.replaceString(start, end, replaceText)
+            val key = variable.replace("_", ".").lowercase()
+            appendResJson(rootPath, key, selectedText)
         }
     }
 
@@ -98,26 +92,21 @@ class BackendLangAction : AbstractLangAction() {
                 return@forEach
             }
             val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(it.file) ?: return@forEach
-            val path = repository.root.path
-            val resData = getResData(path)
-            // 准备替换内容
-            val resourceKey = if (resData.containsValue(searchText)) {
-                resData.filter { f -> f.value == searchText }.first().key.replace(".", "_").uppercase(Locale.getDefault())
-            } else {
-                text2var(translateText)
-            }
-            val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${resourceKey})"
+            val rootPath = repository.root.path
+            val variable = generateVariable(rootPath, searchText, translateText)
+            val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${variable})"
             // 判断中文是否被单引号或双引号包裹
-            val quotedString = it.quotedString(it.startOffset(), it.endOffset())
-            if (!quotedString) {
+            val wrappedInQuote = it.document.wrappedInQuote(it.startOffset(), it.endOffset())
+            if (!wrappedInQuote) {
+                logger.error("翻译的内容:${searchText}不是一个字符串")
                 return@forEach
             }
             val start = it.startOffset() - 1
             val end = it.endOffset() + 1
             WriteCommandAction.runWriteCommandAction(event.project) {
                 it.document.replaceString(start, end, replaceText)
-                val key = resourceKey.replace("_", ".").lowercase()
-                appendResJson(path, key, searchText)
+                val key = variable.replace("_", ".").lowercase()
+                appendResJson(rootPath, key, searchText)
             }
         }
     }
@@ -197,11 +186,24 @@ class BackendLangAction : AbstractLangAction() {
         return gson.fromJson(Files.readString(file), object : TypeToken<MutableMap<String, Any>>() {}.type)
     }
 
-    private fun text2var(text: String): String {
+    private fun generateVariable (path: String, chineseText: String, englishText: String): String {
+        val csvData = getResData(path)
+        // 准备替换内容
+        return if (csvData.containsValue(chineseText)) {
+            csvData.filter { f -> f.value == chineseText }.first().key.replace(".", "_").uppercase(Locale.getDefault())
+        } else {
+            english2UpperSnakeCase(englishText)
+        }
+    }
+
+    private fun english2UpperSnakeCase(text: String): String {
         return if (text.contains("%s")) {
             "message template ${Hashing.murmur3_32_fixed().hashString(text, StandardCharsets.UTF_8)}"
         } else {
-            text
-        }.filterNot { it in toRemove }.replace(" ", "_").uppercase(Locale.getDefault())
+            // 仅保留英文字母和空格并转为蛇形大写格式
+            text.replace(Regex("[^a-zA-Z\\s]"), "")
+                .replace(Regex("\\s+"), "_")
+                .uppercase(Locale.getDefault())
+        }
     }
 }

@@ -55,14 +55,14 @@ class FrontLangAction : AbstractLangAction() {
                     // 判断中文是否被单引号或双引号包裹
                     var start = it.startOffset()
                     var end = it.endOffset()
-                    val quotedString = it.quotedString(it.startOffset(), it.endOffset())
-                    if (quotedString) {
+                    val wrappedInQuote = it.document.wrappedInQuote(it.startOffset(), it.endOffset())
+                    if (wrappedInQuote) {
                         start -= 1
                         end += 1
                     }
                     var replaceText = "i18n('${codeResKey}')/*${searchText}*/"
                     val equalsSing = it.document.getString(start - 1, start).equals("=")
-                    if (!quotedString || equalsSing) {
+                    if (!wrappedInQuote || equalsSing) {
                         // 不是字符串包裹的中文或在中文首字母-2的位置为=号
                         replaceText = "{${replaceText}}"
                     }

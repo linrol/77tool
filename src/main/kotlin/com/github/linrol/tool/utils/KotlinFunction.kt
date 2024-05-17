@@ -16,6 +16,17 @@ fun Document.getString(start: Int, end: Int): String? {
     return getText(TextRange(start, end))
 }
 
+fun Document.wrappedInQuote(start: Int, end: Int): Boolean {
+    val minEnd = 0
+    val maxEnd = textLength
+    if (start <= minEnd || end >= maxEnd) {
+        return false
+    }
+    val left = getString(start - 1, start)
+    val right = getString(end, end + 1)
+    return StringUtils.equalsAny(left, "'", "\"").and(StringUtils.equalsAny(right, "'", "\""))
+}
+
 fun UsageInfo2UsageAdapter.searchText(): String? {
     val first = getMergedInfos().first()
     val last = getMergedInfos().last()
@@ -36,17 +47,6 @@ fun UsageInfo2UsageAdapter.startOffset(): Int {
 
 fun UsageInfo2UsageAdapter.endOffset(): Int {
     return getMergedInfos().last().navigationRange.endOffset
-}
-
-fun UsageInfo2UsageAdapter.quotedString(start: Int, end: Int): Boolean {
-    val minEnd = 0
-    val maxEnd = document.textLength
-    if (start <= minEnd || end >= maxEnd) {
-        return false
-    }
-    val left = document.getString(start - 1, start)
-    val right = document.getString(end, end + 1)
-    return StringUtils.equalsAny(left, "'", "\"").and(StringUtils.equalsAny(right, "'", "\""))
 }
 
 fun JsonElement?.getValue(path: String): JsonElement? {
