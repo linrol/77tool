@@ -122,6 +122,7 @@ class LangTranslater(val project: Project) {
     }
 
     private fun translateUseYoudao(text: String): String {
+        Thread.sleep(133)
         val appId = "4e9db46185880163"
         val privateKey = "tGpgvOiwE8PL7517GQSFacmUTJIPhKnD"
         val salt = UUID.randomUUID().toString()
@@ -139,14 +140,14 @@ class LangTranslater(val project: Project) {
             OkHttpClientUtils().post(url, formBody) {
                 val ret = JsonParser.parseString(it.string()).getValue("translation[0]")
                 return@post if (ret != null) {
-                    if (printUse) GitCmd.log(project, "使用百度翻译【${text}】:【${ret.asString}】")
+                    if (printUse) GitCmd.log(project, "使用有道翻译【${text}】:【${ret.asString}】")
                     ret.asString.apply {
                         cache[text] = it.toString()
                     }
                 } else {
                     logger.error(it.string())
-                    GitCmd.log(project, it.toString())
-                    text
+                    GitCmd.log(project, "使用有道翻译【${text}】:出现错误【${it.string()}】")
+                    translateUseYoudao(text)
                 }
             }
         }.getOrElse { text }
