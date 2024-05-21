@@ -95,7 +95,7 @@ class GitCmd(private var project: Project, private var repository: GitRepository
         fun log(p: Project?, msg: String) {
             try {
                 val project = p ?: ProjectManager.getInstance().defaultProject
-                val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("tool.console") ?: return
+                val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("77Tool") ?: return
                 ApplicationManager.getApplication().invokeLater {
                     toolWindow.activate {
                         ToolWindowConsole.show()

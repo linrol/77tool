@@ -57,6 +57,7 @@ class LangTranslater(val project: Project) {
                         cache[text] = it.toString()
                     }
                 } else {
+                    GitCmd.log(project, "使用谷歌翻译【${text}】:出现错误【${it.string()}】")
                     logger.error(it.string())
                     translateUseBaidu(text)
                 }
@@ -85,7 +86,7 @@ class LangTranslater(val project: Project) {
                     }.replace("% s", "%s")
                 } else {
                     logger.error(it.string())
-                    GitCmd.log(project, it.toString())
+                    GitCmd.log(project, "使用百度翻译【${text}】:出现错误【${it.string()}】")
                     text
                 }
             }
@@ -109,7 +110,7 @@ class LangTranslater(val project: Project) {
                     }
                 } else {
                     logger.error(it.string())
-                    GitCmd.log(project, it.string())
+                    GitCmd.log(project, "使用chatgpt翻译【${text}】:出现错误【${it.string()}】")
                     text
                 }
             }
