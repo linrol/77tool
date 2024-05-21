@@ -1,11 +1,11 @@
-package com.github.linrol.tool.tollwindow
+package com.github.linrol.tool.console
 
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
-import com.github.linrol.tool.tollwindow.ToolWindowConsole.register
+import com.github.linrol.tool.console.ToolWindowConsole.register
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel

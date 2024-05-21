@@ -1,4 +1,4 @@
-package com.github.linrol.tool.tollwindow
+package com.github.linrol.tool.console
 
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.ui.ConsoleView

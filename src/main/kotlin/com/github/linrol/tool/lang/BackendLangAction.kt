@@ -118,14 +118,15 @@ class BackendLangAction : AbstractLangAction() {
             GitCmd.log(project, "选中的文件不是.csv文件，请重新选择")
             return
         }
-        WriteCommandAction.runWriteCommandAction(project) {
-            updateCsvFile(virtualFile, LangTranslater(project).printUse())
-//            async(project) {
+        async(project) {
+            updateCsvFile(project, virtualFile, LangTranslater(project).printUse())
+//            WriteCommandAction.runWriteCommandAction(project) {
+//
 //            }
         }
     }
 
-    private fun updateCsvFile(file: VirtualFile, translater: LangTranslater) {
+    private fun updateCsvFile(project: Project, file: VirtualFile, translater: LangTranslater) {
         val inputStream = file.inputStream
         val outputStream = file.getOutputStream(this)
         val csvParser = RFC4180ParserBuilder().build()
@@ -151,11 +152,13 @@ class BackendLangAction : AbstractLangAction() {
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
-            try {
-                reader.close()
-                writer.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
+            WriteCommandAction.runWriteCommandAction(project) {
+                try {
+                    reader.close()
+                    writer.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }
