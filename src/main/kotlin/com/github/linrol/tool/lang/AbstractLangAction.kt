@@ -24,4 +24,12 @@ abstract class AbstractLangAction : DumbAwareAction() {
         })
     }
 
+    fun async(project: Project, runnable: (ProgressIndicator) -> Unit) {
+        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "多语翻译中"){
+            override fun run(indicator: ProgressIndicator) {
+                runnable.invoke(indicator)
+            }
+        })
+    }
+
 }

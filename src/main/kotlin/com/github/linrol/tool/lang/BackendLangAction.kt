@@ -11,6 +11,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -118,15 +119,12 @@ class BackendLangAction : AbstractLangAction() {
             GitCmd.log(project, "选中的文件不是.csv文件，请重新选择")
             return
         }
-        async(project) {
-            updateCsvFile(project, virtualFile, LangTranslater(project).printUse())
-//            WriteCommandAction.runWriteCommandAction(project) {
-//
-//            }
+        async(project) { indicator ->
+            updateCsvFile(project, indicator, virtualFile, LangTranslater(project).printUse())
         }
     }
 
-    private fun updateCsvFile(project: Project, file: VirtualFile, translater: LangTranslater) {
+    private fun updateCsvFile(project: Project, indicator: ProgressIndicator, file: VirtualFile, translater: LangTranslater) {
         val inputStream = file.inputStream
         val outputStream = file.getOutputStream(this)
         val csvParser = RFC4180ParserBuilder().build()
@@ -141,6 +139,10 @@ class BackendLangAction : AbstractLangAction() {
 
             // 遍历文件每一行，进行更新
             while (reader.readNext().also { line = it } != null) {
+                if (indicator.isCanceled) {
+                    GitCmd.log(project, "多语翻译任务终止")
+                    return
+                }
                 val id = line!![0]
                 val chinese = line!![2]
                 val english = line!![1]
