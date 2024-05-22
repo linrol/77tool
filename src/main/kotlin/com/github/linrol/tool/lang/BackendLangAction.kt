@@ -202,7 +202,7 @@ class BackendLangAction : AbstractLangAction() {
     }
 
     private fun english2UpperSnakeCase(text: String): String {
-        return if (text.contains("%s")) {
+        return if (text.contains("%s") || text.length > 128) {
             "message template ${Hashing.murmur3_32_fixed().hashString(text, StandardCharsets.UTF_8)}"
         } else {
             // 仅保留英文字母和空格并转为蛇形大写格式
