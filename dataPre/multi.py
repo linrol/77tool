@@ -288,10 +288,7 @@ if __name__ == "__main__":
     print("ERROR: 输入参数错误, 正确的参数为：<env> <tenantId> <branch> <commitUser> <condition>")
     sys.exit(1)
   else:
-    if is_where_condition(sys.argv[5]):
-      condition = sys.argv[5]
-    else:
-      def_group_names = sys.argv[5].split(',')
-      condition = " or ".join([f"name='{name}'" for name in def_group_names])
-      ", ".join(def_group_names)
+    def_group_names = sys.argv[5].split(',')
+    condition = " or ".join([f"name='{name}'" for name in def_group_names])
+    print(condition)
     pre_multi_list(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], condition)
