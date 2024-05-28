@@ -395,7 +395,7 @@ class Task(Common):
                 continue
             is_sprint = source_prefix in ["sprint", "release"]
             is_perform_patch = source_prefix in ["perform-patch"]
-            push_prod = append("q7link-cluster-release", source_name, cluster_str) > 9  # 线下，线上集群总数
+            push_prod = append("q7link-cluster-release", source_name, cluster_str) > 8  # 线下，线上集群总数
             # 宁夏灰度集群1
             cluster1 = "cn-northwest-1"
             push_cluster_1 = cluster1 in cluster_ids
