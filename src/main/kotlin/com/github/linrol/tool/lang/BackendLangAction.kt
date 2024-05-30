@@ -146,7 +146,7 @@ class BackendLangAction : AbstractLangAction() {
                 val id = line!![0]
                 val chinese = line!![2]
                 val english = line!![1]
-                val updatedEnglish = english.ifBlank { translater.translate(chinese)/* 更新英文列 */ }
+                val updatedEnglish = english.ifBlank { WordCapitalizeUtils.apply(id, chinese, translater.translate(chinese))/* 更新英文列 */ }
                 // 写入更新后的行数据
                 val updatedLine = arrayOf(id, updatedEnglish, chinese)
                 writer.writeNext(updatedLine)
