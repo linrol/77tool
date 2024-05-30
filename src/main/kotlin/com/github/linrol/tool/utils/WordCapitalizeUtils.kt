@@ -1,6 +1,7 @@
 package com.github.linrol.tool.utils
 
 import com.intellij.openapi.diagnostic.logger
+import java.util.*
 import java.util.regex.Pattern
 
 object WordCapitalizeUtils {
@@ -52,7 +53,7 @@ object WordCapitalizeUtils {
             if (!containsChinese(chinese)) {
                 return english // 如果中文中所有的字符都是英文，则不改变大小写（因为可能是公式表达式）
             }
-            if (namespaceList.contains(resKey)) {
+            if (namespaceList.any { resKey.startsWith(it) }) {
                 return allWordsCapitalize(english) // 特定的namespace的词条，要求每个单词首字母大写（介词除非是第一个，否则首字母不大写）
             }
             return replaceFirstCharCapitalize(english) // 行首字母大写
@@ -95,6 +96,6 @@ object WordCapitalizeUtils {
     }
 
     private fun replaceFirstCharCapitalize(input: String): String {
-        return input.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        return input.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     }
 }
