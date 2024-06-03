@@ -237,10 +237,7 @@ class Handler(Base):
                 target = task_contents[1]
                 projects = task_contents[2]
                 is_protect = "true" in self.data.get("SelectedItems").get("SelectedItem").get("OptionIds").get("OptionId")
-            if is_protect:
-                protect = "none"
-            else:
-                protect = "hotfix"
+            protect = "none" if is_protect else ("hotfix" if self.is_duty(target) else "d")
             shell = Shell(self.user_id, self.is_test, self.master, target)
             _, ret = shell.protect_branch(target, protect, projects)
             # 发送消息通知
