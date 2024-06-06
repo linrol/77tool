@@ -45,7 +45,7 @@ class LangTranslater(val project: Project) {
 
     private fun translateUseGoogle(text: String): String {
         val key = "AIzaSyBuRCQkN72SAkmQ0CT3fK4mJIEg_ZCqUd8"
-        val params = "q=${text}&source=zh&target=en&key=${key}"
+        val params = "q=${text}&source=zh&target=en&format=text&key=${key}"
         val url = "https://translation.googleapis.com/language/translate/v2?${params}"
 
         return runCatching {

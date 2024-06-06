@@ -60,14 +60,22 @@ class BackendLangAction : AbstractLangAction() {
             return
         }
         val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(virtualFile)?: return
-        val rootPath = repository.root.path
+        val rootPath = repository.root.path.replace("-api", "")
         val variable = generateVariable(rootPath, selectedText, translateText)
-        val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${variable})"
+        val suffixJson = virtualFile.extension == "json"
+
+        val replaceText = if (suffixJson) {
+            val namespace = repository.root.name.replace("-api", "")
+            "\$str.${namespace}\$${variable.replace("_", ".").lowercase()}"
+        } else {
+            "StrResUtils.getCurrentAppStr(StrResConstants.${variable})"
+        }
+
         var start = editor.caretModel.currentCaret.selectionStart
         var end = editor.caretModel.currentCaret.selectionEnd
         // 判断中文是否被单引号或双引号包裹
         val wrappedInQuote = editor.document.wrappedInQuote(start, end)
-        if (wrappedInQuote) {
+        if (wrappedInQuote && !suffixJson) {
             start -= 1
             end += 1
         }
@@ -202,10 +210,13 @@ class BackendLangAction : AbstractLangAction() {
     }
 
     private fun english2UpperSnakeCase(text: String): String {
-        return (if (text.contains("%s") || text.length > 128) {
+        return (if (text.contains("%s") || text.length > 64) {
             "message template ${Hashing.murmur3_32_fixed().hashString(text, StandardCharsets.UTF_8)}"
         } else {
             text
-        }).replace(Regex("[^a-zA-Z\\s]"), "").replace(Regex("\\s+"), "_").uppercase(Locale.getDefault())
+        }).replace(Regex("[^a-zA-Z\\s]"), "")
+          .replace(Regex("\\s+"), "_")
+          .replace(Regex("_$"), "")
+          .uppercase(Locale.getDefault())
     }
 }
