@@ -101,17 +101,24 @@ class BackendLangAction : AbstractLangAction() {
                 return@forEach
             }
             val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(it.file) ?: return@forEach
-            val rootPath = repository.root.path
+            val rootPath = repository.root.path.replace("-api", "")
             val variable = generateVariable(rootPath, searchText, translateText)
-            val replaceText = "StrResUtils.getCurrentAppStr(StrResConstants.${variable})"
+            // 获取 VirtualFile 对象
+            val suffixJson = it.usageInfo.virtualFile?.extension == "json"
+            val replaceText = if (suffixJson) {
+                val namespace = repository.root.name.replace("-api", "")
+                "\$str.${namespace}\$${variable.replace("_", ".").lowercase()}"
+            } else {
+                "StrResUtils.getCurrentAppStr(StrResConstants.${variable})"
+            }
             // 判断中文是否被单引号或双引号包裹
             val wrappedInQuote = it.document.wrappedInQuote(it.startOffset(), it.endOffset())
             if (!wrappedInQuote) {
                 logger.error("翻译的内容:${searchText}不是一个字符串")
                 return@forEach
             }
-            val start = it.startOffset() - 1
-            val end = it.endOffset() + 1
+            val start = it.startOffset() - (if (!suffixJson) 1 else 0)
+            val end = it.endOffset() + (if (!suffixJson) 1 else 0)
             WriteCommandAction.runWriteCommandAction(event.project) {
                 it.document.replaceString(start, end, replaceText)
                 val key = variable.replace("_", ".").lowercase()
@@ -214,7 +221,7 @@ class BackendLangAction : AbstractLangAction() {
             "message template ${Hashing.murmur3_32_fixed().hashString(text, StandardCharsets.UTF_8)}"
         } else {
             text
-        }).replace(Regex("[^a-zA-Z\\s]"), "")
+        }).replace(Regex("[^a-zA-Z1-9\\s]"), "")
           .replace(Regex("\\s+"), "_")
           .replace(Regex("_$"), "")
           .uppercase(Locale.getDefault())
