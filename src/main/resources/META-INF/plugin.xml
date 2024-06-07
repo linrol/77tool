@@ -8,7 +8,9 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.vcs</depends>
+    <depends>org.jetbrains.idea.maven</depends>
     <depends>Git4Idea</depends>
+    <depends>org.jetbrains.plugins.terminal</depends>
 
     <resource-bundle>messages.77tool</resource-bundle>
 
@@ -33,7 +35,7 @@
     <actions>
         <!-- 77tool组 -->
         <group id="com.github.linrol.tool.77toolGroup" text="77tool" popup="true">
-            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="com.github.linrol.tool.branch.commit.CommitMergeRequestAction"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>
         </group>
 
         <!-- Commit And Create Merge Request -->
@@ -91,8 +93,16 @@
         <action id="com.github.linrol.tool.lang.BackendLangAction" class="com.github.linrol.tool.lang.BackendLangAction" text="后端多语翻译">
             <!-- <add-to-group group-id="UsageView.Popup" anchor="first"/>  -->
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
-            <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
             <add-to-group group-id="UsageView.Popup" anchor="first"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="com.github.linrol.tool.77toolGroup"/>
+        </action>
+
+        <!-- maven build -->
+        <action id="com.github.linrol.tool.build.MavenBuildAction" class="com.github.linrol.tool.build.MavenBuildAction"
+                text="Maven Build"
+                description="Maven build"
+                icon="/icons/maven.svg">
+            <add-to-group group-id="com.github.linrol.tool.77toolGroup" anchor="after" relative-to-action="com.github.linrol.tool.branch.protect.ProtectBranchAction"/>
         </action>
 
         <!-- Front Init-Data Version Sync -->
@@ -100,7 +110,7 @@
           text="Front Version Sync"
           description="Front init-data version sync"
           icon="/icons/sync.svg">
-            <add-to-group group-id="com.github.linrol.tool.77toolGroup" anchor="after" relative-to-action="com.github.linrol.tool.branch.protect.ProtectBranchAction"/>
+            <add-to-group group-id="com.github.linrol.tool.77toolGroup" anchor="after" relative-to-action="com.github.linrol.tool.build.MavenBuildAction"/>
         </action>
 
     </actions>
