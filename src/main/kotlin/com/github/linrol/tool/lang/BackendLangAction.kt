@@ -34,6 +34,8 @@ class BackendLangAction : AbstractLangAction() {
         private val logger = logger<BackendLangAction>()
     }
 
+    data class Code(val resPath: String,val resKey: String, val segment: String, val isTypeJava: Boolean)
+
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
         try {
@@ -59,30 +61,18 @@ class BackendLangAction : AbstractLangAction() {
         if (selectedText == translateText) {
             return
         }
-        val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(virtualFile)?: return
-        val rootPath = repository.root.path.replace("-api", "")
-        val variable = generateVariable(rootPath, selectedText, translateText)
-        val suffixJson = virtualFile.extension == "json"
-
-        val replaceText = if (suffixJson) {
-            val namespace = repository.root.name.replace("-api", "")
-            "\$str.${namespace}\$${variable.replace("_", ".").lowercase()}"
-        } else {
-            "StrResUtils.getCurrentAppStr(StrResConstants.${variable})"
-        }
-
+        val code = generateCode(project, virtualFile, selectedText, translateText) ?: return
         var start = editor.caretModel.currentCaret.selectionStart
         var end = editor.caretModel.currentCaret.selectionEnd
         // 判断中文是否被单引号或双引号包裹
         val wrappedInQuote = editor.document.wrappedInQuote(start, end)
-        if (wrappedInQuote && !suffixJson) {
+        if (wrappedInQuote && code.isTypeJava) {
             start -= 1
             end += 1
         }
         WriteCommandAction.runWriteCommandAction(event.project) {
-            editor.document.replaceString(start, end, replaceText)
-            val key = variable.replace("_", ".").lowercase()
-            appendResJson(rootPath, key, selectedText)
+            appendResJson(code.resPath, code.resKey, selectedText)
+            editor.document.replaceString(start, end, code.segment)
         }
     }
 
@@ -100,29 +90,18 @@ class BackendLangAction : AbstractLangAction() {
             if (searchText == translateText) {
                 return@forEach
             }
-            val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(it.file) ?: return@forEach
-            val rootPath = repository.root.path.replace("-api", "")
-            val variable = generateVariable(rootPath, searchText, translateText)
-            // 获取 VirtualFile 对象
-            val suffixJson = it.usageInfo.virtualFile?.extension == "json"
-            val replaceText = if (suffixJson) {
-                val namespace = repository.root.name.replace("-api", "")
-                "\$str.${namespace}\$${variable.replace("_", ".").lowercase()}"
-            } else {
-                "StrResUtils.getCurrentAppStr(StrResConstants.${variable})"
-            }
-            // 判断中文是否被单引号或双引号包裹
+            // 判断搜索结果中被翻译的内容是否被单引号或双引号包裹
             val wrappedInQuote = it.document.wrappedInQuote(it.startOffset(), it.endOffset())
             if (!wrappedInQuote) {
                 logger.error("翻译的内容:${searchText}不是一个字符串")
                 return@forEach
             }
-            val start = it.startOffset() - (if (!suffixJson) 1 else 0)
-            val end = it.endOffset() + (if (!suffixJson) 1 else 0)
+            val code = generateCode(project, it.file, searchText, translateText) ?: return
+            val start = if (code.isTypeJava) (it.startOffset() - 1) else it.startOffset()
+            val end = if (code.isTypeJava) (it.endOffset() + 1) else it.endOffset()
             WriteCommandAction.runWriteCommandAction(event.project) {
-                it.document.replaceString(start, end, replaceText)
-                val key = variable.replace("_", ".").lowercase()
-                appendResJson(rootPath, key, searchText)
+                appendResJson(code.resPath, code.resKey, searchText)
+                it.document.replaceString(start, end, code.segment)
             }
         }
     }
@@ -206,14 +185,25 @@ class BackendLangAction : AbstractLangAction() {
         return gson.fromJson(Files.readString(file), object : TypeToken<MutableMap<String, Any>>() {}.type)
     }
 
-    private fun generateVariable (path: String, chineseText: String, englishText: String): String {
-        val csvData = getResData(path)
+    private fun generateCode(project:Project, virtualFile: VirtualFile, chineseText: String, englishText: String): Code? {
+        val repository = GitRepositoryManager.getInstance(project).getRepositoryForFileQuick(virtualFile) ?: return null
+        val resPath = repository.root.path.replace("-api", "")
+        val moduleName = repository.root.name.replace("-api", "")
+        val csvData = getResData(resPath)
         // 准备替换内容
-        return if (csvData.containsValue(chineseText)) {
+        val variable = if (csvData.containsValue(chineseText)) {
             csvData.filter { f -> f.value == chineseText }.first().key.replace(".", "_").uppercase(Locale.getDefault())
         } else {
             english2UpperSnakeCase(englishText)
         }
+        val isTypeJson = virtualFile.extension == "json"
+        val resKey = variable.replace("_", ".").lowercase()
+        val segment = if (isTypeJson) {
+            "\$str.${moduleName}\$${resKey}"
+        } else {
+            "StrResUtils.getCurrentAppStr(StrResConstants.${variable})"
+        }
+        return Code(resPath, resKey, segment, !isTypeJson)
     }
 
     private fun english2UpperSnakeCase(text: String): String {
