@@ -1,10 +1,10 @@
 package com.github.linrol.tool.branch.merge.local
 
+import com.github.linrol.tool.base.AbstractDumbAction
 import com.github.linrol.tool.utils.GitLabUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
 
-class CommonMergeAction : DumbAwareAction() {
+class CommonMergeAction : AbstractDumbAction() {
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
         CommonMergeDialog(project, e).showAndGet()

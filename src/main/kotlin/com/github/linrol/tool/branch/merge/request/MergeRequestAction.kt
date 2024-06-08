@@ -9,7 +9,6 @@ import com.intellij.openapi.ui.DialogWrapper
 import git4idea.GitUtil
 import git4idea.repo.GitRepository
 import org.apache.commons.lang3.exception.ExceptionUtils
-import com.github.linrol.tool.base.BasePushAction
 import com.github.linrol.tool.branch.command.GitCommand
 import com.github.linrol.tool.model.GitCmd
 import com.intellij.dvcs.push.ui.PushActionBase

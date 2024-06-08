@@ -2,9 +2,8 @@ package com.github.linrol.tool.base
 
 import com.github.linrol.tool.state.ToolSettingsState
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
 
-abstract class BaseBetaAction : DumbAwareAction(){
+abstract class BaseBetaAction : AbstractDumbAction(){
 
     override fun update(e: AnActionEvent) {
         e.project ?: return

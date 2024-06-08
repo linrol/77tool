@@ -3,14 +3,12 @@ package com.github.linrol.tool.base
 import com.intellij.dvcs.push.ui.VcsPushUi
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Nls
+import org.jetbrains.annotations.NotNull
+import org.jetbrains.annotations.Nullable
 
-
-abstract class BasePushAction(actionName:String) : DumbAwareAction(actionName) {
+abstract class BasePushAction(actionName:String) : AbstractDumbAction(actionName) {
     abstract fun isEnabled(dialog: VcsPushUi): Boolean
 
     @Nls

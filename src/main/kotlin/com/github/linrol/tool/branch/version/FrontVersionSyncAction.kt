@@ -1,11 +1,11 @@
 package com.github.linrol.tool.branch.version
 
+import com.github.linrol.tool.base.AbstractDumbAction
 import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.utils.GitLabUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
 
-class FrontVersionSyncAction: DumbAwareAction()  {
+class FrontVersionSyncAction: AbstractDumbAction() {
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
