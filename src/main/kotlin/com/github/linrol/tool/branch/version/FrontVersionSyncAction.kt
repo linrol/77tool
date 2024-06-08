@@ -17,9 +17,9 @@ class FrontVersionSyncAction: DumbAwareAction()  {
         FrontVersionSyncDialog(project, e).showAndGet()
     }
 
-    /* override fun update(e: AnActionEvent) {
+    override fun update(e: AnActionEvent) {
         val project = e.project ?: return
         val repo = GitLabUtil.getRepository(project, "front-goserver")
         e.presentation.isEnabledAndVisible = repo != null
-    } */
+    }
 }

@@ -1,11 +1,11 @@
 package com.github.linrol.tool.build
 
+import com.github.linrol.tool.base.BaseBetaAction
 import com.github.linrol.tool.utils.TerminalUtils
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
 import org.jetbrains.idea.maven.project.MavenProjectsManager
 
-class MavenBuildAction: DumbAwareAction() {
+class MavenBuildAction: BaseBetaAction() {
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
