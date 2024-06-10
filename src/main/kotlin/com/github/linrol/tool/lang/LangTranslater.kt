@@ -34,7 +34,7 @@ class LangTranslater(val project: Project) {
             api == "youdao" -> translateUseYoudao(text)
             api == "google" && canProxy -> translateUseGoogle(text)
             api == "chatgpt" -> translateUseChatgpt(text)
-            api == "77hub" -> translateUse77hub(text)
+            api == "77hub" -> translateUse77hub(text, "vocabulary")
             else -> translateUseBaidu(text)
         }
     }
@@ -123,23 +123,34 @@ class LangTranslater(val project: Project) {
         }
     }
 
-    private fun translateUse77hub(text: String): String {
-        val url = "http://52.83.252.105:8000/translate"
-        val key = "JQfCEvQpN0j8jTkXB3ulh3pGtp67ulHEnVKaEmGd8gZZW0lnLC0JYja"
-        val headers: Headers = Headers.Builder().add("Content-Type", "application/json").add("X-API-Key", key).build()
-        val params = "{\"type\": \"data\",\"chinese\": \"${text}\"}"
+    private fun translateUse77hub(text: String, source: String): String {
+        val url = "http://52.83.252.105:3000/api/v1/chat/completions"
+        val key = if (source == "vocabulary") {
+            "fastgpt-JQfCEvQpN0j8jTkXB3ulh3pGtp67ulHEnVKaEmGd8gZZW0lnLC0JYja"
+        } else {
+            "fastgpt-scYdy1EwipUsSkAQZTpqr50UnDzfxC5BQdFNKcAsNzzCgEetoYjU"
+        }
+        val headers: Headers = Headers.Builder().add("Content-Type", "application/json").add("Authorization", "Bearer $key").build()
+        val params = "{\"stream\":false,\"detail\":false,\"chatId\":\"\",\"variables\":{\"textType\":\"data\", \"translateFormat\":\"JSON\"},\"messages\":[{\"content\":\"$text\",\"role\":\"user\"}]}"
         val request = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), params)
         return runCatching {
             return OkHttpClientUtils().post(url, headers, request) {
-                val english = JsonParser.parseString(it.string()).getValue("translate.english")
-                return@post if (english != null) {
-                    if (printUse) GitCmd.log(project, "使用企企翻译助手翻译【${text}】:【${english.asString}】")
-                    english.asString.apply {
-                        cache[text] = it.toString()
+                JsonParser.parseString(it.string()).asJsonObject.get("choices").asJsonArray.filter { f ->
+                    val role = f.getValue("message.role") ?: return@filter false
+                    role.asString == "assistant"
+                }.mapNotNull { m ->
+                    val content = m.getValue("message.content") ?: return@mapNotNull null
+                    if (source == "vocabulary") {
+                        JsonParser.parseString(content.asString).asJsonArray.filter { f -> f.asJsonObject.get("q").asString == text }.firstNotNullOfOrNull { v -> v.getValue("a")?.asString }
+                    } else {
+                        JsonParser.parseString(content.asString.replace("```", "").replace("json", "")).getValue("english")?.asString
+                    }?.apply {
+                        if (printUse) GitCmd.log(project, "使用企企翻译助手翻译【${text}】:【${this}】")
                     }
+                }.firstOrNull() ?: if (source == "vocabulary") {
+                    translateUse77hub(text, "translate")
                 } else {
-                    logger.error(it.string())
-                    GitCmd.log(project, "使用企企翻译助手翻译【${text}】:出现错误【${it.string()}】")
+                    if (printUse) GitCmd.log(project, "使用企企翻译助手翻译【${text}】:出现错误【${it.string()}】")
                     text
                 }
             }
