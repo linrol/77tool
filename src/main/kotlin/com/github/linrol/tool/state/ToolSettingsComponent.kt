@@ -15,7 +15,7 @@ class ToolSettingsComponent {
     private val buildUrl = JTextField("http://ops.q7link.com:8000/qqdeploy/projectbuild/")
     private val buildUser = JTextField("77tool")
     private val shimoSid = JTextField("s%3A9e1d2ddd1970404b81e4fcf2b7182aed.gzbpB8BH75NkR7W87Tz1FKrR67A4L20vrkQgbcrGTHA")
-    private val translaterApi = ComboBox(arrayOf("baidu", "youdao", "google", "chatgpt"))
+    private val translaterApi = ComboBox(arrayOf("baidu", "youdao", "google", "77hub"))
     private val chatgptKey = JTextField("sk-vbFFb1gpjDWO321CRryqxvnGflJKMJ4RfW6mQjNJtwiwlcld")
 
     init {

@@ -34,6 +34,7 @@ class LangTranslater(val project: Project) {
             api == "youdao" -> translateUseYoudao(text)
             api == "google" && canProxy -> translateUseGoogle(text)
             api == "chatgpt" -> translateUseChatgpt(text)
+            api == "77hub" -> translateUse77hub(text)
             else -> translateUseBaidu(text)
         }
     }
@@ -111,6 +112,34 @@ class LangTranslater(val project: Project) {
                 } else {
                     logger.error(it.string())
                     GitCmd.log(project, "使用chatgpt翻译【${text}】:出现错误【${it.string()}】")
+                    text
+                }
+            }
+        }.getOrElse {
+            it.message?.also { error ->
+                GitCmd.log(project, error)
+            }
+            text
+        }
+    }
+
+    private fun translateUse77hub(text: String): String {
+        val url = "http://52.83.252.105:8000/translate"
+        val key = "JQfCEvQpN0j8jTkXB3ulh3pGtp67ulHEnVKaEmGd8gZZW0lnLC0JYja"
+        val headers: Headers = Headers.Builder().add("Content-Type", "application/json").add("X-API-Key", key).build()
+        val params = "{\"type\": \"data\",\"chinese\": \"${text}\"}"
+        val request = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), params)
+        return runCatching {
+            return OkHttpClientUtils().post(url, headers, request) {
+                val english = JsonParser.parseString(it.string()).getValue("translate.english")
+                return@post if (english != null) {
+                    if (printUse) GitCmd.log(project, "使用企企翻译助手翻译【${text}】:【${english.asString}】")
+                    english.asString.apply {
+                        cache[text] = it.toString()
+                    }
+                } else {
+                    logger.error(it.string())
+                    GitCmd.log(project, "使用企企翻译助手翻译【${text}】:出现错误【${it.string()}】")
                     text
                 }
             }
