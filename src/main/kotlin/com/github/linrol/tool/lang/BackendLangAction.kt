@@ -30,6 +30,7 @@ import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.Executors
 import kotlinx.coroutines.*
+import java.util.concurrent.atomic.AtomicInteger
 
 class BackendLangAction : AbstractLangAction() {
 
@@ -130,6 +131,7 @@ class BackendLangAction : AbstractLangAction() {
         var line: Array<String>?
 
         val jobs = mutableListOf<Deferred<Array<String>>>()
+        val count = AtomicInteger(0)
         val concurrencyLimit = 4
         val dispatcher = Executors.newFixedThreadPool(concurrencyLimit).asCoroutineDispatcher()
         try {
@@ -144,7 +146,16 @@ class BackendLangAction : AbstractLangAction() {
                 val english = line!![1]
                 val job = CoroutineScope(Dispatchers.Default).async(dispatcher) {
                     // 输出当前线程的 ID
-                    val updatedEnglish = english.ifBlank { if (indicator.isCanceled) {english} else WordCapitalizeUtils.apply(id, chinese, translater.translate(chinese))/* 更新英文列 */ }
+                    val updatedEnglish = english.ifBlank {
+                        if (indicator.isCanceled) {
+                            english
+                        } else {
+                            translater.translate(chinese).let {
+                                if (it.isNotEmpty()) count.incrementAndGet()
+                                WordCapitalizeUtils.apply(id, chinese, it)/* 英文处理大小写 */
+                            }
+                        }
+                    }
                     // 写入更新后的行数据
                     arrayOf(id, updatedEnglish, chinese)
                 }
@@ -157,6 +168,7 @@ class BackendLangAction : AbstractLangAction() {
                 if (indicator.isCanceled) {
                     GitCmd.log(project, "多语翻译任务终止")
                 }
+                GitCmd.log(project, "本次翻译总共：${count.get()}条")
                 writer.writeAll(allLine)
             }
         } catch (e: Exception) {
