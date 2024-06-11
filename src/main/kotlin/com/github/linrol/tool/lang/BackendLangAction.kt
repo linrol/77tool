@@ -130,17 +130,18 @@ class BackendLangAction : AbstractLangAction() {
         var line: Array<String>?
 
         val jobs = mutableListOf<Deferred<Array<String>>>()
-        val concurrencyLimit = 10
+        val concurrencyLimit = 4
         val dispatcher = Executors.newFixedThreadPool(concurrencyLimit).asCoroutineDispatcher()
         try {
             // 读取 CSV 文件头（假设有头）
             val header = reader.readNext()
             val allLine = Collections.synchronizedList(mutableListOf<Array<String>>())
             allLine.add(header)
-
+            var canceled = false
             // 遍历文件每一行，进行更新
             while (reader.readNext().also { line = it } != null) {
                 if (indicator.isCanceled) {
+                    canceled = true
                     GitCmd.log(project, "多语翻译任务终止")
                     return
                 }
@@ -149,7 +150,7 @@ class BackendLangAction : AbstractLangAction() {
                 val english = line!![1]
                 val job = CoroutineScope(Dispatchers.Default).async(dispatcher) {
                     // 输出当前线程的 ID
-                    val updatedEnglish = english.ifBlank { WordCapitalizeUtils.apply(id, chinese, translater.translate(chinese))/* 更新英文列 */ }
+                    val updatedEnglish = english.ifBlank { if (canceled) english else WordCapitalizeUtils.apply(id, chinese, translater.translate(chinese))/* 更新英文列 */ }
                     // 写入更新后的行数据
                     arrayOf(id, updatedEnglish, chinese)
                 }

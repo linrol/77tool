@@ -50,6 +50,9 @@ object WordCapitalizeUtils {
 
     fun apply(resKey: String, chinese: String, english: String): String {
         runCatching {
+            if (english.isEmpty()) {
+                return english
+            }
             if (!containsChinese(chinese)) {
                 return english // 如果中文中所有的字符都是英文，则不改变大小写（因为可能是公式表达式）
             }
