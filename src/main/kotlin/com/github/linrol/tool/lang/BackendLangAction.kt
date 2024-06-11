@@ -20,6 +20,7 @@ import com.intellij.usages.UsageInfo2UsageAdapter
 import com.jetbrains.rd.util.first
 import com.opencsv.*
 import git4idea.repo.GitRepositoryManager
+import kotlinx.coroutines.asCoroutineDispatcher
 import org.apache.commons.lang3.exception.ExceptionUtils
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
@@ -27,6 +28,8 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
+import java.util.concurrent.Executors
+import kotlinx.coroutines.*
 
 class BackendLangAction : AbstractLangAction() {
 
@@ -126,10 +129,14 @@ class BackendLangAction : AbstractLangAction() {
         val writer = CSVWriter(OutputStreamWriter(outputStream))
         var line: Array<String>?
 
+        val jobs = mutableListOf<Deferred<Array<String>>>()
+        val concurrencyLimit = 10
+        val dispatcher = Executors.newFixedThreadPool(concurrencyLimit).asCoroutineDispatcher()
         try {
             // 读取 CSV 文件头（假设有头）
             val header = reader.readNext()
-            writer.writeNext(header)
+            val allLine = Collections.synchronizedList(mutableListOf<Array<String>>())
+            allLine.add(header)
 
             // 遍历文件每一行，进行更新
             while (reader.readNext().also { line = it } != null) {
@@ -140,10 +147,19 @@ class BackendLangAction : AbstractLangAction() {
                 val id = line!![0]
                 val chinese = line!![2]
                 val english = line!![1]
-                val updatedEnglish = english.ifBlank { WordCapitalizeUtils.apply(id, chinese, translater.translate(chinese))/* 更新英文列 */ }
-                // 写入更新后的行数据
-                val updatedLine = arrayOf(id, updatedEnglish, chinese)
-                writer.writeNext(updatedLine)
+                val job = CoroutineScope(Dispatchers.Default).async(dispatcher) {
+                    // 输出当前线程的 ID
+                    val updatedEnglish = english.ifBlank { WordCapitalizeUtils.apply(id, chinese, translater.translate(chinese))/* 更新英文列 */ }
+                    // 写入更新后的行数据
+                    arrayOf(id, updatedEnglish, chinese)
+                }
+                jobs.add(job)
+            }
+            runBlocking{
+                jobs.forEach { job ->
+                    allLine.add(job.await()) //获取异步任务的结果
+                }
+                writer.writeAll(allLine)
             }
         } catch (e: Exception) {
             e.printStackTrace()

@@ -43,7 +43,7 @@ class OkHttpClientUtils {
     }
 
     fun connectTimeout(timeout: Long, unit: TimeUnit) : OkHttpClientUtils {
-        this.client = client.newBuilder().connectTimeout(timeout, unit).build()
+        this.client = client.newBuilder().connectTimeout(timeout, unit).readTimeout(timeout, unit).writeTimeout(timeout, unit).build()
         return this
     }
 }

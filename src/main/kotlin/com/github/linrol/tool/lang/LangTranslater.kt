@@ -131,11 +131,14 @@ class LangTranslater(val project: Project) {
             "fastgpt-scYdy1EwipUsSkAQZTpqr50UnDzfxC5BQdFNKcAsNzzCgEetoYjU"
         }
         val headers: Headers = Headers.Builder().add("Content-Type", "application/json").add("Authorization", "Bearer $key").build()
-        val params = "{\"stream\":false,\"detail\":false,\"chatId\":\"\",\"variables\":{\"textType\":\"data\", \"translateFormat\":\"JSON\"},\"messages\":[{\"content\":\"$text\",\"role\":\"user\"}]}"
+        val threadId = Thread.currentThread().id
+        val chatId = if (source == "vocabulary") "vocabulary$threadId" else "translate$threadId"
+        val params = "{\"stream\":false,\"detail\":false,\"chatId\":\"${chatId}\",\"variables\":{\"textType\":\"data\", \"translateFormat\":\"JSON\"},\"messages\":[{\"content\":\"$text\",\"role\":\"user\"}]}"
         val request = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), params)
         return runCatching {
-            return OkHttpClientUtils().post(url, headers, request) {
-                JsonParser.parseString(it.string()).asJsonObject.get("choices").asJsonArray.filter { f ->
+            return OkHttpClientUtils().connectTimeout(20, TimeUnit.SECONDS).post(url, headers, request) {
+                val response = it.string().ifBlank { """{"choices":[]}""" }
+                JsonParser.parseString(response).asJsonObject.get("choices").asJsonArray.filter { f ->
                     val role = f.getValue("message.role") ?: return@filter false
                     role.asString == "assistant"
                 }.mapNotNull { m ->
@@ -156,7 +159,7 @@ class LangTranslater(val project: Project) {
             }
         }.getOrElse {
             it.message?.also { error ->
-                GitCmd.log(project, error)
+                GitCmd.log(project, "使用企企翻译助手翻译【${text}】:出现错误【${error}】")
             }
             text
         }
