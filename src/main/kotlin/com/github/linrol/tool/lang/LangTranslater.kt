@@ -133,7 +133,7 @@ class LangTranslater(val project: Project) {
         val headers: Headers = Headers.Builder().add("Content-Type", "application/json").add("Authorization", "Bearer $key").build()
         val threadId = Thread.currentThread().id
         val chatId = if (source == "vocabulary") "vocabulary$threadId" else "translate$threadId"
-        val params = "{\"stream\":false,\"detail\":false,\"chatId\":\"${chatId}\",\"variables\":{\"textType\":\"data\", \"translateFormat\":\"JSON\"},\"messages\":[{\"content\":\"$text\",\"role\":\"user\"}]}"
+        val params = "{\"stream\":false,\"detail\":false,\"chatId\":\"\",\"variables\":{\"textType\":\"data\", \"translateFormat\":\"JSON\"},\"messages\":[{\"content\":\"$text\",\"role\":\"user\"}]}"
         val request = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), params)
         return runCatching {
             return OkHttpClientUtils().connectTimeout(20, TimeUnit.SECONDS).post(url, headers, request) {
