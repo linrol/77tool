@@ -21,6 +21,8 @@ class ToolSettingsState : PersistentStateComponent<ToolSettingsState?> {
 
     var chatgptKey: String = "sk-vbFFb1gpjDWO321CRryqxvnGflJKMJ4RfW6mQjNJtwiwlcld"
 
+    var nThreads: String = "1"
+
     override fun getState(): ToolSettingsState {
         return this
     }

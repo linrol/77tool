@@ -17,6 +17,7 @@ class ToolSettingsComponent {
     private val shimoSid = JTextField("s%3A9e1d2ddd1970404b81e4fcf2b7182aed.gzbpB8BH75NkR7W87Tz1FKrR67A4L20vrkQgbcrGTHA")
     private val translaterApi = ComboBox(arrayOf("baidu", "youdao", "google", "77hub"))
     private val chatgptKey = JTextField("sk-vbFFb1gpjDWO321CRryqxvnGflJKMJ4RfW6mQjNJtwiwlcld")
+    private val nThreads = JTextField("1")
 
     init {
         panel = FormBuilder.createFormBuilder()
@@ -25,6 +26,7 @@ class ToolSettingsComponent {
                 .addLabeledComponent(JLabel("编译人"), buildUser, 1)
                 .addLabeledComponent(JLabel("石墨sid"), shimoSid, 1)
                 .addLabeledComponent(JLabel("翻译api"), translaterApi, 1)
+                .addLabeledComponent(JLabel("翻译线程数"), nThreads, 1)
                 .addLabeledComponent(JLabel("chatgpt key"), chatgptKey, 1)
                 .addComponentFillVertically(JPanel(), 0)
                 .panel
@@ -56,6 +58,10 @@ class ToolSettingsComponent {
         return chatgptKey.text
     }
 
+    fun getNThreads(): String {
+        return nThreads.text
+    }
+
     fun setBuildAfterPush(newStatus: Boolean) {
         buildAfterPush.isSelected = newStatus
     }
@@ -80,6 +86,10 @@ class ToolSettingsComponent {
         chatgptKey.text = newChatgptKey
     }
 
+    fun setNThreads(newNThreads: String) {
+        nThreads.text = newNThreads
+    }
+
     fun isModified(): Boolean {
         val enable = getBuildAfterPush() != ToolSettingsState.instance.buildAfterPush
         val urlModified = getBuildUrl() != ToolSettingsState.instance.buildUrl
@@ -87,6 +97,7 @@ class ToolSettingsComponent {
         val shimoSidModified = getShimoSid() != ToolSettingsState.instance.shimoSid
         val translaterApiModified = getTranslaterApi() != ToolSettingsState.instance.translaterApi
         val chatgptKeyModified = getChatgptKey() != ToolSettingsState.instance.chatgptKey
-        return enable || urlModified || userModified || shimoSidModified || translaterApiModified || chatgptKeyModified
+        val nThreadsModified = getNThreads() != ToolSettingsState.instance.nThreads
+        return enable || urlModified || userModified || shimoSidModified || translaterApiModified || chatgptKeyModified || nThreadsModified
     }
 }

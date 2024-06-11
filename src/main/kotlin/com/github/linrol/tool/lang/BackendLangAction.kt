@@ -1,6 +1,7 @@
 package com.github.linrol.tool.lang
 
 import com.github.linrol.tool.model.GitCmd
+import com.github.linrol.tool.state.ToolSettingsState
 import com.github.linrol.tool.utils.*
 import com.google.common.hash.Hashing
 import com.google.gson.GsonBuilder
@@ -132,8 +133,8 @@ class BackendLangAction : AbstractLangAction() {
 
         val jobs = mutableListOf<Deferred<Array<String>>>()
         val count = AtomicInteger(0)
-        val concurrencyLimit = 4
-        val dispatcher = Executors.newFixedThreadPool(concurrencyLimit).asCoroutineDispatcher()
+        val nThreads = ToolSettingsState.instance.nThreads.toIntOrNull() ?: 1
+        val dispatcher = Executors.newFixedThreadPool(nThreads).asCoroutineDispatcher()
         try {
             // 读取 CSV 文件头（假设有头）
             val header = reader.readNext()

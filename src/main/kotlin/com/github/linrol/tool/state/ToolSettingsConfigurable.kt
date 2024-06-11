@@ -33,6 +33,7 @@ class ToolSettingsConfigurable : Configurable {
         ToolSettingsState.instance.shimoSid = toolSettingsComponent.getShimoSid()
         ToolSettingsState.instance.translaterApi = toolSettingsComponent.getTranslaterApi()
         ToolSettingsState.instance.chatgptKey = toolSettingsComponent.getChatgptKey()
+        ToolSettingsState.instance.nThreads = toolSettingsComponent.getNThreads()
     }
 
     override fun reset() {
@@ -42,6 +43,7 @@ class ToolSettingsConfigurable : Configurable {
         toolSettingsComponent.setShimoSid(ToolSettingsState.instance.shimoSid)
         toolSettingsComponent.setTranslaterApi(ToolSettingsState.instance.translaterApi)
         toolSettingsComponent.setChatgptKey(ToolSettingsState.instance.chatgptKey)
+        toolSettingsComponent.setNThreads(ToolSettingsState.instance.nThreads)
     }
 
     override fun disposeUIResources() {
