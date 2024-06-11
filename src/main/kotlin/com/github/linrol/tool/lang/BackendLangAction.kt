@@ -119,11 +119,19 @@ class BackendLangAction : AbstractLangAction() {
             return
         }
         async(project) { indicator ->
-            updateCsvFile(project, indicator, virtualFile, LangTranslater(project).printUse())
+            batchUpdateCsvFile(project, indicator, virtualFile)
         }
     }
 
-    private fun updateCsvFile(project: Project, indicator: ProgressIndicator, file: VirtualFile, translater: LangTranslater) {
+    private fun batchUpdateCsvFile(project: Project, indicator: ProgressIndicator, file: VirtualFile) {
+        val batchNum = 100
+        val count = updateCsvFile(project, indicator, file, LangTranslater(project).printUse(), batchNum)
+        if (count > batchNum) {
+            batchUpdateCsvFile(project, indicator, file)
+        }
+    }
+
+    private fun updateCsvFile(project: Project, indicator: ProgressIndicator, file: VirtualFile, translater: LangTranslater, batchNum: Int): Int {
         val inputStream = file.inputStream
         val outputStream = file.getOutputStream(this)
         val csvParser = RFC4180ParserBuilder().build()
@@ -148,7 +156,7 @@ class BackendLangAction : AbstractLangAction() {
                 val job = CoroutineScope(Dispatchers.Default).async(dispatcher) {
                     // 输出当前线程的 ID
                     val updatedEnglish = english.ifBlank {
-                        if (indicator.isCanceled) {
+                        if (indicator.isCanceled || count.get() > batchNum) {
                             english
                         } else {
                             translater.translate(chinese).let {
@@ -166,14 +174,14 @@ class BackendLangAction : AbstractLangAction() {
                 jobs.forEach { job ->
                     allLine.add(job.await()) //获取异步任务的结果
                 }
-                if (indicator.isCanceled) {
-                    GitCmd.log(project, "多语翻译任务终止")
-                }
-                GitCmd.log(project, "本次翻译总共：${count.get()}条")
-                writer.writeAll(allLine)
             }
+            writer.writeAll(allLine)
+            GitCmd.log(project, "本批次总共翻译：${count.get()}条")
+            if (indicator.isCanceled) GitCmd.log(project, "多语翻译任务被终止")
+            return count.get()
         } catch (e: Exception) {
             e.printStackTrace()
+            return count.get()
         } finally {
             WriteCommandAction.runWriteCommandAction(project) {
                 try {

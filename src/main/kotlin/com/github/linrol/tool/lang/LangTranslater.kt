@@ -34,7 +34,7 @@ class LangTranslater(val project: Project) {
             api == "youdao" -> translateUseYoudao(text)
             api == "google" && canProxy -> translateUseGoogle(text)
             api == "chatgpt" -> translateUseChatgpt(text)
-            api == "77hub" -> translateUse77hub(text, "vocabulary")
+            api == "77hub" -> translateUse77hub(text, "vocabulary", 0)
             else -> translateUseBaidu(text)
         }
     }
@@ -123,7 +123,8 @@ class LangTranslater(val project: Project) {
         }
     }
 
-    private fun translateUse77hub(text: String, source: String): String {
+    private fun translateUse77hub(text: String, source: String, retry: Int): String {
+        if (retry> 5) return ""
         val url = "http://52.83.252.105:3000/api/v1/chat/completions"
         val key = if (source == "vocabulary") {
             "fastgpt-JQfCEvQpN0j8jTkXB3ulh3pGtp67ulHEnVKaEmGd8gZZW0lnLC0JYja"
@@ -131,8 +132,6 @@ class LangTranslater(val project: Project) {
             "fastgpt-scYdy1EwipUsSkAQZTpqr50UnDzfxC5BQdFNKcAsNzzCgEetoYjU"
         }
         val headers: Headers = Headers.Builder().add("Content-Type", "application/json").add("Authorization", "Bearer $key").build()
-        val threadId = Thread.currentThread().id
-        val chatId = if (source == "vocabulary") "vocabulary$threadId" else "translate$threadId"
         val params = "{\"stream\":false,\"detail\":false,\"chatId\":\"\",\"variables\":{\"textType\":\"data\", \"translateFormat\":\"JSON\"},\"messages\":[{\"content\":\"$text\",\"role\":\"user\"}]}"
         val request = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), params)
         return runCatching {
@@ -151,7 +150,7 @@ class LangTranslater(val project: Project) {
                         if (printUse) GitCmd.log(project, "使用企企翻译助手翻译【${text}】:【${this}】")
                     }
                 }.firstOrNull() ?: if (source == "vocabulary") {
-                    translateUse77hub(text, "translate")
+                    translateUse77hub(text, "translate", retry = (retry + 1))
                 } else {
                     if (printUse) GitCmd.log(project, "使用企企翻译助手翻译【${text}】:出现错误【${it.string()}】")
                     ""
@@ -162,7 +161,7 @@ class LangTranslater(val project: Project) {
                 GitCmd.log(project, "使用企企翻译助手翻译【${text}】:出现错误【${error}】")
             }
             Thread.sleep(3000)  // 暂停3s继续翻译
-            translateUse77hub(text, source)
+            translateUse77hub(text, source, retry = (retry + 1))
         }
     }
 
