@@ -4,6 +4,7 @@ import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.state.ToolSettingsState
 import com.github.linrol.tool.utils.OkHttpClientUtils
 import com.github.linrol.tool.utils.getValue
+import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -24,6 +25,7 @@ class LangTranslater(val project: Project) {
 
     companion object {
         private val logger = logger<FrontLangAction>()
+        private val gson = Gson()
     }
 
     fun translate(text: String): String {
@@ -132,8 +134,9 @@ class LangTranslater(val project: Project) {
             "fastgpt-scYdy1EwipUsSkAQZTpqr50UnDzfxC5BQdFNKcAsNzzCgEetoYjU"
         }
         val headers: Headers = Headers.Builder().add("Content-Type", "application/json").add("Authorization", "Bearer $key").build()
-        val params = "{\"stream\":false,\"detail\":false,\"chatId\":\"\",\"variables\":{\"textType\":\"data\", \"translateFormat\":\"JSON\"},\"messages\":[{\"content\":\"$text\",\"role\":\"user\"}]}"
-        val request = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), params)
+        val params = mapOf("stream" to false, "detail" to false, "chatId" to "", "variables" to mapOf("textType" to "data", "translateFormat" to "JSON"), "messages" to listOf(mapOf("content" to text, "role" to "user")))
+        val requestBody = gson.toJson(params)
+        val request = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestBody)
         return runCatching {
             return OkHttpClientUtils().connectTimeout(20, TimeUnit.SECONDS).post(url, headers, request) {
                 val response = it.string().ifBlank { """{"choices":[]}""" }
