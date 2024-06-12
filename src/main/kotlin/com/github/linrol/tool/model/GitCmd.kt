@@ -91,13 +91,17 @@ class GitCmd(private var project: Project, private var repository: GitRepository
             ToolWindowConsole.clear()
         }
 
-        @JvmStatic
-        fun log(p: Project?, msg: String) {
+        fun log(p: Project?, msg: String, activate: Boolean) {
             try {
                 val project = p ?: ProjectManager.getInstance().defaultProject
                 val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("77Tool") ?: return
                 ApplicationManager.getApplication().invokeLater {
-                    toolWindow.activate {
+                    if (activate) {
+                        toolWindow.activate {
+                            ToolWindowConsole.show()
+                            ToolWindowConsole.log(project, msg)
+                        }
+                    } else {
                         ToolWindowConsole.show()
                         ToolWindowConsole.log(project, msg)
                     }
@@ -105,6 +109,10 @@ class GitCmd(private var project: Project, private var repository: GitRepository
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+
+        fun log(p: Project?, msg: String) {
+            log(p, msg, true)
         }
     }
 }

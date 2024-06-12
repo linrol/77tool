@@ -21,6 +21,8 @@ class LangTranslater(val project: Project) {
 
     private var printUse = false
 
+    private var batch = false
+
     private val canProxy = canProxy()
 
     companion object {
@@ -46,6 +48,11 @@ class LangTranslater(val project: Project) {
         return this
     }
 
+    fun batch(): LangTranslater {
+        batch = true
+        return this
+    }
+
     private fun translateUseGoogle(text: String): String {
         val key = "AIzaSyBuRCQkN72SAkmQ0CT3fK4mJIEg_ZCqUd8"
         val params = "q=${text}&source=zh&target=en&format=text&key=${key}"
@@ -55,12 +62,12 @@ class LangTranslater(val project: Project) {
             OkHttpClientUtils().get(url) {
                 val translatedText = JsonParser.parseString(it.string()).getValue("data.translations[0].translatedText")
                 return@get if (translatedText != null) {
-                    if (printUse) GitCmd.log(project, "使用谷歌翻译【${text}】:【${translatedText.asString}】")
+                    if (printUse) GitCmd.log(project, "使用谷歌翻译【${text}】:【${translatedText.asString}】", !batch)
                     translatedText.asString.apply {
                         cache[text] = it.toString()
                     }
                 } else {
-                    GitCmd.log(project, "使用谷歌翻译【${text}】:出现错误【${it.string()}】")
+                    GitCmd.log(project, "使用谷歌翻译【${text}】:出现错误【${it.string()}】", !batch)
                     logger.error(it.string())
                     translateUseBaidu(text)
                 }
@@ -81,7 +88,7 @@ class LangTranslater(val project: Project) {
             return OkHttpClientUtils().get(url) {
                 val dst = JsonParser.parseString(it.string()).getValue("trans_result[0].dst")
                 return@get if (dst != null) {
-                    if (printUse) GitCmd.log(project, "使用百度翻译【${text}】:【${dst.asString}】")
+                    if (printUse) GitCmd.log(project, "使用百度翻译【${text}】:【${dst.asString}】", !batch)
                     dst.asString.replaceFirstChar { char ->
                         if (char.isLowerCase()) char.titlecase() else char.toString()
                     }.apply {
@@ -89,7 +96,7 @@ class LangTranslater(val project: Project) {
                     }.replace("% s", "%s")
                 } else {
                     logger.error(it.string())
-                    GitCmd.log(project, "使用百度翻译【${text}】:出现错误【${it.string()}】")
+                    GitCmd.log(project, "使用百度翻译【${text}】:出现错误【${it.string()}】", !batch)
                     text
                 }
             }
@@ -107,19 +114,19 @@ class LangTranslater(val project: Project) {
             return OkHttpClientUtils().post(url, headers, request) {
                 val content = JsonParser.parseString(it.string()).getValue("choices[0].message.content")
                 return@post if (content != null) {
-                    if (printUse) GitCmd.log(project, "使用chatgpt翻译【${text}】:【${content.asString}】")
+                    if (printUse) GitCmd.log(project, "使用chatgpt翻译【${text}】:【${content.asString}】", !batch)
                     content.asString.replace("\"", "").apply {
                         cache[text] = it.toString()
                     }
                 } else {
                     logger.error(it.string())
-                    GitCmd.log(project, "使用chatgpt翻译【${text}】:出现错误【${it.string()}】")
+                    GitCmd.log(project, "使用chatgpt翻译【${text}】:出现错误【${it.string()}】", !batch)
                     text
                 }
             }
         }.getOrElse {
             it.message?.also { error ->
-                GitCmd.log(project, error)
+                GitCmd.log(project, error, !batch)
             }
             text
         }
@@ -150,18 +157,18 @@ class LangTranslater(val project: Project) {
                     } else {
                         JsonParser.parseString(content.asString.replace("```", "").replace("json", "")).getValue("english")?.asString
                     }?.apply {
-                        if (printUse) GitCmd.log(project, "使用企企翻译助手翻译【${text}】:【${this}】")
+                        if (printUse) GitCmd.log(project, "使用企企翻译助手翻译【${text}】:【${this}】", !batch)
                     }
                 }.firstOrNull() ?: if (source == "vocabulary") {
                     translateUse77hub(text, "translate", retry = (retry + 1))
                 } else {
-                    if (printUse) GitCmd.log(project, "使用企企翻译助手翻译【${text}】:出现错误【${it.string()}】")
+                    if (printUse) GitCmd.log(project, "使用企企翻译助手翻译【${text}】:出现错误【${it.string()}】", !batch)
                     ""
                 }
             }
         }.getOrElse {
             it.message?.also { error ->
-                GitCmd.log(project, "使用企企翻译助手翻译【${text}】:出现错误【${error}】")
+                GitCmd.log(project, "使用企企翻译助手翻译【${text}】:出现错误【${error}】", !batch)
             }
             Thread.sleep(3000)  // 暂停3s继续翻译
             translateUse77hub(text, source, retry = (retry + 1))
@@ -187,13 +194,13 @@ class LangTranslater(val project: Project) {
             OkHttpClientUtils().post(url, formBody) {
                 val ret = JsonParser.parseString(it.string()).getValue("translation[0]")
                 return@post if (ret != null) {
-                    if (printUse) GitCmd.log(project, "使用有道翻译【${text}】:【${ret.asString}】")
+                    if (printUse) GitCmd.log(project, "使用有道翻译【${text}】:【${ret.asString}】", !batch)
                     ret.asString.apply {
                         cache[text] = it.toString()
                     }
                 } else {
                     logger.error(it.string())
-                    GitCmd.log(project, "使用有道翻译【${text}】:出现错误【${it.string()}】")
+                    GitCmd.log(project, "使用有道翻译【${text}】:出现错误【${it.string()}】", !batch)
                     translateUseYoudao(text)
                 }
             }
