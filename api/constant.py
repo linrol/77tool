@@ -286,7 +286,9 @@ def get_pre_dirt(msg_content):
     if len(require_keys) > 0:
         raise Exception("请检查【{}】的输入参数合法性".format("，".join(list(require_keys))))
     tenant_id = "tenant" + pre_data_map.get('租户')
-    return pre_data_map.get('环境'), tenant_id, pre_data_map.get('分支'), pre_data_map.get('列表组'), pre_data_map.get("合并人", None)
+    group_names = pre_data_map.get('列表组').split(',')
+    condition = " or ".join([f"name='{name}'" for name in group_names])
+    return pre_data_map.get('环境'), tenant_id, pre_data_map.get('分支'), condition, pre_data_map.get("合并人", None)
 
 
 def get_branch_dirt(msg_content):

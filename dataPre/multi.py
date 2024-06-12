@@ -4,6 +4,8 @@ import time
 import os
 import json
 import re
+import getopt
+import traceback
 from pathlib import Path
 
 sys.path.append(r"../../branch-manage")
@@ -284,11 +286,24 @@ def is_where_condition(string):
 
 
 if __name__ == "__main__":
-  if len(sys.argv) != 6:
-    print("ERROR: 输入参数错误, 正确的参数为：<env> <tenantId> <branch> <commitUser> <condition>")
+  try:
+    arg_str = ["help", "env=", "tenantId=", "branch=", "user=", "condition="]
+    opts, args = getopt.getopt(sys.argv[1:], "he:t:b:u:c:", arg_str)
+    opts_dict = dict(opts)
+    env = opts_dict.get("-e", opts_dict.get("-env"))
+    tenantId = opts_dict.get("-t", opts_dict.get("-tenantId"))
+    branch = opts_dict.get("-b", opts_dict.get("-branch"))
+    user = opts_dict.get("-u", opts_dict.get("-user", None))
+    condition = opts_dict.get("-c", opts_dict.get("-condition"))
+    pre_multi_list(env, tenantId, branch, user, condition)
+    # if len(sys.argv) != 6:
+    #   print("ERROR: 输入参数错误, 正确的参数为：<env> <tenantId> <branch> <commitUser> <condition>")
+    # else:
+    #   def_group_names = sys.argv[5].split(',')
+    #   condition = " or ".join([f"name='{name}'" for name in def_group_names])
+    #   print(condition)
+    #   pre_multi_list(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], condition)
+  except getopt.GetoptError as err:
+    print(err)
+    traceback.print_exc()
     sys.exit(1)
-  else:
-    def_group_names = sys.argv[5].split(',')
-    condition = " or ".join([f"name='{name}'" for name in def_group_names])
-    print(condition)
-    pre_multi_list(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], condition)

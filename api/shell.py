@@ -40,7 +40,7 @@ class Shell(Common):
             self.chdir_data_pre()
             user_name = self.userid2name(self.user_id)
             if data_type == 'new':
-                cmd = 'cd ../dataPre;python3 multi.py {} {} {} {} "{}"'.format(env, tenant_id, temp_branch, user_name, condition_value)
+                cmd = 'cd ../dataPre;python3 multi.py -e {} -t {} -b {} -u {} -c "{}"'.format(env, tenant_id, temp_branch, user_name, condition_value)
                 [ret, msg] = self.exec(cmd, level_info=False)
             elif data_type == 'old':
                 cmd = 'cd ../dataPre;python3 uiconfig.py {} {} {} {} "{}"'.format(env, tenant_id, temp_branch, user_name, condition_value)
