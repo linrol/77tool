@@ -125,7 +125,7 @@ class BackendLangAction : AbstractLangAction() {
 
     private fun batchUpdateCsvFile(project: Project, indicator: ProgressIndicator, file: VirtualFile) {
         val batchNum = 100
-        val count = updateCsvFile(project, indicator, file, LangTranslater(project).printUse(), batchNum)
+        val count = updateCsvFile(project, indicator, file, LangTranslater(project).printUse().batch(), batchNum)
         if (count > batchNum) {
             batchUpdateCsvFile(project, indicator, file)
         }
