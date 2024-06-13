@@ -142,7 +142,7 @@ class BackendLangAction : AbstractLangAction() {
         val jobs = mutableListOf<Deferred<Array<String>>>()
         val count = AtomicInteger(0)
         val nThreads = ToolSettingsState.instance.nThreads.toIntOrNull() ?: 1
-        val dispatcher = Executors.newFixedThreadPool(nThreads).asCoroutineDispatcher()
+        val dispatcher = Executors.newFixedThreadPool(1).asCoroutineDispatcher()
         try {
             // 读取 CSV 文件头（假设有头）
             val header = reader.readNext()
@@ -159,7 +159,7 @@ class BackendLangAction : AbstractLangAction() {
                         if (indicator.isCanceled || count.get() > batchNum) {
                             english
                         } else {
-                            translater.translate(chinese).let {
+                            translater.translateFixed(chinese).let {
                                 if (it.isNotEmpty()) count.incrementAndGet()
                                 WordCapitalizeUtils.apply(id, chinese, it)/* 英文处理大小写 */
                             }

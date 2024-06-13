@@ -43,6 +43,10 @@ class LangTranslater(val project: Project) {
         }
     }
 
+    fun translateFixed(text: String): String {
+        return translateUse77hub(text, "vocabulary", 0)
+    }
+
     fun printUse(): LangTranslater {
         printUse = true
         return this
@@ -133,7 +137,7 @@ class LangTranslater(val project: Project) {
     }
 
     private fun translateUse77hub(text: String, source: String, retry: Int): String {
-        if (retry> 5) return ""
+        if (retry > 3) return ""
         val url = "http://52.83.252.105:3000/api/v1/chat/completions"
         val key = if (source == "vocabulary") {
             "fastgpt-JQfCEvQpN0j8jTkXB3ulh3pGtp67ulHEnVKaEmGd8gZZW0lnLC0JYja"
