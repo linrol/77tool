@@ -174,7 +174,7 @@ class LangTranslater(val project: Project) {
             it.message?.also { error ->
                 GitCmd.log(project, "使用企企翻译助手翻译【${text}】:出现错误【${error}】", !batch)
             }
-            Thread.sleep(3000)  // 暂停3s继续翻译
+            Thread.sleep(5000)  // 暂停5s继续翻译
             translateUse77hub(text, source, retry = (retry + 1))
         }
     }
