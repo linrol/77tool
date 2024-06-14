@@ -151,8 +151,11 @@ class BackendLangAction : AbstractLangAction() {
             // 遍历文件每一行，进行更新
             while (reader.readNext().also { line = it } != null) {
                 val id = line!![0]
-                val chinese = line!![2]
-                val english = line!![1]
+                val chinese = line!![1]
+                val english = line!![2]
+                if (id.isEmpty() || chinese.isEmpty()) {
+                    continue
+                }
                 val job = CoroutineScope(Dispatchers.Default).async(dispatcher) {
                     // 输出当前线程的 ID
                     val updatedEnglish = english.ifBlank {
