@@ -395,7 +395,7 @@ class Task(Common):
                 continue
             is_sprint = source_prefix in ["sprint", "release"]
             is_perform_patch = source_prefix in ["perform-patch"]
-            push_prod = append("q7link-cluster-release", source_name, cluster_str) > 8  # 线下，线上集群总数
+            push_prod = append("q7link-cluster-release", source_name, cluster_str) > 7  # 线下，线上集群总数
             # 宁夏灰度集群1
             cluster1 = "cn-northwest-1"
             push_cluster_1 = cluster1 in cluster_ids
@@ -408,7 +408,7 @@ class Task(Common):
             cluster_global = "cn-northwest-global"
             push_global = cluster_global in cluster_ids and len(cluster_ids) == 1
             cluster_ids.discard(cluster_global)
-            push_perform = 0 < len(cluster_ids) < 7
+            push_perform = 0 < len(cluster_ids) and (not push_prod)
             for p_name in projects:
                 project = self.projects.get(p_name)
                 if project is None:
@@ -482,7 +482,7 @@ class Task(Common):
                 # 目标分支非主干分支，则跳过
                 return
             cluster_count = len(cluster_str.split(","))
-            push_prod = 8 < cluster_count  # 除global以外的线上+灰度集群个数
+            push_prod = 6 < cluster_count  # 除global以外的线上+灰度集群个数
             push_stage = "宁夏灰度1" in cluster_str
             push_perform = 2 < cluster_count and (not push_prod)
             if target != self.stage and push_stage:
