@@ -95,5 +95,9 @@
             <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="com.github.linrol.tool.77toolGroup"/>
         </action>
 
+        <action id="com.github.linrol.tool.lang.ClearLangAction" class="com.github.linrol.tool.lang.ClearLangAction" text="清空多语翻译">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="com.github.linrol.tool.77toolGroup"/>
+        </action>
+
     </actions>
 </idea-plugin>

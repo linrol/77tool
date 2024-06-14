@@ -112,14 +112,30 @@ class BackendLangAction : AbstractLangAction() {
     }
 
     private fun csvTranslateProcessor(event: AnActionEvent, project: Project) {
-        val virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE)
-
-        if (virtualFile == null || !virtualFile.name.endsWith(".csv")) {
+        val virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
+        if (!virtualFile.name.endsWith(".csv") && !virtualFile.isDirectory) {
             GitCmd.log(project, "选中的文件不是.csv文件，请重新选择")
-            return
         }
+
         async(project) { indicator ->
-            batchUpdateCsvFile(project, indicator, virtualFile)
+            if (virtualFile.isDirectory) {
+                processDirectory(project, indicator, virtualFile)
+            } else {
+                batchUpdateCsvFile(project, indicator, virtualFile)
+            }
+        }
+    }
+
+    private fun processDirectory(project: Project, indicator: ProgressIndicator, directory: VirtualFile) {
+        val files = directory.children
+        for (file in files) {
+            if (file.isDirectory) {
+                // 递归处理子目录
+                processDirectory(project, indicator, file)
+            } else if (file.name.endsWith(".csv")) {
+                // 处理 CSV 文件
+                batchUpdateCsvFile(project, indicator, file)
+            }
         }
     }
 
@@ -135,8 +151,8 @@ class BackendLangAction : AbstractLangAction() {
         val inputStream = file.inputStream
         val outputStream = file.getOutputStream(this)
         val csvParser = RFC4180ParserBuilder().build()
-        val reader = CSVReaderBuilder(InputStreamReader(inputStream)).withCSVParser(csvParser).build()
-        val writer = CSVWriter(OutputStreamWriter(outputStream))
+        val reader = CSVReaderBuilder(InputStreamReader(inputStream, StandardCharsets.UTF_8)).withCSVParser(csvParser).build()
+        val writer = CSVWriter(OutputStreamWriter(outputStream, StandardCharsets.UTF_8))
         var line: Array<String>?
 
         val jobs = mutableListOf<Deferred<Array<String>>>()
@@ -169,7 +185,7 @@ class BackendLangAction : AbstractLangAction() {
                         }
                     }
                     // 写入更新后的行数据
-                    arrayOf(id, updatedEnglish, chinese)
+                    arrayOf(id, chinese, updatedEnglish)
                 }
                 jobs.add(job)
             }
