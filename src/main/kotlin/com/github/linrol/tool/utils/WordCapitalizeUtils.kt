@@ -54,7 +54,7 @@ object WordCapitalizeUtils {
                 return english
             }
             if (!containsChinese(chinese)) {
-                return english // 如果中文中所有的字符都是英文，则不改变大小写（因为可能是公式表达式）
+                return chinese // 如果中文中所有的字符都是英文，则不改变大小写（因为可能是公式表达式）
             }
             if (namespaceList.any { resKey.startsWith(it) }) {
                 return allWordsCapitalize(english) // 特定的namespace的词条，要求每个单词首字母大写（介词除非是第一个，否则首字母不大写）
