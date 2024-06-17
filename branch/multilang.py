@@ -66,7 +66,7 @@ class MultiLangFile:
         self.max_retry = 3
         self.translater = LangTranslater()
 
-    def translate(self, file_path, retry_num):
+    def translate(self, file_path, retry_num, cnt):
         if retry_num > self.max_retry:
             return
         df = pd.read_csv(file_path)  # 读取CSV文件
@@ -78,9 +78,10 @@ class MultiLangFile:
             if not blank_english:
                 continue  # 英文列非空
             row_ret, row.iloc[1] = self.translater.run(chinese)
+            cnt += (1 if row_ret else 0)
             done = row_ret and done
         df.to_csv(file_path, index=False, quoting=csv.QUOTE_ALL)
-        return "" if done else self.translate(file_path, retry_num + 1)
+        return cnt if done else self.translate(file_path, retry_num + 1, 0)
 
     @staticmethod
     def is_csv_file(file_path):
@@ -91,12 +92,13 @@ class MultiLangFile:
     def run(self, _path):
         for entry in os.listdir(_path):
             child_path = os.path.join(path, entry)
-            if self.is_csv_file(child_path):
-                self.translate(child_path, 1)
-            elif os.path.isdir(child_path):
+            if os.path.isdir(child_path):
                 self.run(child_path)
+            elif self.is_csv_file(child_path):
+                cnt = self.translate(child_path, 1, 0)
+                print(f"文件 {child_path} 总共翻译了 {cnt} 条")
             else:
-                print(f"file {child_path} ignore")
+                print(f"文件 {child_path} 忽略")
 
 
 # 翻译目录下csv文件的中文列内容到英文列
