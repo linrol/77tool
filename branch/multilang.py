@@ -5,6 +5,7 @@ import requests
 import json
 import time
 import sys
+import traceback
 
 
 class LangTranslater:
@@ -54,7 +55,9 @@ class LangTranslater:
             else:
                 print(f"使用企企翻译助手翻译【{text}】:出现错误【{response.text}】")
                 return False, ""
-        except Exception:
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
             time.sleep(5)  # 暂停5秒继续翻译
             return self.translate_use_77hub(text, source, retry + 1)
 
@@ -74,13 +77,15 @@ class MultiLangFile:
         for index, row in df.iterrows():
             chinese = row.iloc[self.chinese_index]
             english = row.iloc[self.english_index]
-            blank_english = pd.isna(english) or len(english) == 0
-            if not blank_english:
-                continue  # 英文列非空
-            row_ret, row.iloc[1] = self.translater.run(chinese)
+            blank_chinese = pd.isna(chinese) or self.is_empty(chinese)
+            blank_english = pd.isna(english) or self.is_empty(english)
+            if blank_chinese or (not blank_english):
+                continue  # 中文列为空或者英文列不为空，则不需要翻译
+            row_ret, df.iloc[index, self.english_index] = self.translater.run(chinese)
             cnt += (1 if row_ret else 0)
             done = row_ret and done
-        df.to_csv(file_path, index=False, quoting=csv.QUOTE_ALL)
+        if cnt > 0:
+            df.to_csv(file_path, index=False, quoting=csv.QUOTE_ALL)
         return cnt if done else self.translate(file_path, retry_num + 1, 0)
 
     @staticmethod
@@ -89,14 +94,25 @@ class MultiLangFile:
             return False
         return os.path.splitext(file_path)[1].lower() == '.csv'
 
+    @staticmethod
+    def is_empty(var):
+        if not isinstance(var, str):
+            return False
+        return len(var) == 0
+
     def run(self, _path):
         for entry in os.listdir(_path):
-            child_path = os.path.join(path, entry)
+            child_path = os.path.join(_path, entry)
             if os.path.isdir(child_path):
                 self.run(child_path)
             elif self.is_csv_file(child_path):
-                cnt = self.translate(child_path, 1, 0)
-                print(f"文件 {child_path} 总共翻译了 {cnt} 条")
+                print(f"文件 {child_path} 开始翻译...")
+                try:
+                    cnt = self.translate(child_path, 1, 0)
+                    print(f"文件 {child_path} 总共翻译了 {cnt} 条")
+                except Exception as e:
+                    traceback.print_exc()
+                    print(f"文件 {child_path} 翻译失败 {e}")
             else:
                 print(f"文件 {child_path} 忽略")
 
