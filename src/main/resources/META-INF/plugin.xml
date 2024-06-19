@@ -8,9 +8,7 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.vcs</depends>
-    <depends>org.jetbrains.idea.maven</depends>
     <depends>Git4Idea</depends>
-    <depends>org.jetbrains.plugins.terminal</depends>
 
     <resource-bundle>messages.77tool</resource-bundle>
 
@@ -90,27 +88,15 @@
             <!-- <add-to-group group-id="EditorPopupMenu" anchor="first"/>  -->
         </action>
 
-        <action id="com.github.linrol.tool.lang.BackendLangAction" class="com.github.linrol.tool.lang.BackendLangAction" text="后端多语翻译">
+        <action id="com.github.linrol.tool.lang.BackendLangAction" class="com.github.linrol.tool.lang.BackendLangAction" text="多语翻译">
             <!-- <add-to-group group-id="UsageView.Popup" anchor="first"/>  -->
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
             <add-to-group group-id="UsageView.Popup" anchor="first"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="com.github.linrol.tool.77toolGroup"/>
         </action>
 
-        <!-- maven build -->
-        <action id="com.github.linrol.tool.build.MavenBuildAction" class="com.github.linrol.tool.build.MavenBuildAction"
-                text="Local Maven Build"
-                description="Local Maven build"
-                icon="/icons/maven.svg">
-            <add-to-group group-id="com.github.linrol.tool.77toolGroup" anchor="after" relative-to-action="com.github.linrol.tool.branch.protect.ProtectBranchAction"/>
-        </action>
-
-        <!-- Front Init-Data Version Sync -->
-        <action id="com.github.linrol.tool.branch.version.FrontVersionSyncAction" class="com.github.linrol.tool.branch.version.FrontVersionSyncAction"
-          text="Front Version Sync"
-          description="Front init-data version sync"
-          icon="/icons/sync.svg">
-            <add-to-group group-id="com.github.linrol.tool.77toolGroup" anchor="after" relative-to-action="com.github.linrol.tool.build.MavenBuildAction"/>
+        <action id="com.github.linrol.tool.lang.ClearLangAction" class="com.github.linrol.tool.lang.ClearLangAction" text="清空多语翻译">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="com.github.linrol.tool.77toolGroup"/>
         </action>
 
     </actions>
