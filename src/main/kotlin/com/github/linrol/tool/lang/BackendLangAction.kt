@@ -162,14 +162,20 @@ class BackendLangAction : AbstractLangAction() {
         try {
             // 读取 CSV 文件头（假设有头）
             val header = reader.readNext()
+            val headerMap = header.mapIndexed { index, title -> title to index }.toMap()
             val allLine = Collections.synchronizedList(mutableListOf<Array<String>>())
             allLine.add(header)
             // 遍历文件每一行，进行更新
             while (reader.readNext().also { line = it } != null) {
-                val id = line!![0]
-                val chinese = line!![1]
-                val english = line!![2]
+                val id = line!![headerMap["reskey"]!!]
+                val chinese = line!![headerMap["zh-ch"]!!]
+                val english = line!![headerMap["en"]!!]
                 if (id.isEmpty() || chinese.isEmpty()) {
+                    continue
+                }
+                val supressTransIndex = headerMap.getOrDefault("supressTrans", -1)
+                if (supressTransIndex != -1 && line!!.getOrElse(supressTransIndex) {""}.ifBlank { "false" } == "true") {
+                    allLine.add(line)
                     continue
                 }
                 val job = CoroutineScope(Dispatchers.Default).async(dispatcher) {

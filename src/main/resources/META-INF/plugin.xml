@@ -88,7 +88,7 @@
             <!-- <add-to-group group-id="EditorPopupMenu" anchor="first"/>  -->
         </action>
 
-        <action id="com.github.linrol.tool.lang.BackendLangAction" class="com.github.linrol.tool.lang.BackendLangAction" text="后端多语翻译">
+        <action id="com.github.linrol.tool.lang.BackendLangAction" class="com.github.linrol.tool.lang.BackendLangAction" text="多语翻译">
             <!-- <add-to-group group-id="UsageView.Popup" anchor="first"/>  -->
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
             <add-to-group group-id="UsageView.Popup" anchor="first"/>
