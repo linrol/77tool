@@ -1,7 +1,6 @@
 package com.github.linrol.tool.lang
 
 import com.github.linrol.tool.model.GitCmd
-import com.github.linrol.tool.state.ToolSettingsState
 import com.github.linrol.tool.utils.*
 import com.google.common.hash.Hashing
 import com.google.gson.GsonBuilder
@@ -12,25 +11,18 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
 import com.jetbrains.rd.util.first
-import com.opencsv.*
 import git4idea.repo.GitRepositoryManager
-import kotlinx.coroutines.asCoroutineDispatcher
 import org.apache.commons.lang3.exception.ExceptionUtils
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
-import java.util.concurrent.Executors
-import kotlinx.coroutines.*
 import java.util.concurrent.atomic.AtomicInteger
 
 class BackendLangAction : AbstractLangAction() {
@@ -46,7 +38,7 @@ class BackendLangAction : AbstractLangAction() {
         try {
             when (event.place) { // ProjectViewPopup EditorPopup
                 "EditorPopup" -> editorSelectedProcessor(event, project)  // 代码中选中的文本翻译
-                "ProjectViewPopup" -> csvTranslateProcessor(event, project)  // 对csv文件整体翻译没有被翻译的中文
+                "ProjectViewPopup" -> projectViewProcess(event, project)  // 对目录下的csv文件或选中的csv文件整体翻译没有被翻译的中文
                 "UsageViewPopup" -> async(project) { searchProcessor(event, project) } // 对搜索结果中的中文翻译
             }
         } catch (e: Exception) {
@@ -81,6 +73,25 @@ class BackendLangAction : AbstractLangAction() {
         }
     }
 
+    override fun rowTranslateAsync(header: Map<String, Int>, row: Array<String>, translater: LangTranslater, count: AtomicInteger): Array<String> {
+        val idIdx = header.getOrDefault("resKey", -1)
+        val chineseIdx = header.getOrDefault("chineseContent", -1)
+        val englishIdx = header.getOrDefault("content", -1)
+        val id = row[idIdx]; val chinese = row[chineseIdx]; val english = row[englishIdx]
+        if (id.isBlank() || chinese.isBlank()) return row
+
+        val supressIndex = header.getOrDefault("supressTrans", -1)
+        val supress = supressIndex != -1 && row.getOrElse(supressIndex) {""} == "true"
+        val skip = english.isNotBlank() || supress
+        if (skip) return row
+
+        val updateEnglish = translater.translateFixed(chinese).let {
+            if (it.isNotEmpty()) count.incrementAndGet()
+            WordCapitalizeUtils.apply(id, chinese, it)/* 翻译后的英文处理大小写 */
+        }
+        return row.apply { set(englishIdx, updateEnglish) }
+    }
+
     private fun searchProcessor(event: AnActionEvent, project: Project) {
         val usages: Array<Usage> = getUsages(event)
         if (usages.isEmpty()) {
@@ -107,114 +118,6 @@ class BackendLangAction : AbstractLangAction() {
             WriteCommandAction.runWriteCommandAction(event.project) {
                 appendResJson(code.resPath, code.resKey, searchText)
                 it.document.replaceString(start, end, code.segment)
-            }
-        }
-    }
-
-    private fun csvTranslateProcessor(event: AnActionEvent, project: Project) {
-        val virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
-        if (!virtualFile.name.endsWith(".csv") && !virtualFile.isDirectory) {
-            GitCmd.log(project, "选中的文件不是.csv文件，请重新选择")
-        }
-
-        async(project) { indicator ->
-            if (virtualFile.isDirectory) {
-                processDirectory(project, indicator, virtualFile)
-            } else {
-                batchUpdateCsvFile(project, indicator, virtualFile)
-            }
-        }
-    }
-
-    private fun processDirectory(project: Project, indicator: ProgressIndicator, directory: VirtualFile) {
-        val files = directory.children
-        for (file in files) {
-            if (file.isDirectory) {
-                // 递归处理子目录
-                processDirectory(project, indicator, file)
-            } else if (file.name.endsWith(".csv")) {
-                // 处理 CSV 文件
-                batchUpdateCsvFile(project, indicator, file)
-            }
-        }
-    }
-
-    private fun batchUpdateCsvFile(project: Project, indicator: ProgressIndicator, file: VirtualFile) {
-        val batchNum = 100
-        val count = updateCsvFile(project, indicator, file, LangTranslater(project).printUse().batch(), batchNum)
-        if (count > batchNum) {
-            batchUpdateCsvFile(project, indicator, file)
-        }
-    }
-
-    private fun updateCsvFile(project: Project, indicator: ProgressIndicator, file: VirtualFile, translater: LangTranslater, batchNum: Int): Int {
-        val inputStream = file.inputStream
-        val outputStream = file.getOutputStream(this)
-        val csvParser = RFC4180ParserBuilder().build()
-        val reader = CSVReaderBuilder(InputStreamReader(inputStream, StandardCharsets.UTF_8)).withCSVParser(csvParser).build()
-        val writer = CSVWriter(OutputStreamWriter(outputStream, StandardCharsets.UTF_8))
-        var line: Array<String>?
-
-        val jobs = mutableListOf<Deferred<Array<String>>>()
-        val count = AtomicInteger(0)
-        val nThreads = ToolSettingsState.instance.nThreads.toIntOrNull() ?: 1
-        val dispatcher = Executors.newFixedThreadPool(nThreads).asCoroutineDispatcher()
-        try {
-            // 读取 CSV 文件头（假设有头）
-            val header = reader.readNext()
-            val headerMap = header.mapIndexed { index, title -> title to index }.toMap()
-            val allLine = Collections.synchronizedList(mutableListOf<Array<String>>())
-            allLine.add(header)
-            // 遍历文件每一行，进行更新
-            while (reader.readNext().also { line = it } != null) {
-                val id = line!![headerMap["reskey"]!!]
-                val chinese = line!![headerMap["zh-ch"]!!]
-                val english = line!![headerMap["en"]!!]
-                if (id.isEmpty() || chinese.isEmpty()) {
-                    continue
-                }
-                val supressTransIndex = headerMap.getOrDefault("supressTrans", -1)
-                if (supressTransIndex != -1 && line!!.getOrElse(supressTransIndex) {""}.ifBlank { "false" } == "true") {
-                    allLine.add(line)
-                    continue
-                }
-                val job = CoroutineScope(Dispatchers.Default).async(dispatcher) {
-                    // 输出当前线程的 ID
-                    val updatedEnglish = english.ifBlank {
-                        if (indicator.isCanceled || count.get() > batchNum) {
-                            english
-                        } else {
-                            translater.translateFixed(chinese).let {
-                                if (it.isNotEmpty()) count.incrementAndGet()
-                                WordCapitalizeUtils.apply(id, chinese, it)/* 英文处理大小写 */
-                            }
-                        }
-                    }
-                    // 写入更新后的行数据
-                    arrayOf(id, chinese, updatedEnglish)
-                }
-                jobs.add(job)
-            }
-            runBlocking{
-                jobs.forEach { job ->
-                    allLine.add(job.await()) //获取异步任务的结果
-                }
-            }
-            writer.writeAll(allLine)
-            GitCmd.log(project, "本批次总共翻译：${count.get()}条")
-            if (indicator.isCanceled) GitCmd.log(project, "多语翻译任务被终止")
-            return count.get()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return count.get()
-        } finally {
-            WriteCommandAction.runWriteCommandAction(project) {
-                try {
-                    reader.close()
-                    writer.close()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
             }
         }
     }
