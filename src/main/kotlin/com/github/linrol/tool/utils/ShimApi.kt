@@ -6,7 +6,6 @@ import com.google.gson.JsonParser
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import okhttp3.Headers
-import org.apache.poi.ss.usermodel.WorkbookFactory
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
@@ -61,12 +60,12 @@ class ShimApi(val project: Project) {
                         input.copyTo(output)
                     }
                 }
-                return@get toJson(tempFile)
+                return@get emptyList<Map<String, String>>()  // toJson(tempFile)
             }
         }.getOrElse { emptyList() }
     }
 
-    private fun toJson(file: File): List<Map<String, String>> {
+    /** private fun toJson(file: File): List<Map<String, String>> {
         val workbook = WorkbookFactory.create(file)
         val sheet = workbook.getSheetAt(0)
 
@@ -89,7 +88,7 @@ class ShimApi(val project: Project) {
         }
         workbook.close()
         return data
-    }
+    } **/
 
 
     companion object {
