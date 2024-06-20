@@ -26,7 +26,7 @@ class ClearLangAction : AbstractLangAction() {
 
 
     override fun rowTranslateAsync(header: Map<String, Int>, row: Array<String>, translater: LangTranslater, count: AtomicInteger): Array<String> {
-        val englishIdx = header["content"] ?: return row
+        val englishIdx = header.getOrDefault("en", header["content"]) ?: return row
         return row.apply { set(englishIdx, "") }
     }
 }

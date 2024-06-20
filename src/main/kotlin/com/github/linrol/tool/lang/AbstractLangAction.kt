@@ -115,8 +115,8 @@ abstract class AbstractLangAction : AbstractDumbAction() {
                 }
             }
             writer.writeAll(allLine)
-            GitCmd.log(project, "本批次总共翻译：${count.get()}条")
             if (indicator.isCanceled) GitCmd.log(project, "多语翻译任务被终止")
+            GitCmd.log(project, "本批次总共翻译：${count.get()}条")
             return count.get()
         } catch (e: Exception) {
             e.printStackTrace()

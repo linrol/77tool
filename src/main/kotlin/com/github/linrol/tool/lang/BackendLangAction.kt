@@ -33,6 +33,17 @@ class BackendLangAction : AbstractLangAction() {
 
     data class Code(val resPath: String,val resKey: String, val segment: String, val isTypeJava: Boolean)
 
+    override fun update(e: AnActionEvent) {
+        val project = e.project ?: return
+        val backend = GitLabUtil.getRepositories(project).any { it.remotes.first()?.firstUrl?.contains("backend") ?: false }
+        val front = GitLabUtil.getRepositories(project).any { it.remotes.first()?.firstUrl?.contains("front") ?: false }
+        if (!(backend or front)) {
+            e.presentation.isEnabledAndVisible = true
+        } else {
+            e.presentation.isEnabledAndVisible = backend
+        }
+    }
+
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
         try {
@@ -71,25 +82,6 @@ class BackendLangAction : AbstractLangAction() {
             appendResJson(code.resPath, code.resKey, selectedText)
             editor.document.replaceString(start, end, code.segment)
         }
-    }
-
-    override fun rowTranslateAsync(header: Map<String, Int>, row: Array<String>, translater: LangTranslater, count: AtomicInteger): Array<String> {
-        val idIdx = header.getOrDefault("resKey", -1)
-        val chineseIdx = header.getOrDefault("chineseContent", -1)
-        val englishIdx = header.getOrDefault("content", -1)
-        val id = row[idIdx]; val chinese = row[chineseIdx]; val english = row[englishIdx]
-        if (id.isBlank() || chinese.isBlank()) return row
-
-        val supressIndex = header.getOrDefault("supressTrans", -1)
-        val supress = supressIndex != -1 && row.getOrElse(supressIndex) {""} == "true"
-        val skip = english.isNotBlank() || supress
-        if (skip) return row
-
-        val updateEnglish = translater.translateFixed(chinese).let {
-            if (it.isNotEmpty()) count.incrementAndGet()
-            WordCapitalizeUtils.apply(id, chinese, it)/* 翻译后的英文处理大小写 */
-        }
-        return row.apply { set(englishIdx, updateEnglish) }
     }
 
     private fun searchProcessor(event: AnActionEvent, project: Project) {
@@ -178,5 +170,20 @@ class BackendLangAction : AbstractLangAction() {
           .replace(Regex("\\s+"), "_")
           .replace(Regex("_$"), "")
           .uppercase(Locale.getDefault())
+    }
+
+    override fun rowTranslateAsync(header: Map<String, Int>, row: Array<String>, translater: LangTranslater, count: AtomicInteger): Array<String> {
+        val idIdx = header.getOrDefault("resKey", -1)
+        val chineseIdx = header.getOrDefault("chineseContent", -1)
+        val englishIdx = header.getOrDefault("content", -1)
+        val id = row[idIdx]; val chinese = row[chineseIdx]; val english = row[englishIdx]
+        val skip = english.isNotBlank().or(id.isBlank()).or(chinese.isBlank())
+        if (skip) return row
+
+        val updateEnglish = translater.translateFixed(chinese).let {
+            if (it.isNotEmpty()) count.incrementAndGet()
+            WordCapitalizeUtils.apply(id, chinese, it)/* 翻译后的英文处理大小写 */
+        }
+        return row.apply { set(englishIdx, updateEnglish) }
     }
 }
