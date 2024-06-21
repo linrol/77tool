@@ -33,6 +33,7 @@ dependencies {
     implementation ("org.apache.poi:poi:5.2.3")
     implementation ("org.apache.poi:poi-ooxml:5.2.3")
     implementation ("com.opencsv:opencsv:5.5.2")
+    implementation("com.github.jnr:jnr-ffi:2.2.13")
     // implementation ("com.google.cloud:google-cloud-translate:2.43.0")
     // implementation ("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10")
 }
@@ -147,15 +148,36 @@ tasks {
         channels.set(properties("pluginVersion").map { listOf(it.split('-').getOrElse(1) { "default" }.split('.').first()) })
     }
 
+    // 定义一个Gradle任务来编译Go代码
+    register<Exec>("buildGo") {
+        workingDir = file("src/main/go")
+        commandLine("go", "build", "-buildmode=c-shared", "-o", "../resources/lib/libGolang.dylib", ".")
+        standardOutput = System.out
+        errorOutput = System.err
+        isIgnoreExitValue = false
+    }
+
+    // 配置Kotlin编译任务依赖于Go构建任务
+    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        dependsOn("buildGo")
+        kotlinOptions.jvmTarget = "11"
+    }
+
     jar {
         manifest {
             attributes["Main-Class"] = "com.github.linrol.tool.branch.merge.local.CommonMergeAction"
         }
+        // 包含 libexample.so 文件
+        from(fileTree("src/main/resources/lib").include("**/*"))
         // 包含所有依赖项
         from(configurations.runtimeClasspath.get().map {
             if (it.isDirectory) it else zipTree(it)
         })
         // exclude("okhttp3/internal/Platform\$Android.class")
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
+    runIde {
+        jvmArgs("-Djava.library.path=lib")
     }
 }

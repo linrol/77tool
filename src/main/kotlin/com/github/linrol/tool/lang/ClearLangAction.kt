@@ -1,5 +1,6 @@
 package com.github.linrol.tool.lang
 
+import com.github.linrol.tool.base.GolangLibrary
 import com.github.linrol.tool.model.GitCmd
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.logger
@@ -13,6 +14,9 @@ class ClearLangAction : AbstractLangAction() {
     }
 
     override fun actionPerformed(event: AnActionEvent) {
+        val c = GolangLibrary.getInstance().add(1, 5)
+        val d = GolangLibrary.getInstance().subtract(c, 3)
+
         val project = event.project ?: return
         try {
             projectViewProcess(event, project)  // 清除英文列
