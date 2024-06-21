@@ -189,6 +189,18 @@ object GitLabUtil {
         return versions
     }
 
+    fun deleteBranch(path: String, branchName: String):Boolean {
+        return try {
+            // 获取项目
+            val projectId = gitLabApi.projectApi.getProject(path).id
+            gitLabApi.repositoryApi.deleteBranch(projectId, branchName)
+            true
+        } catch (e: Exception) {
+            log.error(e)
+            false
+        }
+    }
+
     fun protectBranch(path: String, branchName: String, level: ProtectLevel):Boolean {
         return try {
             // 获取项目
