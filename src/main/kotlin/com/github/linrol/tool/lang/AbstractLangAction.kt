@@ -49,6 +49,7 @@ abstract class AbstractLangAction : AbstractDumbAction() {
     }
 
     fun projectViewProcess(event: AnActionEvent, project: Project) {
+        GitCmd.log(project, "开始处理多语翻译")
         val virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
         if (!virtualFile.name.endsWith(".csv") && !virtualFile.isDirectory) {
             GitCmd.log(project, "当前选中不是目录或.csv文件，请重新选择")
@@ -116,7 +117,7 @@ abstract class AbstractLangAction : AbstractDumbAction() {
             }
             writer.writeAll(allLine)
             if (indicator.isCanceled) GitCmd.log(project, "多语翻译任务被终止")
-            GitCmd.log(project, "本批次总共翻译：${count.get()}条")
+            GitCmd.log(project, "文件：${file.path} 本批次针总共翻译：${count.get()}条")
             return count.get()
         } catch (e: Exception) {
             e.printStackTrace()
