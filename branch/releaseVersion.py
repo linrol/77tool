@@ -38,24 +38,7 @@ class ReleaseVersion(Common):
                 for p, v in pv.items():
                     replace[p] = v
                     print("工程【{}】自身版本修改为【{}】".format(p, v))
-            is_sprint = self.target_name in ["sprint", "release"]
-            stage_version = self.get_branch_version("stage")
-            compare_error = False
-            # 替换-SNAPSHOT为空串
-            for k, v in version.items():
-                name = self.branch_group.get(k)
-                if name not in self.category.keys():
-                    continue
-                if k in replace:
-                    continue
-                stage_v = stage_version.get(k)
-                if is_sprint and self.compare_version(v, stage_v) < 1:
-                    v_info = "{}.{} < {}.{}".format(v[0], v[1], stage_v[0], stage_v[1])
-                    print("工程【{}】目标分支【{}】落后基准分支【stage】版本号({})，请调整后重新封版打包".format(k, self.target, v_info))
-                    compare_error = True
-                prefix = v[0]
-                replace[k] = "{}.{}".format(prefix, v[1].replace("-SNAPSHOT", ""))
-            if compare_error:
+            if self.check_backend_version_smaller(version, replace):
                 sys.exit(1)
             if len(replace) < 1:
                 print("分支【{}】没有需要待构建的快照包版本".format(self.target))
@@ -68,6 +51,27 @@ class ReleaseVersion(Common):
         except Exception as err:
             print(str(err))
             sys.exit(1)
+
+    # 检查后端版本号和基准分支比较是否变小了
+    def check_backend_version_smaller(self, version, replace):
+        is_smaller = False
+        is_sprint = self.target_name in ["sprint", "release"]
+        stage_version = self.get_branch_version("stage")
+        # 替换-SNAPSHOT为空串
+        for k, v in version.items():
+            name = self.branch_group.get(k)
+            if name not in self.category.keys():
+                continue
+            if k in replace:
+                continue
+            stage_v = stage_version.get(k)
+            if is_sprint and self.compare_version(v, stage_v) < 1:
+                v_info = "{}.{} < {}.{}".format(v[0], v[1], stage_v[0], stage_v[1])
+                print("工程【{}】目标分支【{}】落后基准分支【stage】版本号({})，请调整后重新封版打包".format(k, self.target, v_info))
+                is_smaller = True
+            prefix = v[0]
+            replace[k] = "{}.{}".format(prefix, v[1].replace("-SNAPSHOT", ""))
+        return is_smaller
 
     # 检查前端预制数据是否为发布包版本号
     @staticmethod
