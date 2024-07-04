@@ -217,6 +217,26 @@
         },
         "tables": [
         ]
+      },
+      {
+        "tableName": "baseapp_kanban_definition",
+        "orderBy": "lower(query_list_definition_id), ordinal, lower(id)",
+        "key": {
+          "queryField": "query_list_definition_id",
+          "valueField": "id"
+        },
+        "tables": [
+          {
+            "tableName": "baseapp_kanban_schema",
+            "orderBy": "lower(id)",
+            "key": {
+              "queryField": "id",
+              "valueField": "kanban_schema_id"
+            },
+            "tables": [
+            ]
+          }
+        ]
       }
     ]
   }

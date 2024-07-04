@@ -87,6 +87,8 @@ CREATE TABLE "baseapp_query_definition_group"
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
     "modified_time" TIMESTAMP,
+    "enable_customized_menu" BOOLEAN DEFAULT false NOT NULL,
+    "enable_kanban" BOOLEAN DEFAULT false NOT NULL,
     "is_system" BOOLEAN DEFAULT false NOT NULL,
     "is_init_data" BOOLEAN DEFAULT false NOT NULL,
     "is_deleted" BOOLEAN DEFAULT false NOT NULL,
@@ -358,6 +360,7 @@ CREATE TABLE "baseapp_query_list_definition"
     "multi_langs" JSONB,
     "customized_fields" JSONB,
     "apply_scenario_names" JSONB,
+    "default_view_type" VARCHAR(64),
     PRIMARY KEY ("id")
 );
 COMMENT ON COLUMN "baseapp_query_list_definition"."entry_src_system_id" IS '数据来源类型';
@@ -740,6 +743,7 @@ CREATE TABLE "baseapp_list_columns_definition"
     "multi_langs" JSONB,
     "customized_fields" JSONB,
     "deleted_fields" JSONB,
+    "kanban_definition_id" VARCHAR(64),
     PRIMARY KEY ("id")
 );
 COMMENT ON COLUMN "baseapp_list_columns_definition"."ordinal" IS '序号';
@@ -949,6 +953,7 @@ CREATE TABLE "baseapp_list_sort_definition"
     "last_modified_time" TIMESTAMP,
     "multi_langs" JSONB,
     "customized_fields" JSONB,
+    "kanban_definition_id" VARCHAR(64),
     PRIMARY KEY ("id")
 );
 COMMENT ON COLUMN "baseapp_list_sort_definition"."ordinal" IS '序号';
@@ -1128,3 +1133,66 @@ COMMENT ON COLUMN "baseapp_tab_definition"."customized_fields" IS '自定义属�
 COMMENT ON TABLE "baseapp_tab_definition" IS '页签方案';
 CREATE UNIQUE INDEX "idx_baseapp_tab_definition_xak1" ON "baseapp_tab_definition" USING btree("query_list_definition_id" ASC NULLS FIRST,"query_definition_id" ASC NULLS FIRST,"list_columns_definition_id" ASC NULLS FIRST);
 COMMENT ON INDEX "idx_baseapp_tab_definition_xak1" IS '查询方案和列表方案不可重复。';
+
+DROP TABLE IF EXISTS "baseapp_kanban_definition";
+CREATE TABLE "baseapp_kanban_definition"
+(
+    "id" VARCHAR(64),
+    "title" VARCHAR(256) DEFAULT '',
+    "entry_src_system_id" VARCHAR(64) DEFAULT 'EntrySrcSystem.systemInput',
+    "external_system_code" VARCHAR(128) DEFAULT '',
+    "external_object_type" VARCHAR(128) DEFAULT '',
+    "external_object_id" VARCHAR(128) DEFAULT '',
+    "query_list_definition_id" VARCHAR(64),
+    "is_public" BOOLEAN DEFAULT false NOT NULL,
+    "is_default" BOOLEAN DEFAULT false NOT NULL,
+    "src_definition_id" VARCHAR(64),
+    "public_definition_id" VARCHAR(64),
+    "group_field_values" JSONB,
+    "group_field_name" VARCHAR(128) DEFAULT '',
+    "is_display_others" BOOLEAN DEFAULT false NOT NULL,
+    "is_empty_to_group" BOOLEAN DEFAULT false NOT NULL,
+    "kanban_schema_id" VARCHAR(64),
+    "created_user_id" VARCHAR(64),
+    "created_time" TIMESTAMP,
+    "modified_user_id" VARCHAR(64),
+    "modified_time" TIMESTAMP,
+    "is_system" BOOLEAN DEFAULT false NOT NULL,
+    "is_init_data" BOOLEAN DEFAULT false NOT NULL,
+    "is_deleted" BOOLEAN DEFAULT false NOT NULL,
+    "data_version" BIGINT DEFAULT 0 NOT NULL,
+    "last_request_id" VARCHAR(128) DEFAULT '',
+    "last_modified_user_id" VARCHAR(64),
+    "last_modified_time" TIMESTAMP,
+    "customized_fields" JSONB,
+    "multi_langs" JSONB,
+    PRIMARY KEY ("id")
+);
+
+DROP TABLE IF EXISTS "baseapp_kanban_schema";
+CREATE TABLE "baseapp_kanban_schema"
+(
+    "id" VARCHAR(64),
+    "title" VARCHAR(256) DEFAULT '',
+    "entry_src_system_id" VARCHAR(64) DEFAULT 'EntrySrcSystem.systemInput',
+    "external_system_code" VARCHAR(128) DEFAULT '',
+    "external_object_type" VARCHAR(128) DEFAULT '',
+    "external_object_id" VARCHAR(128) DEFAULT '',
+    "object_type" VARCHAR(64),
+    "apply_scenario_names" JSONB,
+    "disabled_change_group_field" BOOLEAN DEFAULT false NOT NULL,
+    "created_user_id" VARCHAR(64),
+    "created_time" TIMESTAMP,
+    "modified_user_id" VARCHAR(64),
+    "modified_time" TIMESTAMP,
+    "is_system" BOOLEAN DEFAULT false NOT NULL,
+    "is_init_data" BOOLEAN DEFAULT false NOT NULL,
+    "is_deleted" BOOLEAN DEFAULT false NOT NULL,
+    "data_version" BIGINT DEFAULT 0 NOT NULL,
+    "last_request_id" VARCHAR(128) DEFAULT '',
+    "last_modified_user_id" VARCHAR(64),
+    "last_modified_time" TIMESTAMP,
+    "customized_fields" JSONB,
+    "multi_langs" JSONB,
+    PRIMARY KEY ("id")
+);
