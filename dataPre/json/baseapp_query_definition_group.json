@@ -220,7 +220,7 @@
       },
       {
         "tableName": "baseapp_kanban_definition",
-        "orderBy": "lower(query_list_definition_id), ordinal, lower(id)",
+        "orderBy": "lower(query_list_definition_id), lower(id)",
         "key": {
           "queryField": "query_list_definition_id",
           "valueField": "id"
