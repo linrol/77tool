@@ -52,6 +52,18 @@ class ReleaseVersion(Common):
             print(str(err))
             sys.exit(1)
 
+    # 检查后端parent工程中properties的版本号是否小于基准分支了
+    def check_parent_properties_smaller(self, properties, stage_properties):
+        for k, v in properties.items():
+            if k not in stage_properties.keys():
+                continue
+            stage_v = stage_properties.get(k)
+            if self.compare_version(v.rsplit(".", 1), stage_v.rsplit(".", 1)) < 0:
+                v_info = "{} < {}".format(v, stage_v)
+                print("工程【{}】目标分支【{}】落后基准分支【stage】版本号({})，请调整后重新封版打包".format(k, self.target, v_info))
+                return True
+        return False
+
     # 检查后端版本号和基准分支比较是否变小了
     def check_backend_version_smaller(self, version, replace):
         is_smaller = False
@@ -69,6 +81,10 @@ class ReleaseVersion(Common):
                 v_info = "{}.{} < {}.{}".format(v[0], v[1], stage_v[0], stage_v[1])
                 print("工程【{}】目标分支【{}】落后基准分支【stage】版本号({})，请调整后重新封版打包".format(k, self.target, v_info))
                 is_smaller = True
+            if is_sprint and k == "framework":
+                properties = self.get_parent_pom_properties(self.target)
+                stage_properties = self.get_parent_pom_properties("stage")
+                is_smaller = self.check_parent_properties_smaller(properties, stage_properties)
             prefix = v[0]
             replace[k] = "{}.{}".format(prefix, v[1].replace("-SNAPSHOT", ""))
         return is_smaller

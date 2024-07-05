@@ -120,6 +120,14 @@ class Common:
             return None
         return ps[0].getGl().user.username
 
+    # 获取parent工程下pom文件中指定的版本号
+    def get_parent_pom_properties(self, branch):
+        project_parent = self.projects.get('parent')
+        pom = self.utils.get_project_file(project_parent, branch, 'pom.xml', self.utils.pom_parse)
+        properties = pom.getElementsByTagName('properties')[0]
+        platform_version = {node.nodeName.replace("version.framework.", ""): node.firstChild.data for node in properties.childNodes if node.nodeName.startswith("version.framework.") and node.nodeType == 1}
+        return platform_version
+
     # 获取指定分支的版本号
     def get_branch_version(self, branch, skip_release=False):
         if self.project_build is None:
