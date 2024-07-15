@@ -953,7 +953,6 @@ CREATE TABLE "baseapp_list_sort_definition"
     "last_modified_time" TIMESTAMP,
     "multi_langs" JSONB,
     "customized_fields" JSONB,
-    "kanban_definition_id" VARCHAR(64),
     PRIMARY KEY ("id")
 );
 COMMENT ON COLUMN "baseapp_list_sort_definition"."ordinal" IS '序号';
@@ -1153,6 +1152,7 @@ CREATE TABLE "baseapp_kanban_definition"
     "is_display_others" BOOLEAN DEFAULT false NOT NULL,
     "is_empty_to_group" BOOLEAN DEFAULT false NOT NULL,
     "kanban_schema_id" VARCHAR(64),
+    "sorts" JSONB,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
     "modified_user_id" VARCHAR(64),
