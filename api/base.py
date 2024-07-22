@@ -75,8 +75,11 @@ class Base:
         try:
             body = get("{}/api/verify/duty/users".format(self.rd_url))
             sqa_duties = body.get("data").get("sqa")
-            # sqa值班人（仅接受消息）
+            # sqa|测试值班人（仅接收消息通知）
             for duty in sqa_duties:
+                ids.append(duty.get("user_id"))
+            test_duties = body.get("data").get("test")
+            for duty in test_duties:
                 ids.append(duty.get("user_id"))
         except Exception as err:
             logger.error("get readonly user error: {}".format(str(err)), exc_info=True)
