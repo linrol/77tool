@@ -387,6 +387,7 @@ class Task(Common):
         projects = list(tmp)
         rets = []
         duty_branches = self.get_duty_targets()
+        cluster_num = 8  # 线下，线上集群总数
         for source_name in branches:
             if self.is_chinese(source_name):
                 continue
@@ -395,7 +396,7 @@ class Task(Common):
                 continue
             is_sprint = source_prefix in ["sprint", "release"]
             is_perform_patch = source_prefix in ["perform-patch"]
-            push_prod = append("q7link-cluster-release", source_name, cluster_str) > 7  # 线下，线上集群总数
+            push_prod = append("q7link-cluster-release", source_name, cluster_str) >= cluster_num  # 线下，线上集群总数
             # 宁夏灰度集群1
             cluster1 = "cn-northwest-1"
             push_cluster_1 = cluster1 in cluster_ids
@@ -408,7 +409,7 @@ class Task(Common):
             cluster_global = "cn-northwest-global"
             push_global = cluster_global in cluster_ids and len(cluster_ids) == 1
             cluster_ids.discard(cluster_global)
-            push_perform = 0 < len(cluster_ids) and (not push_prod)
+            push_perform = 0 < len(cluster_ids) < (cluster_num - 3)
             for p_name in projects:
                 project = self.projects.get(p_name)
                 if project is None:
