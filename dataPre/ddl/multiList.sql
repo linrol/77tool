@@ -1137,6 +1137,7 @@ DROP TABLE IF EXISTS "baseapp_kanban_definition";
 CREATE TABLE "baseapp_kanban_definition"
 (
     "id" VARCHAR(64),
+    "ordinal" INTEGER DEFAULT 0 NOT NULL,
     "title" VARCHAR(256) DEFAULT '',
     "entry_src_system_id" VARCHAR(64) DEFAULT 'EntrySrcSystem.systemInput',
     "external_system_code" VARCHAR(128) DEFAULT '',
