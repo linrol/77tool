@@ -1153,6 +1153,7 @@ CREATE TABLE "baseapp_kanban_definition"
     "is_display_others" BOOLEAN DEFAULT false NOT NULL,
     "is_empty_to_group" BOOLEAN DEFAULT false NOT NULL,
     "kanban_schema_id" VARCHAR(64),
+    "display_field_names" JSONB,
     "sorts" JSONB,
     "created_user_id" VARCHAR(64),
     "created_time" TIMESTAMP,
