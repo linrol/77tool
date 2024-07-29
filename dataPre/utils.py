@@ -197,6 +197,16 @@ def revert_local_db(tableType):
     print("[{}]{}".format(result, msg))
     sys.exit(1)
 
+# 生成ddl语句
+def gen_ddl(env, db, file):
+  pgConfig = genDbConfig(env)
+  cmd = 'cd ddl;sh gen_ddl.sh -h {} -p {} -w {} -d {} -f {}'.format(pgConfig['host'], pgConfig['port'], pgConfig['pwd'], db, file)
+
+  [result, msg] = subprocess.getstatusoutput(cmd)
+  if result != 0:
+    print("ERROR: 生成ddl语句失败！！！")
+    print("[{}]{}".format(result, msg))
+    sys.exit(1)
 
 #检出指定分支代码
 # projectName: 工程名称

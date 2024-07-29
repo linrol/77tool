@@ -24,7 +24,7 @@ dbPass=${DBPASS:-123}
 dbName=${DBNAME:-preset}
 
 if [ "$fileName" = "" ]; then
-	echo "-d <db name> needed"
+	echo "-d <sql file name> needed"
 	exit 1
 fi
 

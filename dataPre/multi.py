@@ -220,7 +220,9 @@ def pre_multi_list(env, dbName, branch, commitUser, condition):
   utils.chectout_branch(projectName, rootPath, branch)
 
   #将本地基准库重新创建
-  utils.revert_local_db(tableType)
+  ddl_file = "ddl_{}_{}.sql".format(env, time.strftime("%Y%m%d%H%M%S",time.localtime()))
+  utils.gen_ddl(env, dbName, ddl_file)
+  utils.revert_local_db(ddl_file)
 
   #获取表关联信息
   tableJoins = load_json(tableName)
