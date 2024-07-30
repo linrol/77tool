@@ -18,6 +18,9 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.cloud.tencent.com/@g /etc/apt/sources
     apt update && \
     apt install git -y && \
     # Install pg
+    echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
+    apt update && \
     apt install postgresql -y && \
     apt install libpq-dev -y && \
     # Install language utf-8
