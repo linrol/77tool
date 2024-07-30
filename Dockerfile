@@ -8,22 +8,22 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.cloud.tencent.com/@g /etc/apt/sources
     # add ppa
     apt install software-properties-common -y && \
     add-apt-repository ppa:deadsnakes/ppa && \
-    sed -i s@/ppa.launchpad.net/@/launchpad.proxy.ustclug.org/@g /etc/apt/sources.list && \
     apt update && apt upgrade -y && \
     # Install python 3.9
     apt install python3.9 -y && \
     # Install pip
     apt install python3-pip -y && \
-    python3 -m pip install --upgrade pip && \
+    # python3 -m pip install --upgrade pip && \
     # Install git
     add-apt-repository ppa:git-core/ppa && \
     apt update && \
     apt install git -y && \
-    # Install pg
-    echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
+    # Install pg \
+    apt install -y wget gnupg && \
+    echo "deb https://mirrors.cloud.tencent.com/postgresql/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    wget --quiet -O - https://mirrors.cloud.tencent.com/postgresql/repos/apt/ACCC4CF8.asc | apt-key add - && \
     apt update && \
-    apt install postgresql -y && \
+    apt install postgresql-14 -y && \
     apt install libpq-dev -y && \
     # Install language utf-8
     apt install language-pack-zh-hans -y && \
