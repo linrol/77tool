@@ -5,10 +5,6 @@ MAINTAINER linrol "linrolgmail@gmail.com"
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.cloud.tencent.com/@g /etc/apt/sources.list && \
     # Update apt packages
     apt update && apt upgrade -y && \
-    apt install lsb-release wget -y && \
-    echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
-    apt update && apt upgrade -y && \
     # add ppa
     apt install software-properties-common -y && \
     add-apt-repository ppa:deadsnakes/ppa && \
