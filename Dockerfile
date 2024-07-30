@@ -8,6 +8,8 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.cloud.tencent.com/@g /etc/apt/sources
     # add ppa
     apt install software-properties-common -y && \
     add-apt-repository ppa:deadsnakes/ppa && \
+    sed -i s@/ppa.launchpad.net/@/launchpad.proxy.ustclug.org/@g /etc/apt/sources.list && \
+    apt update && apt upgrade -y && \
     # Install python 3.9
     apt install python3.9 -y && \
     # Install pip
