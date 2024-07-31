@@ -26,7 +26,7 @@ def hmset(name, mapping):
 
 
 def hget_default(name, key, default):
-    v = redisClient.get_connection().hget(name, key)
+    v = hget(name, key)
     if v is None:
         return default
     return v

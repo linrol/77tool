@@ -7,7 +7,7 @@ from log import logger
 from shell import Shell
 from common import Common
 from constant import send_create_branch_msg, build_merge_branch_msg, build_move_branch_msg, msg_content
-from redisclient import save_user_task, get_branch_mapping, hmset, hget, hgetall, hdel, append
+from redisclient import save_user_task, get_branch_mapping, hmset, hget, hget_default, hgetall, hdel, append
 services2project = {
     "h5": "front-theory",
     "web": "front-theory",
@@ -389,14 +389,15 @@ class Task(Common):
         duty_branches = self.get_duty_targets()
         cluster_num = 8  # 线下，线上集群总数
         for source_name in branches:
-            if self.is_chinese(source_name):
+            branch = hget_default("q7link-branch-alias", source_name, source_name)
+            if self.is_chinese(branch):
                 continue
-            source_prefix, _ = self.get_branch_date(source_name)
+            source_prefix, _ = self.get_branch_date(branch)
             if len(duty_branches) > 0 and source_prefix not in duty_branches:
                 continue
             is_sprint = source_prefix in ["sprint", "release"]
             is_perform_patch = source_prefix in ["perform-patch"]
-            push_prod = append("q7link-cluster-release", source_name, cluster_str) >= cluster_num  # 线下，线上集群总数
+            push_prod = append("q7link-cluster-release", branch, cluster_str) >= cluster_num  # 线下，线上集群总数
             # 宁夏灰度集群1
             cluster1 = "cn-northwest-1"
             push_cluster_1 = cluster1 in cluster_ids
@@ -419,7 +420,7 @@ class Task(Common):
                 params = {
                     "is_sprint": is_sprint,
                     "is_perform_patch": is_perform_patch,
-                    "source_release": self.backend == end and self.has_release(source_name),
+                    "source_release": self.backend == end and self.has_release(branch),
                     "is_global": project.isGlobal(),
                     "cluster_global": push_global,
                     "cluster_0": push_cluster_0,
@@ -435,7 +436,7 @@ class Task(Common):
                     action = merge_params[0]
                     action_move = action == "move"
                     action_merge = action == "merge"
-                    source = merge_params[1].replace("${source}", source_name)
+                    source = merge_params[1].replace("${source}", branch)
                     target = merge_params[2]
                     rule_ret = eval(v, params)
                     if not rule_ret:
