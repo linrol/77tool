@@ -1,6 +1,10 @@
 {
   "backend": {
     "apps": {
+      "appx": {
+        "path": "../../apps/appx",
+        "checkPath": false
+      },
       "allocation": {
         "path": "../../apps/allocation"
       },

@@ -9,9 +9,9 @@ XML_NS = "http://maven.apache.org/POM/4.0.0"
 XML_NS_INC = "{http://maven.apache.org/POM/4.0.0}"
 branch_group = {}
 module_mapping = {
-    "all": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api', 'global-apps', 'global-apps-api'],
+    "all": ['appx', 'framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api', 'global-apps', 'global-apps-api'],
     "global": ['framework', 'global-apps', 'global-apps-api'],
-    "apps": ['framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api']
+    "apps": ['appx', 'framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api']
 }
 
 

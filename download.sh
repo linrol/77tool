@@ -4,6 +4,7 @@ mkdir backend
 cd backend
 mkdir apps
 cd apps
+git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/appx.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/allocation-api.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/allocation.git
 git clone http://backend-ci:${GIT_PASSWORD}@gitlab.q7link.com/backend/apps/arap-api.git
