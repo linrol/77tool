@@ -25,7 +25,7 @@ class Base:
     project_category = {}
     merge_rule = None
     category_mapping = {"global": ['framework', 'global-apps', 'global-apps-api'],
-                        "apps": ['appx', 'framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api']}
+                        "apps": ['mono', 'framework', 'enterprise', 'enterprise-apps', 'enterprise-apps-api']}
 
     # 获取分支前缀和时间
     def get_branch_date(self, branch):
