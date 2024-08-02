@@ -133,6 +133,20 @@ def branch_seal():
         response["msg"] = str(err)
     return jsonify(response)
 
+# 单体部署健康检查触发
+@app.route("/appx/health", methods=["POST"])
+def appx_health():
+    response = {}
+    try:
+        body = json.loads(request.data.decode('utf-8'))
+        rd_num = body.get("release_num")
+        # 调用ops请求判断rd_num是否执行完成
+        # 调用ops触发单体应用启动
+        pass
+    except Exception as err:
+        logger.exception(err)
+    return jsonify(response)
+
 # 后端是否为发布包检查
 @app.route("/branch/release/check", methods=["POST"])
 def branch_release_check():
