@@ -364,7 +364,7 @@ class Task(Common):
             mr_source_msg = msg_content["mr_source"].format(mr.web_url, project, merged_username)
             if project in self.projects.keys() and project not in ["build"] and self.projects.get(project).getEnd() == self.backend:
                 build_id = self.ops_build(mr.target_branch, False, project_full, author_name)
-                mr_source_msg += "\n已触发独立编译任务ID:{}，请自行关注编译结果".format(build_id)
+                mr_source_msg += "\n独立编译任务 ID：{} 已启动，请留意编译结果。".format(build_id)
             hmset("q7link-branch-merge", {mr_key: author_userid})
             self.crop.send_text_msg(author_userid, mr_source_msg)
 
