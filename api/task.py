@@ -370,7 +370,8 @@ class Task(Common):
 
     # 发送编译结果通知
     def send_build_notify(self, build_id, ret):
-        user_name = hget("q7link-branch-build", build_id)
+        build = self.get_ops_build(build_id)
+        user_name = build.get("user", hget("q7link-branch-build", build_id)).replace("-研发助手", "")
         if user_name is None:
             return
         ret_msg = "成功" if ret == "true" else "失败"
