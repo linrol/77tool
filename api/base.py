@@ -195,17 +195,18 @@ class Base:
         return list(ends)[0]
 
     def get_ops_build(self, build_id):
+        empty = {}
         try:
             res = get("{}?{}".format(self.build_url, "page=1&limit=50"))
             build_list = res.get("data")
             for build in build_list:
-                if build.get("id") != build_id:
+                if str(build.get("id")) != build_id:
                     continue
                 return build
-            pass
+            return empty
         except Exception as err:
             logger.exception(err)
-            return None
+            return empty
 
     # 触发ops编译
     def ops_build(self, branch, skip=False, project=None, user_name=None):

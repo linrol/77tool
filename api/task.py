@@ -374,8 +374,10 @@ class Task(Common):
         user_name = build.get("user", hget("q7link-branch-build", build_id)).replace("-研发助手", "")
         if user_name is None:
             return
+        projects = build.get("projects")
+        branch = build.get("branch")
         ret_msg = "成功" if ret == "true" else "失败"
-        build_msg = msg_content["build_ret"].format(build_id, ret_msg)
+        build_msg = msg_content["build_ret"].format(build_id, projects, branch, ret_msg)
         user_id = self.name2userid(user_name)
         self.crop.send_text_msg(user_id, build_msg)
         hdel("q7link-branch-build", build_id)
