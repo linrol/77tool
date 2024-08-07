@@ -92,11 +92,11 @@ abstract class AbstractLangAction : AbstractDumbAction() {
         val count = AtomicInteger(0)
         val nThreads = ToolSettingsState.instance.nThreads.toIntOrNull() ?: 1
         val dispatcher = Executors.newFixedThreadPool(nThreads).asCoroutineDispatcher()
+        val allLine = Collections.synchronizedList(mutableListOf<Array<String>>())
         try {
             // 读取 CSV 文件头（假设有头）
             val header = reader.readNext()
             val headerMap = header.mapIndexed { index, title -> title to index }.toMap()
-            val allLine = Collections.synchronizedList(mutableListOf<Array<String>>())
             allLine.add(header)
             // 遍历文件每一行，进行更新
             while (reader.readNext().also { line = it } != null) {
@@ -121,6 +121,7 @@ abstract class AbstractLangAction : AbstractDumbAction() {
             return count.get()
         } catch (e: Exception) {
             e.printStackTrace()
+            writer.writeAll(allLine)
             return count.get()
         } finally {
             WriteCommandAction.runWriteCommandAction(project) {

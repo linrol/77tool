@@ -127,12 +127,15 @@ class FrontLangAction : AbstractLangAction() {
     }
 
     override fun rowTranslateAsync(header: Map<String, Int>, row: Array<String>, translater: LangTranslater, count: AtomicInteger): Array<String> {
-        val idIdx = header["reskey"] ?: return row
+        val idIdx = header.getOrDefault("reskey", header["resKey"]) ?: return row
         val chineseIdx = header["zh-ch"] ?: return row
         val englishIdx = header["en"] ?: return row
 
-        val id = row[idIdx]; val chinese = row[chineseIdx]; val english = row[englishIdx]
-        if (id.isBlank() || chinese.isBlank() || english.isNotBlank()) return row
+        val rowList = row.toMutableList()
+        val id = row.getOrNull(idIdx); val chinese = row.getOrNull(chineseIdx); val english = row.getOrElse(englishIdx) {""}
+        if (english.isNotBlank()) return row
+        if (id.isNullOrBlank() && chinese.isNullOrBlank()) return arrayOf()
+        if (id.isNullOrBlank() || chinese.isNullOrBlank()) return row
 
         val supressIndex = header.getOrDefault("supressTrans", -1)
         val supress = supressIndex != -1 && row.getOrElse(supressIndex) {""} == "true"
@@ -142,6 +145,6 @@ class FrontLangAction : AbstractLangAction() {
             if (it.isNotEmpty()) count.incrementAndGet()
             WordCapitalizeUtils.apply(id, chinese, it)/* 翻译后的英文处理大小写 */
         }
-        return row.apply { set(englishIdx, updateEnglish) }
+        return rowList.apply { add(englishIdx, updateEnglish) }.toTypedArray()
     }
 }
