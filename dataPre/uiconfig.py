@@ -196,7 +196,7 @@ if __name__ == "__main__":
     condition = ""
     def_names = sys.argv[5].split(',')
     for def_name in def_names:
-      condition += " or name='{}'".format(def_name)
+      condition += " or ".format(def_name)
     condition = condition.replace(" or ", "", 1)
     pre_form(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], condition)
 
