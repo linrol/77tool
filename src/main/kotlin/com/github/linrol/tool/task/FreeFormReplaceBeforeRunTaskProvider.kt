@@ -3,22 +3,22 @@ package com.github.linrol.tool.task
 import com.github.linrol.tool.lang.ClearLangAction
 import com.github.linrol.tool.model.GitCmd
 import com.github.linrol.tool.utils.GitLabUtil
-import com.google.gson.GsonBuilder
 import com.intellij.execution.BeforeRunTaskProvider
-import com.intellij.execution.application.ApplicationConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.util.io.exists
 import org.apache.commons.lang3.exception.ExceptionUtils
 import org.jetbrains.annotations.Nls
+import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.nio.file.Paths
 import javax.swing.Icon
-import kotlin.reflect.full.memberFunctions
 
 class FreeFormReplaceBeforeRunTaskProvider : BeforeRunTaskProvider<FreeFormReplaceBeforeRunTask>() {
 
@@ -46,7 +46,12 @@ class FreeFormReplaceBeforeRunTaskProvider : BeforeRunTaskProvider<FreeFormRepla
         return true // 可以根据需求决定任务是否可执行
     }
 
-    override fun executeTask(dataContext: DataContext, runConfiguration: RunConfiguration, executionEnvironment: ExecutionEnvironment, freeFormReplaceBeforeRunTask: FreeFormReplaceBeforeRunTask): Boolean {
+    override fun executeTask(
+        dataContext: DataContext,
+        runConfiguration: RunConfiguration,
+        executionEnvironment: ExecutionEnvironment,
+        freeFormReplaceBeforeRunTask: FreeFormReplaceBeforeRunTask
+    ): Boolean {
         // 从 DataContext 获取 Project 对象
         val project = CommonDataKeys.PROJECT.getData(dataContext)
         if (project == null) {
@@ -54,21 +59,28 @@ class FreeFormReplaceBeforeRunTaskProvider : BeforeRunTaskProvider<FreeFormRepla
             return true
         }
         val repos = GitLabUtil.getRepositories(project)
-        repos.map { it.root.path }
+        repos.forEach {
+            val basePath = it.root.path
+            val workPath = getWorkPath(basePath) ?: return@forEach
+            val fileProperties = Paths.get(basePath, workPath, "target/classes/freeform.properties")
+            if (fileProperties.exists()) {
+                propertiesReplace(project, fileProperties.toFile())
+            }
+        }
+        return true
+    }
 
-        val basePath = project.basePath ?: return true
-        val subDir = if (basePath.contains("easy-rent-contract")) {
+    private fun getWorkPath(basePath: String): String? {
+        return if (basePath.contains("easy-rent-contract")) {
             "easy-rent-contract-start";
         } else if (basePath.contains("home-trusteeship-contract")) {
             "trusteeship-contract-web"
         } else {
-            "trusteeship-contract-web"
+            null
         }
+    }
 
-        // 指定 target 中的文件路径
-        val file = basePath.let {
-            Paths.get(it, subDir, "target", "classes", "freeform.properties").toFile()
-        } ?: return true
+    private fun propertiesReplace(project: Project, file: File) {
         // 使用 Properties 读取和替换属性值
         val properties = java.util.Properties()
         try {
@@ -76,21 +88,21 @@ class FreeFormReplaceBeforeRunTaskProvider : BeforeRunTaskProvider<FreeFormRepla
                 properties.load(input)
             }
             // 替换属性值
-            properties["freeform.domain"] = "http://test3-freeform.lianjia.com"
+            properties["freeform.domain"] = "test3-freeform.lianjian.com"
             properties["ak"] = "apjwywyujtexfngyaa0v"
             properties["sk"] = "lpfoffblrv8e03i21hcnez16"
             // 保存更改到文件
             FileOutputStream(file).use { output ->
                 properties.store(output, "Updated properties")
             }
-            GitCmd.log(project, "Freeform File Properties replacement completed successfully.")
-            logger.info("Freeform File Properties replacement completed successfully.")
-            return true
+            GitCmd.log(project, "Freeform File【${file.path}】 Properties replacement completed successfully.")
+            logger.info("Freeform File【${file.path}】 Properties replacement completed successfully.")
+            return
         } catch (e: Exception) {
             logger.error("Failed to read or write the properties file during before run task.", e)
             GitCmd.log(project, e.stackTraceToString())
             GitCmd.log(project, ExceptionUtils.getRootCauseMessage(e))
-            return false
+            return
         }
     }
 }
